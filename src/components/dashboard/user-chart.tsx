@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, getInitials } from "@/lib/utils";
 import type { Expense, Profile } from "@/types";
@@ -29,6 +29,10 @@ export function UserChart({ expenses, members, month, year }: UserChartProps) {
       .filter((d) => d.total > 0)
       .sort((a, b) => b.total - a.total);
   }, [expenses, members, month, year]);
+
+  const avg = data.length > 1
+    ? data.reduce((sum, d) => sum + d.total, 0) / data.length
+    : null;
 
   if (data.length === 0) {
     return (
@@ -63,30 +67,44 @@ export function UserChart({ expenses, members, month, year }: UserChartProps) {
               contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "13px" }}
               cursor={{ fill: "hsl(var(--secondary))" }}
             />
-            <Bar dataKey="total" radius={[6, 6, 0, 0]} fill="#10b981" />
+            <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+              {data.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
 
         {/* Member list */}
         <div className="space-y-3 mt-4">
-          {data.map((item) => (
-            <div key={item.fullName} className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback
-                    className="text-[10px] font-semibold text-white"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    {getInitials(item.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-foreground font-medium">{item.fullName}</span>
+          {data.map((item) => {
+            const diff = avg !== null ? item.total - avg : null;
+            return (
+              <div key={item.fullName} className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Avatar className="h-7 w-7">
+                    <AvatarFallback
+                      className="text-[10px] font-semibold text-white"
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {getInitials(item.fullName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-foreground font-medium">{item.fullName}</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold" style={{ color: item.color }}>
+                    {formatCurrency(item.total)}
+                  </span>
+                  {diff !== null && (
+                    <span className="text-xs font-medium" style={{ color: item.color }}>
+                      ({diff >= 0 ? "+" : "-"}{formatCurrency(Math.abs(diff))})
+                    </span>
+                  )}
+                </div>
               </div>
-              <span className="text-sm font-bold" style={{ color: item.color }}>
-                {formatCurrency(item.total)}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

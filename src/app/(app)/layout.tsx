@@ -18,8 +18,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar profile={profile} />
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        <main className="flex-1 pb-20 lg:pb-0">
+      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
+        <main className="flex-1 pb-20 lg:pb-0 min-w-0">
           {children}
         </main>
       </div>

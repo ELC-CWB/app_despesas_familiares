@@ -11,12 +11,14 @@ interface HeaderProps {
   subtitle?: string;
   profile: Profile | null;
   groupName?: string | null;
+  displayMonth?: number;
+  displayYear?: number;
 }
 
-export function Header({ title, subtitle, profile, groupName }: HeaderProps) {
+export function Header({ title, subtitle, profile, groupName, displayMonth, displayYear }: HeaderProps) {
   const now = new Date();
-  const monthLabel = MONTHS[now.getMonth() + 1];
-  const year = now.getFullYear();
+  const monthLabel = MONTHS[displayMonth ?? (now.getMonth() + 1)];
+  const year = displayYear ?? now.getFullYear();
 
   return (
     <header className="flex items-center justify-between px-5 lg:px-8 py-4 bg-background border-b border-border sticky top-0 z-10">

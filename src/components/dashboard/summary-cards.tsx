@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import type { Expense, Profile, Category } from "@/types";
-import { TrendingDown, Users, Tag, Calendar } from "lucide-react";
+import { TrendingDown, Users, Tag, Calculator } from "lucide-react";
 import { useMemo } from "react";
 
 interface SummaryCardsProps {
@@ -21,7 +21,16 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear, cat
   );
 
   const totalMonth = filtered.reduce((sum, e) => sum + Number(e.amount), 0);
-  const totalAll = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+  const avgPerUser = useMemo(() => {
+    const totals = new Map<string, number>();
+    filtered.forEach((e) => {
+      totals.set(e.user_id, (totals.get(e.user_id) ?? 0) + Number(e.amount));
+    });
+    if (totals.size === 0) return 0;
+    const sum = [...totals.values()].reduce((a, b) => a + b, 0);
+    return sum / totals.size;
+  }, [filtered]);
 
   const topCategory = useMemo(() => {
     const byCategory: Record<string, number> = {};
@@ -47,14 +56,6 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear, cat
       bg: "bg-primary/10",
     },
     {
-      title: "Membros Ativos",
-      value: members.length.toString(),
-      sub: "no grupo",
-      icon: Users,
-      color: "text-blue-500",
-      bg: "bg-blue-50",
-    },
-    {
       title: "Maior Categoria",
       value: topCategoryLabel,
       sub: topCategory ? formatCurrency(topCategory.total) : "Sem dados",
@@ -63,10 +64,18 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear, cat
       bg: "bg-purple-50",
     },
     {
-      title: "Total Acumulado",
-      value: formatCurrency(totalAll),
-      sub: `${expenses.length} lançamentos`,
-      icon: Calendar,
+      title: "Membros Ativos",
+      value: members.length.toString(),
+      sub: "no grupo",
+      icon: Users,
+      color: "text-blue-500",
+      bg: "bg-blue-50",
+    },
+    {
+      title: "Média por Usuário",
+      value: avgPerUser > 0 ? formatCurrency(avgPerUser) : "-",
+      sub: "no período selecionado",
+      icon: Calculator,
       color: "text-orange-500",
       bg: "bg-orange-50",
     },

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Users, Mail, Check, Crown, Loader2, Pencil, Trash2, Plus, X, Tag } from "lucide-react";
 
@@ -45,6 +46,8 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<{ id: string; name: string } | null>(null);
 
   // Category state
   const [categories, setCategories] = useState<Category[]>(initialCategories);
@@ -116,6 +119,20 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
     router.refresh();
   }
 
+  async function handleRemoveMember(memberId: string, memberName: string) {
+    if (!group) return;
+    setRemovingMemberId(memberId);
+    const supabase = createClient();
+    const { error } = await supabase.rpc("remove_group_member", {
+      member_id: memberId,
+      grp_id: group.id,
+    });
+    setRemovingMemberId(null);
+    if (error) { toast({ variant: "destructive", title: "Erro ao remover membro", description: error.message }); return; }
+    toast({ title: "Membro removido", description: `${memberName} e todos os seus lançamentos foram removidos do grupo.` });
+    router.refresh();
+  }
+
   function startEdit(cat: Category) {
     setEditingId(cat.id);
     setEditForm({ label: cat.label, emoji: cat.emoji, color: cat.color });
@@ -175,7 +192,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 w-full max-w-2xl">
       {/* Pending invites for me */}
       {myInvites.length > 0 && (
         <Card className="border-primary/30 bg-primary/5">
@@ -188,11 +205,11 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
           <CardContent className="space-y-3">
             {myInvites.map((invite) => (
               <div key={invite.id} className="flex items-center justify-between gap-3 p-3 bg-background rounded-lg border border-border">
-                <div>
-                  <p className="text-sm font-medium">{invite.groups?.name ?? "Grupo"}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{invite.groups?.name ?? "Grupo"}</p>
                   <p className="text-xs text-muted-foreground">Você foi convidado para este grupo</p>
                 </div>
-                <Button size="sm" onClick={() => handleAcceptInvite(invite.id, invite.group_id)} disabled={acceptingId === invite.id} className="gap-1.5">
+                <Button size="sm" onClick={() => handleAcceptInvite(invite.id, invite.group_id)} disabled={acceptingId === invite.id} className="gap-1.5 flex-shrink-0">
                   {acceptingId === invite.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   Aceitar
                 </Button>
@@ -259,10 +276,20 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                     </p>
                     <p className="text-xs text-muted-foreground truncate">{m.email}</p>
                   </div>
-                  {m.id === group.created_by && (
-                    <Badge variant="secondary" className="text-xs gap-1">
+                  {m.id === group.created_by ? (
+                    <Badge variant="secondary" className="text-xs gap-1 flex-shrink-0">
                       <Crown className="h-3 w-3" /> Admin
                     </Badge>
+                  ) : isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
+                      onClick={() => setConfirmRemove({ id: m.id, name: m.name })}
+                      disabled={removingMemberId === m.id}
+                    >
+                      {removingMemberId === m.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </Button>
                   )}
                 </div>
               ))}
@@ -286,25 +313,29 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
               </>
             )}
 
-            <Separator />
-
-            <div className="space-y-2">
-              <Label>Convidar novo membro</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="email"
-                  placeholder="email@exemplo.com"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleInvite()}
-                />
-                <Button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} className="gap-1.5 flex-shrink-0">
-                  {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-                  Convidar
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">O usuário precisa estar cadastrado no app para aceitar o convite.</p>
-            </div>
+            {isAdmin && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Convidar novo membro</Label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+                      className="min-w-0"
+                    />
+                    <Button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} className="gap-1.5 sm:flex-shrink-0">
+                      {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                      Convidar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">O usuário precisa estar cadastrado no app para aceitar o convite.</p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -316,9 +347,9 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
           <CardContent className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="group-name">Nome do grupo</Label>
-              <div className="flex gap-2">
-                <Input id="group-name" placeholder="Ex: Família Silva" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
-                <Button onClick={handleCreateGroup} disabled={creatingGroup || !groupName.trim()}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input id="group-name" placeholder="Ex: Família Silva" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="min-w-0" />
+                <Button onClick={handleCreateGroup} disabled={creatingGroup || !groupName.trim()} className="sm:flex-shrink-0">
                   {creatingGroup ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar"}
                 </Button>
               </div>
@@ -357,7 +388,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                 {editingId === cat.id ? (
                   /* Inline edit form */
                   <div className="border border-primary/30 rounded-lg p-3 space-y-3 bg-secondary/20">
-                    <div className="grid grid-cols-[1fr_80px_44px] gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-[1fr_80px_44px] gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Nome</Label>
                         <Input
@@ -496,6 +527,33 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={!!confirmRemove} onOpenChange={(o) => { if (!o) setConfirmRemove(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Remover membro?</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja remover <strong>{confirmRemove?.name}</strong> do grupo? Todos os lançamentos deste usuário também serão excluídos. Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmRemove(null)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={!!removingMemberId}
+              onClick={() => {
+                if (confirmRemove) {
+                  setConfirmRemove(null);
+                  handleRemoveMember(confirmRemove.id, confirmRemove.name);
+                }
+              }}
+            >
+              {removingMemberId ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Remover
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

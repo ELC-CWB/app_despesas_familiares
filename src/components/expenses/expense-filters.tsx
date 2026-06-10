@@ -47,9 +47,9 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Select value={filters.month} onValueChange={(v) => onChange({ ...filters, month: v })}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Mês" /></SelectTrigger>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Mês" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os meses</SelectItem>
             {Object.entries(MONTHS).map(([k, v]) => (
@@ -59,14 +59,14 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
         </Select>
 
         <Select value={filters.year} onValueChange={(v) => onChange({ ...filters, year: v })}>
-          <SelectTrigger className="w-28"><SelectValue placeholder="Ano" /></SelectTrigger>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Ano" /></SelectTrigger>
           <SelectContent>
             {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
           </SelectContent>
         </Select>
 
         <Select value={filters.category} onValueChange={(v) => onChange({ ...filters, category: v })}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((cat) => (
@@ -76,7 +76,7 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
         </Select>
 
         <Select value={filters.user_id} onValueChange={(v) => onChange({ ...filters, user_id: v })}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Membro" /></SelectTrigger>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Membro" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             {members.map((m) => (
@@ -86,14 +86,16 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
             ))}
           </SelectContent>
         </Select>
+      </div>
 
-        {hasFilters && (
+      {hasFilters && (
+        <div className="flex">
           <Button variant="ghost" size="sm" onClick={reset} className="text-muted-foreground gap-1.5">
             <X className="h-3.5 w-3.5" />
             Limpar
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

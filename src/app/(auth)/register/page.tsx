@@ -33,10 +33,15 @@ export default function RegisterPage() {
     setLoading(true);
     const supabase = createClient();
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://app-despesas-familiares.vercel.app";
+
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { name: form.name } },
+      options: {
+        data: { name: form.name },
+        emailRedirectTo: `${siteUrl}/login`,
+      },
     });
 
     setLoading(false);

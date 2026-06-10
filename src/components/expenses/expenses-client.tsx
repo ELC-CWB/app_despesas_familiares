@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import { ExpenseFilters } from "./expense-filters";
 import { ExpenseTable } from "./expense-table";
 import { ExpenseModal } from "./expense-modal";
+import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
@@ -17,9 +18,11 @@ interface ExpensesClientProps {
   currentUserId: string;
   groupId: string;
   categories: Category[];
+  profile: Profile | null;
+  groupName: string | null;
 }
 
-export function ExpensesClient({ initialExpenses, members, currentUserId, groupId, categories }: ExpensesClientProps) {
+export function ExpensesClient({ initialExpenses, members, currentUserId, groupId, categories, profile, groupName }: ExpensesClientProps) {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -62,7 +65,16 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
   );
 
   return (
-    <div className="space-y-5">
+    <>
+      <Header
+        title="Despesas"
+        subtitle="Todos os lançamentos do grupo"
+        profile={profile}
+        groupName={groupName}
+        displayMonth={Number(filters.month)}
+        displayYear={Number(filters.year)}
+      />
+      <div className="p-5 lg:p-8 space-y-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -112,5 +124,6 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
         categories={categories}
       />
     </div>
+    </>
   );
 }

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense, ExpenseCategory, PaymentMethod } from "@/types";
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS, MONTHS } from "@/types";
+import type { Expense, PaymentMethod, Category } from "@/types";
+import { PAYMENT_METHODS, MONTHS } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -23,37 +23,27 @@ interface ExpenseModalProps {
   groupId: string;
   userId: string;
   onSuccess: () => void;
+  categories: Category[];
 }
 
-const CATEGORIES = Object.entries(EXPENSE_CATEGORIES) as [ExpenseCategory, { label: string; emoji: string }][];
 const METHODS = Object.entries(PAYMENT_METHODS) as [PaymentMethod, string][];
 
-function getDefaultMonth() {
-  return new Date().getMonth() + 1;
-}
+function getDefaultMonth() { return new Date().getMonth() + 1; }
+function getDefaultYear() { return new Date().getFullYear(); }
+function todayISO() { return new Date().toISOString().split("T")[0]; }
 
-function getDefaultYear() {
-  return new Date().getFullYear();
-}
-
-function todayISO() {
-  return new Date().toISOString().split("T")[0];
-}
-
-const emptyForm = {
-  date: todayISO(),
-  payment_month: getDefaultMonth(),
-  payment_year: getDefaultYear(),
-  payment_method: "pix" as PaymentMethod,
-  description: "",
-  category: "alimentacao" as ExpenseCategory,
-  amount: "",
-};
-
-export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onSuccess }: ExpenseModalProps) {
+export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onSuccess, categories }: ExpenseModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState({
+    date: todayISO(),
+    payment_month: getDefaultMonth(),
+    payment_year: getDefaultYear(),
+    payment_method: "pix" as PaymentMethod,
+    description: "",
+    category: "",
+    amount: "",
+  });
 
   useEffect(() => {
     if (expense) {
@@ -67,16 +57,28 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
         amount: String(expense.amount),
       });
     } else {
-      setForm({ ...emptyForm, date: todayISO(), payment_month: getDefaultMonth(), payment_year: getDefaultYear() });
+      setForm({
+        date: todayISO(),
+        payment_month: getDefaultMonth(),
+        payment_year: getDefaultYear(),
+        payment_method: "pix",
+        description: "",
+        category: categories[0]?.id ?? "",
+        amount: "",
+      });
     }
-  }, [expense, open]);
+  }, [expense, open, categories]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: { preventDefault(): void }) => {
     e.preventDefault();
 
     const amount = parseFloat(form.amount.replace(",", "."));
     if (isNaN(amount) || amount <= 0) {
       toast({ variant: "destructive", title: "Valor inválido", description: "Informe um valor maior que zero." });
+      return;
+    }
+    if (!form.category) {
+      toast({ variant: "destructive", title: "Categoria obrigatória", description: "Selecione uma categoria." });
       return;
     }
 
@@ -136,7 +138,6 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Date */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="exp-date">Data da despesa</Label>
@@ -154,9 +155,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
                 value={String(form.payment_month)}
                 onValueChange={(v) => setForm({ ...form, payment_month: parseInt(v) as typeof form.payment_month })}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(MONTHS).map(([k, v]) => (
                     <SelectItem key={k} value={k}>{v}</SelectItem>
@@ -166,25 +165,19 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
             </div>
           </div>
 
-          {/* Year */}
           <div className="space-y-1.5">
             <Label>Ano</Label>
             <Select
               value={String(form.payment_year)}
               onValueChange={(v) => setForm({ ...form, payment_year: parseInt(v) })}
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {years.map((y) => (
-                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                ))}
+                {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Description */}
           <div className="space-y-1.5">
             <Label htmlFor="exp-desc">Descrição</Label>
             <Input
@@ -196,7 +189,6 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
             />
           </div>
 
-          {/* Amount */}
           <div className="space-y-1.5">
             <Label htmlFor="exp-amount">Valor (R$)</Label>
             <Input
@@ -211,34 +203,35 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
             />
           </div>
 
-          {/* Category */}
           <div className="space-y-1.5">
             <Label>Categoria</Label>
-            <Select
-              value={form.category}
-              onValueChange={(v) => setForm({ ...form, category: v as ExpenseCategory })}
-            >
+            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map(([key, { label, emoji }]) => (
-                  <SelectItem key={key} value={key}>{emoji} {label}</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    <span className="flex items-center gap-2">
+                      <span>{cat.emoji}</span>
+                      <span>{cat.label}</span>
+                    </span>
+                  </SelectItem>
                 ))}
+                {categories.length === 0 && (
+                  <SelectItem value="" disabled>Nenhuma categoria cadastrada</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Payment method */}
           <div className="space-y-1.5">
             <Label>Forma de pagamento</Label>
             <Select
               value={form.payment_method}
               onValueChange={(v) => setForm({ ...form, payment_method: v as PaymentMethod })}
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {METHODS.map(([key, label]) => (
                   <SelectItem key={key} value={key}>{label}</SelectItem>
@@ -248,9 +241,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
           </div>
 
           <DialogFooter className="pt-2 gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {loading ? "Salvando..." : expense ? "Atualizar" : "Adicionar"}

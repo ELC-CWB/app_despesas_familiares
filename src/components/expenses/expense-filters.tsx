@@ -1,6 +1,6 @@
 "use client";
 
-import { EXPENSE_CATEGORIES, MONTHS, type ExpenseCategory, type Profile } from "@/types";
+import { MONTHS, type Profile, type Category } from "@/types";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -21,11 +21,11 @@ interface ExpenseFiltersProps {
   onChange: (f: Filters) => void;
   members: Profile[];
   currentUserId: string;
+  categories: Category[];
 }
 
-export function ExpenseFilters({ filters, onChange, members, currentUserId }: ExpenseFiltersProps) {
-  const hasFilters =
-    filters.month || filters.category || filters.user_id || filters.search;
+export function ExpenseFilters({ filters, onChange, members, currentUserId, categories }: ExpenseFiltersProps) {
+  const hasFilters = filters.month || filters.category || filters.user_id || filters.search;
 
   function reset() {
     const now = new Date();
@@ -49,9 +49,7 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId }: Ex
 
       <div className="flex flex-wrap gap-2">
         <Select value={filters.month} onValueChange={(v) => onChange({ ...filters, month: v })}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Mês" />
-          </SelectTrigger>
+          <SelectTrigger className="w-36"><SelectValue placeholder="Mês" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os meses</SelectItem>
             {Object.entries(MONTHS).map(([k, v]) => (
@@ -61,37 +59,29 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId }: Ex
         </Select>
 
         <Select value={filters.year} onValueChange={(v) => onChange({ ...filters, year: v })}>
-          <SelectTrigger className="w-28">
-            <SelectValue placeholder="Ano" />
-          </SelectTrigger>
+          <SelectTrigger className="w-28"><SelectValue placeholder="Ano" /></SelectTrigger>
           <SelectContent>
-            {years.map((y) => (
-              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-            ))}
+            {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
           </SelectContent>
         </Select>
 
         <Select value={filters.category} onValueChange={(v) => onChange({ ...filters, category: v })}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Categoria" />
-          </SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
-            {Object.entries(EXPENSE_CATEGORIES).map(([key, { label, emoji }]) => (
-              <SelectItem key={key} value={key}>{emoji} {label}</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select value={filters.user_id} onValueChange={(v) => onChange({ ...filters, user_id: v })}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Membro" />
-          </SelectTrigger>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Membro" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             {members.map((m) => (
               <SelectItem key={m.id} value={m.id}>
-                {m.id === currentUserId ? "Eu" : m.name.split(" ")[0]}
+                {m.name.split(" ")[0]}
               </SelectItem>
             ))}
           </SelectContent>

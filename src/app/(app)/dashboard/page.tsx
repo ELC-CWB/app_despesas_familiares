@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const [{ data: expenses }, { data: members }] = await Promise.all([
+  const [{ data: expenses, error: expensesError }, { data: members, error: membersError }, { data: group }, { data: categories }] = await Promise.all([
     supabase
       .from("expenses")
       .select("*, profiles(id, name, email, avatar_url)")
@@ -39,7 +39,20 @@ export default async function DashboardPage() {
       .from("profiles")
       .select("*")
       .eq("group_id", profile.group_id),
+    supabase
+      .from("groups")
+      .select("name")
+      .eq("id", profile.group_id)
+      .single(),
+    supabase
+      .from("group_categories")
+      .select("*")
+      .eq("group_id", profile.group_id)
+      .order("position"),
   ]);
+
+  if (expensesError) console.error("[dashboard] expenses query error:", expensesError.message, expensesError.code);
+  if (membersError) console.error("[dashboard] members query error:", membersError.message, membersError.code);
 
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
@@ -54,6 +67,7 @@ export default async function DashboardPage() {
         title="Dashboard"
         subtitle={`${MONTHS[currentMonth]} ${currentYear}`}
         profile={profile}
+        groupName={group?.name}
       />
       <div className="p-5 lg:p-8 space-y-6">
         <SummaryCards
@@ -61,10 +75,11 @@ export default async function DashboardPage() {
           members={safeMembers}
           currentMonth={currentMonth}
           currentYear={currentYear}
+          categories={categories ?? []}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CategoryChart expenses={safeExpenses} month={currentMonth} year={currentYear} />
+          <CategoryChart expenses={safeExpenses} month={currentMonth} year={currentYear} categories={categories ?? []} />
           <UserChart expenses={safeExpenses} members={safeMembers} month={currentMonth} year={currentYear} />
         </div>
 

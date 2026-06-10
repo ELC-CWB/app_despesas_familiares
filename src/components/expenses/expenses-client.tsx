@@ -2,25 +2,24 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense, Profile } from "@/types";
+import type { Expense, Profile, Category } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { ExpenseFilters } from "./expense-filters";
 import { ExpenseTable } from "./expense-table";
 import { ExpenseModal } from "./expense-modal";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus, TrendingDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus } from "lucide-react";
 
 interface ExpensesClientProps {
   initialExpenses: Expense[];
   members: Profile[];
   currentUserId: string;
   groupId: string;
+  categories: Category[];
 }
 
-export function ExpensesClient({ initialExpenses, members, currentUserId, groupId }: ExpensesClientProps) {
-  const router = useRouter();
+export function ExpensesClient({ initialExpenses, members, currentUserId, groupId, categories }: ExpensesClientProps) {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -64,7 +63,6 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
 
   return (
     <div className="space-y-5">
-      {/* Top bar */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -79,15 +77,14 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
         </Button>
       </div>
 
-      {/* Filters */}
       <ExpenseFilters
         filters={filters}
         onChange={setFilters}
         members={members}
         currentUserId={currentUserId}
+        categories={categories}
       />
 
-      {/* Table */}
       <Card>
         <CardContent className="p-5">
           {loading ? (
@@ -100,6 +97,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
               currentUserId={currentUserId}
               groupId={groupId}
               onRefresh={refresh}
+              categories={categories}
             />
           )}
         </CardContent>
@@ -111,6 +109,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
         groupId={groupId}
         userId={currentUserId}
         onSuccess={refresh}
+        categories={categories}
       />
     </div>
   );

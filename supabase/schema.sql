@@ -1,3 +1,4 @@
+
 -- ============================================================
 -- Despesas Familiares — Supabase Schema
 -- Run this in the Supabase SQL editor (Dashboard > SQL Editor)
@@ -41,7 +42,7 @@ create table if not exists public.group_invites (
 -- Expenses
 create table if not exists public.expenses (
   id              uuid primary key default gen_random_uuid(),
-  user_id         uuid not null references auth.users(id) on delete cascade,
+  user_id         uuid not null references public.profiles(id) on delete cascade,
   group_id        uuid not null references public.groups(id) on delete cascade,
   date            date not null,
   payment_month   smallint not null check (payment_month between 1 and 12),
@@ -94,6 +95,16 @@ create trigger on_auth_user_created
 -- ROW LEVEL SECURITY
 -- ============================================================
 
+-- Helper: returns current user's group_id bypassing RLS (avoids infinite recursion in profiles policy)
+create or replace function public.get_my_group_id()
+returns uuid
+language sql
+security definer
+stable
+as $$
+  select group_id from public.profiles where id = auth.uid()
+$$;
+
 alter table public.profiles      enable row level security;
 alter table public.groups        enable row level security;
 alter table public.group_invites enable row level security;
@@ -104,7 +115,7 @@ create policy "Profiles: select own group"
   on public.profiles for select
   using (
     auth.uid() = id
-    or group_id = (select group_id from public.profiles where id = auth.uid())
+    or group_id = public.get_my_group_id()
   );
 
 create policy "Profiles: update own"
@@ -149,6 +160,46 @@ create policy "Invites: update (accept)"
   on public.group_invites for update
   using (
     invited_email = (select email from public.profiles where id = auth.uid())
+  );
+
+-- Group Categories
+create table if not exists public.group_categories (
+  id         uuid primary key default gen_random_uuid(),
+  group_id   uuid not null references public.groups(id) on delete cascade,
+  label      text not null,
+  emoji      text not null default '📦',
+  color      text not null default '#6b7280',
+  position   smallint not null default 0,
+  created_at timestamptz default now()
+);
+
+create index if not exists group_categories_group_id_idx on public.group_categories(group_id);
+
+alter table public.group_categories enable row level security;
+
+create policy "Categories: select by group member"
+  on public.group_categories for select
+  using (group_id = public.get_my_group_id());
+
+create policy "Categories: insert by admin"
+  on public.group_categories for insert
+  with check (
+    group_id = public.get_my_group_id()
+    and (select created_by from public.groups where id = group_id) = auth.uid()
+  );
+
+create policy "Categories: update by admin"
+  on public.group_categories for update
+  using (
+    group_id = public.get_my_group_id()
+    and (select created_by from public.groups where id = group_id) = auth.uid()
+  );
+
+create policy "Categories: delete by admin"
+  on public.group_categories for delete
+  using (
+    group_id = public.get_my_group_id()
+    and (select created_by from public.groups where id = group_id) = auth.uid()
   );
 
 -- Expenses: group members see all, only owner can modify

@@ -1,22 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
@@ -32,41 +33,51 @@ export default function RegisterPage() {
     setLoading(true);
     const supabase = createClient();
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: { data: { name: form.name } },
     });
 
+    setLoading(false);
+
     if (error) {
       toast({ variant: "destructive", title: "Erro no cadastro", description: error.message });
-      setLoading(false);
       return;
     }
 
-    if (data.user) {
-      // Create profile and initial group
-      await supabase.from("profiles").upsert({
-        id: data.user.id,
-        name: form.name,
-        email: form.email,
-      });
+    setEmailSent(form.email);
+  }
 
-      // Create a default group for this user
-      const { data: groupData } = await supabase
-        .from("groups")
-        .insert({ name: `Família de ${form.name.split(" ")[0]}`, created_by: data.user.id })
-        .select()
-        .single();
-
-      if (groupData) {
-        await supabase.from("profiles").update({ group_id: groupData.id }).eq("id", data.user.id);
-      }
-
-      toast({ title: "Cadastro realizado!", description: "Bem-vindo ao Despesas Familiares." });
-      router.push("/dashboard");
-      router.refresh();
-    }
+  if (emailSent) {
+    return (
+      <div className="animate-fade-in-up text-center">
+        <div className="flex justify-center mb-6">
+          <div className="bg-primary/10 rounded-full p-5">
+            <Mail className="h-10 w-10 text-primary" />
+          </div>
+        </div>
+        <h1
+          className="text-2xl font-bold text-foreground mb-3"
+          style={{ fontFamily: "Sora, sans-serif" }}
+        >
+          Confirme seu e-mail
+        </h1>
+        <p className="text-muted-foreground mb-2">
+          Enviamos um link de confirmação para:
+        </p>
+        <p className="font-semibold text-foreground mb-6">{emailSent}</p>
+        <p className="text-sm text-muted-foreground mb-8">
+          Acesse sua caixa de entrada, clique no link de confirmação e depois faça login para começar a usar o app.
+        </p>
+        <Link href="/login">
+          <Button className="w-full" size="lg">Ir para o login</Button>
+        </Link>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Não recebeu o e-mail? Verifique a pasta de spam.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -107,26 +118,50 @@ export default function RegisterPage() {
 
         <div className="space-y-2">
           <Label htmlFor="password">Senha</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="confirm">Confirmar senha</Label>
-          <Input
-            id="confirm"
-            type="password"
-            placeholder="••••••••"
-            value={form.confirmPassword}
-            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="confirm"
+              type={showConfirm ? "text" : "password"}
+              placeholder="••••••••"
+              value={form.confirmPassword}
+              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+              required
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+              aria-label={showConfirm ? "Ocultar confirmação" : "Mostrar confirmação"}
+            >
+              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
 
         <Button type="submit" className="w-full mt-2" size="lg" disabled={loading}>

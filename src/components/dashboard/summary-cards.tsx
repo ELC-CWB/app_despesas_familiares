@@ -2,8 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import type { Expense, Profile, UserTotal } from "@/types";
-import { EXPENSE_CATEGORIES } from "@/types";
+import type { Expense, Profile, Category } from "@/types";
 import { TrendingDown, Users, Tag, Calendar } from "lucide-react";
 import { useMemo } from "react";
 
@@ -12,9 +11,10 @@ interface SummaryCardsProps {
   members: Profile[];
   currentMonth: number;
   currentYear: number;
+  categories: Category[];
 }
 
-export function SummaryCards({ expenses, members, currentMonth, currentYear }: SummaryCardsProps) {
+export function SummaryCards({ expenses, members, currentMonth, currentYear, categories }: SummaryCardsProps) {
   const filtered = useMemo(
     () => expenses.filter((e) => e.payment_month === currentMonth && e.payment_year === currentYear),
     [expenses, currentMonth, currentYear]
@@ -31,6 +31,11 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear }: S
     const top = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0];
     return top ? { category: top[0], total: top[1] } : null;
   }, [filtered]);
+
+  const topCategoryLabel = useMemo(() => {
+    if (!topCategory) return "-";
+    return categories.find((c) => c.id === topCategory.category)?.label ?? topCategory.category;
+  }, [topCategory, categories]);
 
   const cards = [
     {
@@ -51,7 +56,7 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear }: S
     },
     {
       title: "Maior Categoria",
-      value: topCategory ? EXPENSE_CATEGORIES[topCategory.category as keyof typeof EXPENSE_CATEGORIES]?.label ?? topCategory.category : "-",
+      value: topCategoryLabel,
       sub: topCategory ? formatCurrency(topCategory.total) : "Sem dados",
       icon: Tag,
       color: "text-purple-500",
@@ -70,10 +75,7 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear }: S
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, i) => (
-        <Card
-          key={card.title}
-          className={`animate-fade-in-up-delay-${i + 1} hover:shadow-md transition-shadow`}
-        >
+        <Card key={card.title} className={`animate-fade-in-up-delay-${i + 1} hover:shadow-md transition-shadow`}>
           <CardContent className="p-5">
             <div className="flex items-start justify-between mb-3">
               <p className="text-sm text-muted-foreground font-medium">{card.title}</p>

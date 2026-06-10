@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense } from "@/types";
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/types";
+import type { Expense, Category } from "@/types";
+import { PAYMENT_METHODS } from "@/types";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,9 +22,14 @@ interface ExpenseTableProps {
   currentUserId: string;
   groupId: string;
   onRefresh: () => void;
+  categories: Category[];
 }
 
-export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: ExpenseTableProps) {
+function getCat(categoryId: string, categories: Category[]) {
+  return categories.find((c) => c.id === categoryId) ?? { label: categoryId, emoji: "📦", color: "#6b7280" };
+}
+
+export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, categories }: ExpenseTableProps) {
   const { toast } = useToast();
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
@@ -80,7 +85,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
           </thead>
           <tbody>
             {expenses.map((expense) => {
-              const category = EXPENSE_CATEGORIES[expense.category];
+              const category = getCat(expense.category, categories);
               const color = userColorMap.get(expense.user_id) ?? "#6b7280";
               const isOwn = expense.user_id === currentUserId;
               const name = expense.profiles?.name ?? "?";
@@ -97,7 +102,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
                           {getInitials(name)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium">{isOwn ? "Eu" : name.split(" ")[0]}</span>
+                      <span className="text-sm font-medium">{name.split(" ")[0]}</span>
                     </div>
                   </td>
                   <td className="py-3 px-2 text-sm text-muted-foreground">{formatDate(expense.date)}</td>
@@ -109,12 +114,12 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
                       variant="secondary"
                       className="text-xs gap-1 font-medium"
                       style={{
-                        backgroundColor: category?.color + "18",
-                        color: category?.color,
-                        borderColor: category?.color + "30",
+                        backgroundColor: category.color + "18",
+                        color: category.color,
+                        borderColor: category.color + "30",
                       }}
                     >
-                      {category?.emoji} {category?.label ?? expense.category}
+                      {category.emoji} {category.label}
                     </Badge>
                   </td>
                   <td className="py-3 px-2 text-sm text-muted-foreground">
@@ -155,7 +160,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {expenses.map((expense) => {
-          const category = EXPENSE_CATEGORIES[expense.category];
+          const category = getCat(expense.category, categories);
           const color = userColorMap.get(expense.user_id) ?? "#6b7280";
           const isOwn = expense.user_id === currentUserId;
           const name = expense.profiles?.name ?? "?";
@@ -174,7 +179,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{expense.description}</p>
-                    <p className="text-xs text-muted-foreground">{isOwn ? "Eu" : name.split(" ")[0]} · {formatDate(expense.date)}</p>
+                    <p className="text-xs text-muted-foreground">{name.split(" ")[0]} · {formatDate(expense.date)}</p>
                   </div>
                 </div>
                 <p className="font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>
@@ -184,11 +189,11 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
                   variant="secondary"
                   className="text-xs gap-1"
                   style={{
-                    backgroundColor: category?.color + "18",
-                    color: category?.color,
+                    backgroundColor: category.color + "18",
+                    color: category.color,
                   }}
                 >
-                  {category?.emoji} {category?.label}
+                  {category.emoji} {category.label}
                 </Badge>
                 {isOwn && (
                   <div className="flex gap-1">
@@ -215,6 +220,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh }: Ex
           groupId={groupId}
           userId={currentUserId}
           onSuccess={() => { setEditExpense(null); onRefresh(); }}
+          categories={categories}
         />
       )}
 

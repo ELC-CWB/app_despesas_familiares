@@ -1,13 +1,6 @@
 export type PaymentMethod = "dinheiro" | "debito" | "pix" | "cartao_credito";
 
-export type ExpenseCategory =
-  | "moradia"
-  | "alimentacao"
-  | "saude"
-  | "educacao"
-  | "lazer"
-  | "transporte"
-  | "outros";
+export type ExpenseCategory = string;
 
 export type PaymentMonth =
   | 1 | 2 | 3 | 4 | 5 | 6
@@ -26,6 +19,16 @@ export interface Group {
   id: string;
   name: string;
   created_by: string;
+  created_at: string;
+}
+
+export interface Category {
+  id: string;
+  group_id: string;
+  label: string;
+  emoji: string;
+  color: string;
+  position: number;
   created_at: string;
 }
 
@@ -49,7 +52,7 @@ export interface Expense {
   payment_year: number;
   payment_method: PaymentMethod;
   description: string;
-  category: ExpenseCategory;
+  category: string;
   amount: number;
   created_at: string;
   updated_at: string;
@@ -59,13 +62,13 @@ export interface Expense {
 export interface ExpenseFilters {
   month?: number;
   year?: number;
-  category?: ExpenseCategory | "";
+  category?: string;
   user_id?: string | "";
   search?: string;
 }
 
 export interface CategoryTotal {
-  category: ExpenseCategory;
+  category: string;
   total: number;
 }
 
@@ -80,16 +83,6 @@ export const PAYMENT_METHODS: Record<PaymentMethod, string> = {
   debito: "Débito Automático",
   pix: "Pix",
   cartao_credito: "Cartão de Crédito",
-};
-
-export const EXPENSE_CATEGORIES: Record<ExpenseCategory, { label: string; color: string; emoji: string }> = {
-  moradia: { label: "Moradia", color: "#10b981", emoji: "🏠" },
-  alimentacao: { label: "Alimentação", color: "#3b82f6", emoji: "🍽️" },
-  saude: { label: "Saúde", color: "#ef4444", emoji: "❤️" },
-  educacao: { label: "Educação", color: "#8b5cf6", emoji: "📚" },
-  lazer: { label: "Lazer", color: "#f59e0b", emoji: "🎉" },
-  transporte: { label: "Transporte", color: "#06b6d4", emoji: "🚗" },
-  outros: { label: "Outros", color: "#6b7280", emoji: "📦" },
 };
 
 export const MONTHS: Record<number, string> = {

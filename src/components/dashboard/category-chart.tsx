@@ -5,13 +5,13 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { PieLabelRenderProps } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import type { Expense } from "@/types";
-import { EXPENSE_CATEGORIES } from "@/types";
+import type { Expense, Category } from "@/types";
 
 interface CategoryChartProps {
   expenses: Expense[];
   month: number;
   year: number;
+  categories: Category[];
 }
 
 const RADIAN = Math.PI / 180;
@@ -32,7 +32,7 @@ function renderCustomizedLabel(props: PieLabelRenderProps) {
   );
 }
 
-export function CategoryChart({ expenses, month, year }: CategoryChartProps) {
+export function CategoryChart({ expenses, month, year, categories }: CategoryChartProps) {
   const data = useMemo(() => {
     const filtered = expenses.filter((e) => e.payment_month === month && e.payment_year === year);
     const byCategory: Record<string, number> = {};
@@ -40,21 +40,22 @@ export function CategoryChart({ expenses, month, year }: CategoryChartProps) {
       byCategory[e.category] = (byCategory[e.category] ?? 0) + Number(e.amount);
     });
     return Object.entries(byCategory)
-      .map(([key, value]) => ({
-        name: EXPENSE_CATEGORIES[key as keyof typeof EXPENSE_CATEGORIES]?.label ?? key,
-        value,
-        color: EXPENSE_CATEGORIES[key as keyof typeof EXPENSE_CATEGORIES]?.color ?? "#6b7280",
-        emoji: EXPENSE_CATEGORIES[key as keyof typeof EXPENSE_CATEGORIES]?.emoji ?? "📦",
-      }))
+      .map(([id, value]) => {
+        const cat = categories.find((c) => c.id === id);
+        return {
+          name: cat?.label ?? id,
+          value,
+          color: cat?.color ?? "#6b7280",
+          emoji: cat?.emoji ?? "📦",
+        };
+      })
       .sort((a, b) => b.value - a.value);
-  }, [expenses, month, year]);
+  }, [expenses, month, year, categories]);
 
   if (data.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Despesas por Categoria</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base">Despesas por Categoria</CardTitle></CardHeader>
         <CardContent className="flex items-center justify-center h-48 text-muted-foreground text-sm">
           Sem dados para este período
         </CardContent>
@@ -64,9 +65,7 @@ export function CategoryChart({ expenses, month, year }: CategoryChartProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Despesas por Categoria</CardTitle>
-      </CardHeader>
+      <CardHeader><CardTitle className="text-base">Despesas por Categoria</CardTitle></CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
           <PieChart>
@@ -91,7 +90,6 @@ export function CategoryChart({ expenses, month, year }: CategoryChartProps) {
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Legend */}
         <div className="space-y-2 mt-2">
           {data.map((item) => (
             <div key={item.name} className="flex items-center justify-between">

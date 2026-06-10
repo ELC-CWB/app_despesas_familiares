@@ -25,7 +25,7 @@ export default async function ExpensesPage() {
     );
   }
 
-  const [{ data: expenses }, { data: members }] = await Promise.all([
+  const [{ data: expenses, error: expensesError }, { data: members, error: membersError }, { data: group }, { data: categories }] = await Promise.all([
     supabase
       .from("expenses")
       .select("*, profiles(id, name, email, avatar_url)")
@@ -35,17 +35,31 @@ export default async function ExpensesPage() {
       .from("profiles")
       .select("*")
       .eq("group_id", profile.group_id),
+    supabase
+      .from("groups")
+      .select("name")
+      .eq("id", profile.group_id)
+      .single(),
+    supabase
+      .from("group_categories")
+      .select("*")
+      .eq("group_id", profile.group_id)
+      .order("position"),
   ]);
+
+  if (expensesError) console.error("[expenses page] expenses query error:", expensesError.message, expensesError.code);
+  if (membersError) console.error("[expenses page] members query error:", membersError.message, membersError.code);
 
   return (
     <div>
-      <Header title="Despesas" subtitle="Todos os lançamentos do grupo" profile={profile} />
+      <Header title="Despesas" subtitle="Todos os lançamentos do grupo" profile={profile} groupName={group?.name} />
       <div className="p-5 lg:p-8">
         <ExpensesClient
           initialExpenses={expenses ?? []}
           members={members ?? []}
           currentUserId={user.id}
           groupId={profile.group_id}
+          categories={categories ?? []}
         />
       </div>
     </div>

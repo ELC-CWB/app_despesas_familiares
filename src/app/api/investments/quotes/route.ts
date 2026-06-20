@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 
 const BRAPI_BASE = "https://brapi.dev/api";
 
-// Maps brapi v2 stock object to the QuoteResult shape the client expects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapV2(s: any) {
   const sd = s.summaryDetail ?? {};
@@ -31,7 +30,6 @@ function mapV2(s: any) {
   };
 }
 
-// Maps brapi v1 result (already in the right shape, just normalise missing fields)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapV1(r: any) {
   return {
@@ -56,6 +54,33 @@ function mapV1(r: any) {
   };
 }
 
+// Fetches a single ticker — brapi free plan allows only 1 per request
+async function fetchOne(symbol: string, token: string) {
+  // Try v2
+  try {
+    const url = `${BRAPI_BASE}/v2/stocks/quote?symbols=${symbol}&token=${token}&modules=summaryDetail,defaultKeyStatistics`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      const stocks = data.stocks ?? data.results ?? [];
+      if (stocks.length > 0) return mapV2(stocks[0]);
+    }
+  } catch { /* fall through */ }
+
+  // Fallback to v1
+  try {
+    const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}&fundamental=true`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      const results = data.results ?? [];
+      if (results.length > 0) return mapV1(results[0]);
+    }
+  } catch { /* ignore */ }
+
+  return { symbol, error: "not found" };
+}
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -64,43 +89,15 @@ export async function GET(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get("symbols") ?? "";
   if (!raw) return NextResponse.json({ error: "No symbols" }, { status: 400 });
 
-  // Sanitize: keep only alphanumeric, commas, dots, dashes
-  const symbols = raw.replace(/[^A-Z0-9,.\-]/gi, "");
-  const token = process.env.BRAPI_TOKEN;
+  const symbols = raw
+    .replace(/[^A-Z0-9,.\-]/gi, "")
+    .split(",")
+    .filter(Boolean);
 
-  // Try v2 first (current brapi endpoint)
-  try {
-    const v2url = `${BRAPI_BASE}/v2/stocks/quote?symbols=${symbols}&token=${token}&modules=summaryDetail,defaultKeyStatistics`;
-    const v2res = await fetch(v2url, { cache: "no-store" });
+  const token = process.env.BRAPI_TOKEN!;
 
-    if (v2res.ok) {
-      const data = await v2res.json();
-      const stocks = data.stocks ?? data.results ?? [];
-      if (stocks.length > 0) {
-        return NextResponse.json({ results: stocks.map(mapV2) });
-      }
-    }
-  } catch {
-    // fall through to v1
-  }
+  // Free plan: 1 ticker per request — fetch all in parallel
+  const results = await Promise.all(symbols.map((s) => fetchOne(s, token)));
 
-  // Fallback to v1
-  try {
-    const v1url = `${BRAPI_BASE}/quote/${symbols}?token=${token}&fundamental=true`;
-    const v1res = await fetch(v1url, { cache: "no-store" });
-
-    if (v1res.ok) {
-      const data = await v1res.json();
-      const results = data.results ?? [];
-      return NextResponse.json({ results: results.map(mapV1) });
-    }
-
-    const body = await v1res.text().catch(() => "");
-    return NextResponse.json(
-      { error: `brapi error ${v1res.status}`, detail: body.slice(0, 300) },
-      { status: 502 }
-    );
-  } catch (err) {
-    return NextResponse.json({ error: "Network error", detail: String(err) }, { status: 503 });
-  }
+  return NextResponse.json({ results });
 }

@@ -36,15 +36,12 @@ interface ChartsClientProps {
 
 // ─── Periods ─────────────────────────────────────────────────────────────────
 
+// brapi free plan supports only: 1d, 5d, 1mo, 3mo
 const PERIODS = [
   { label: "1D",  range: "1d",   interval: "30m",  fmt: "time"   },
   { label: "5D",  range: "5d",   interval: "1h",   fmt: "dayTime" },
   { label: "1M",  range: "1mo",  interval: "1d",   fmt: "day"    },
   { label: "3M",  range: "3mo",  interval: "1d",   fmt: "day"    },
-  { label: "1A",  range: "1y",   interval: "1wk",  fmt: "month"  },
-  { label: "2A",  range: "2y",   interval: "1mo",  fmt: "month"  },
-  { label: "5A",  range: "5y",   interval: "1mo",  fmt: "year"   },
-  { label: "10A", range: "10y",  interval: "3mo",  fmt: "year"   },
 ] as const;
 
 type PeriodFmt = typeof PERIODS[number]["fmt"];
@@ -221,21 +218,24 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
         </div>
 
         {/* Period selector */}
-        <div className="flex gap-1 bg-secondary/50 rounded-lg p-1 flex-wrap">
-          {PERIODS.map((p) => (
-            <button
-              key={p.label}
-              onClick={() => setSelectedPeriod(p)}
-              className="px-2.5 py-1 rounded-md text-xs font-semibold transition-all"
-              style={
-                selectedPeriod.range === p.range
-                  ? { backgroundColor: ACCENT, color: "#fff" }
-                  : { color: "var(--muted-foreground)" }
-              }
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
+            {PERIODS.map((p) => (
+              <button
+                key={p.label}
+                onClick={() => setSelectedPeriod(p)}
+                className="px-2.5 py-1 rounded-md text-xs font-semibold transition-all"
+                style={
+                  selectedPeriod.range === p.range
+                    ? { backgroundColor: ACCENT, color: "#fff" }
+                    : { color: "var(--muted-foreground)" }
+                }
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground/60">plano gratuito: máx. 3 meses</p>
         </div>
       </div>
 

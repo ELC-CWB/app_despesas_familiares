@@ -20,8 +20,8 @@ const EXPENSES_NAV = [
 const INVESTMENTS_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
-  { href: "/investments/indicators", label: "Indicadores", icon: Activity },
   { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
+  { href: "/investments/indicators", label: "Indicadores", icon: Activity },
   { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
   { href: "/investments/evolution", label: "Evolução", icon: TrendingUp },
   { href: "/investments/settings", label: "Configurações", icon: Settings },

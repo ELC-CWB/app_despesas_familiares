@@ -3,82 +3,47 @@ import { createClient } from "@/lib/supabase/server";
 
 const BRAPI_BASE = "https://brapi.dev/api";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapV2(s: any) {
-  const sd = s.summaryDetail ?? {};
-  const ks = s.defaultKeyStatistics ?? {};
-  const prevClose = sd.previousClose ?? (s.close / (1 + (s.change ?? 0) / 100));
-  return {
-    symbol: s.stock ?? s.symbol,
-    shortName: s.name ?? s.shortName ?? s.stock,
-    longName: s.longName ?? s.name,
-    currency: "BRL",
-    regularMarketPrice: s.close ?? s.regularMarketPrice ?? 0,
-    regularMarketChangePercent: s.change ?? s.regularMarketChangePercent ?? 0,
-    regularMarketChange: sd.regularMarketChange ?? (s.close - prevClose),
-    regularMarketOpen: sd.open ?? sd.regularMarketOpen ?? s.close,
-    regularMarketDayHigh: sd.dayHigh ?? sd.regularMarketDayHigh ?? s.close,
-    regularMarketDayLow: sd.dayLow ?? sd.regularMarketDayLow ?? s.close,
-    regularMarketVolume: s.volume ?? sd.volume ?? 0,
-    regularMarketPreviousClose: prevClose,
-    fiftyTwoWeekHigh: sd.fiftyTwoWeekHigh ?? s.close,
-    fiftyTwoWeekLow: sd.fiftyTwoWeekLow ?? s.close,
-    marketCap: s.market_cap ?? sd.marketCap ?? null,
-    priceEarnings: sd.trailingPE ?? ks.trailingPE ?? null,
-    earningsPerShare: ks.trailingEps ?? null,
-    logourl: s.logo ?? s.logourl ?? null,
-  };
-}
+// Fetches one ticker at a time (brapi free plan allows only 1 per request)
+async function fetchOne(symbol: string, token: string) {
+  const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}&fundamental=true`;
+  const res = await fetch(url, { cache: "no-store" });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapV1(r: any) {
+  if (!res.ok) {
+    console.error(`brapi ${symbol}: HTTP ${res.status}`);
+    return { symbol, error: `HTTP ${res.status}` };
+  }
+
+  const data = await res.json();
+
+  // brapi v1 error (e.g. invalid ticker)
+  if (data.error) {
+    console.error(`brapi ${symbol}:`, data.message ?? data.error);
+    return { symbol, error: data.message ?? String(data.error) };
+  }
+
+  const r = (data.results ?? [])[0];
+  if (!r) return { symbol, error: "no data" };
+
   return {
-    symbol: r.symbol,
-    shortName: r.shortName ?? r.symbol,
+    symbol: r.symbol ?? symbol,
+    shortName: r.shortName ?? symbol,
     longName: r.longName ?? null,
     currency: r.currency ?? "BRL",
     regularMarketPrice: r.regularMarketPrice ?? 0,
-    regularMarketChangePercent: r.regularMarketChangePercent ?? 0,
     regularMarketChange: r.regularMarketChange ?? 0,
-    regularMarketOpen: r.regularMarketOpen ?? r.regularMarketPrice,
-    regularMarketDayHigh: r.regularMarketDayHigh ?? r.regularMarketPrice,
-    regularMarketDayLow: r.regularMarketDayLow ?? r.regularMarketPrice,
-    regularMarketVolume: r.regularMarketVolume ?? 0,
-    regularMarketPreviousClose: r.regularMarketPreviousClose ?? r.regularMarketPrice,
-    fiftyTwoWeekHigh: r.fiftyTwoWeekHigh ?? r.regularMarketPrice,
-    fiftyTwoWeekLow: r.fiftyTwoWeekLow ?? r.regularMarketPrice,
+    regularMarketChangePercent: r.regularMarketChangePercent ?? 0,
+    regularMarketOpen: r.regularMarketOpen ?? null,
+    regularMarketDayHigh: r.regularMarketDayHigh ?? null,
+    regularMarketDayLow: r.regularMarketDayLow ?? null,
+    regularMarketVolume: r.regularMarketVolume ?? null,
+    regularMarketPreviousClose: r.regularMarketPreviousClose ?? null,
+    fiftyTwoWeekHigh: r.fiftyTwoWeekHigh ?? null,
+    fiftyTwoWeekLow: r.fiftyTwoWeekLow ?? null,
     marketCap: r.marketCap ?? null,
     priceEarnings: r.priceEarnings ?? null,
     earningsPerShare: r.earningsPerShare ?? null,
     logourl: r.logourl ?? null,
   };
-}
-
-// Fetches a single ticker — brapi free plan allows only 1 per request
-async function fetchOne(symbol: string, token: string) {
-  // Try v2
-  try {
-    const url = `${BRAPI_BASE}/v2/stocks/quote?symbols=${symbol}&token=${token}&modules=summaryDetail,defaultKeyStatistics`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (res.ok) {
-      const data = await res.json();
-      const stocks = data.stocks ?? data.results ?? [];
-      if (stocks.length > 0) return mapV2(stocks[0]);
-    }
-  } catch { /* fall through */ }
-
-  // Fallback to v1
-  try {
-    const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}&fundamental=true`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (res.ok) {
-      const data = await res.json();
-      const results = data.results ?? [];
-      if (results.length > 0) return mapV1(results[0]);
-    }
-  } catch { /* ignore */ }
-
-  return { symbol, error: "not found" };
 }
 
 export async function GET(request: NextRequest) {
@@ -96,7 +61,7 @@ export async function GET(request: NextRequest) {
 
   const token = process.env.BRAPI_TOKEN!;
 
-  // Free plan: 1 ticker per request — fetch all in parallel
+  // Parallel individual requests — 1 ticker each to respect free plan limit
   const results = await Promise.all(symbols.map((s) => fetchOne(s, token)));
 
   return NextResponse.json({ results });

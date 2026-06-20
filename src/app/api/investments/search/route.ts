@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const token = process.env.BRAPI_TOKEN;
   const url = `https://brapi.dev/api/available?token=${token}${q ? `&search=${encodeURIComponent(q)}` : ""}`;
 
-  const res = await fetch(url, { next: { revalidate: 3600 } });
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) return NextResponse.json({ stocks: [] });
 
   const data = await res.json();

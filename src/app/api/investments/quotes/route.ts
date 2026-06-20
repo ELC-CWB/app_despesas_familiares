@@ -8,17 +8,25 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const symbols = request.nextUrl.searchParams.get("symbols");
-  if (!symbols) return NextResponse.json({ error: "No symbols" }, { status: 400 });
+  const raw = request.nextUrl.searchParams.get("symbols") ?? "";
+  if (!raw) return NextResponse.json({ error: "No symbols" }, { status: 400 });
+
+  // Sanitize: keep only alphanumeric, commas, dots and dashes (valid ticker chars)
+  const symbols = raw.replace(/[^A-Z0-9,.\-]/gi, "");
 
   const token = process.env.BRAPI_TOKEN;
-  const url = `${BRAPI_BASE}/quote/${encodeURIComponent(symbols)}?token=${token}&fundamental=true`;
+  // Do NOT encode symbols — brapi expects literal commas in the path
+  const url = `${BRAPI_BASE}/quote/${symbols}?token=${token}&fundamental=true`;
 
-  const res = await fetch(url, { next: { revalidate: 30 } });
-  if (!res.ok) {
-    return NextResponse.json({ error: "Upstream error", status: res.status }, { status: 502 });
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return NextResponse.json({ error: "Upstream error", detail: body }, { status: 502 });
+    }
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (err) {
+    return NextResponse.json({ error: "Network error", detail: String(err) }, { status: 503 });
   }
-
-  const data = await res.json();
-  return NextResponse.json(data);
 }

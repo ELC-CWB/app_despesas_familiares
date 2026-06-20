@@ -87,120 +87,99 @@ function QuoteCard({
 }) {
   const up = quote.regularMarketChange >= 0;
   const color = up ? "#22c55e" : "#ef4444";
-  const bgColor = up ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)";
+  const badgeBg = up ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)";
 
-  const w52Range = quote.fiftyTwoWeekHigh - quote.fiftyTwoWeekLow;
+  const w52Range = (quote.fiftyTwoWeekHigh ?? 0) - (quote.fiftyTwoWeekLow ?? 0);
   const w52Pos = w52Range > 0
-    ? Math.round(((quote.regularMarketPrice - quote.fiftyTwoWeekLow) / w52Range) * 100)
+    ? Math.min(100, Math.max(0, Math.round(((quote.regularMarketPrice - (quote.fiftyTwoWeekLow ?? 0)) / w52Range) * 100)))
     : 50;
 
+  const stats = [
+    { label: "Abert.", value: fmtBRL(quote.regularMarketOpen) },
+    { label: "Máx.", value: fmtBRL(quote.regularMarketDayHigh) },
+    { label: "Mín.", value: fmtBRL(quote.regularMarketDayLow) },
+    { label: "Volume", value: fmtVol(quote.regularMarketVolume) },
+    { label: "Cap.", value: fmtMktCap(quote.marketCap) },
+    { label: "P/L", value: quote.priceEarnings != null ? quote.priceEarnings.toFixed(1).replace(".", ",") : "–" },
+  ];
+
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      {/* Header */}
-      <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          {quote.logourl ? (
-            <img
-              src={quote.logourl}
-              alt={quote.symbol}
-              className="h-9 w-9 rounded-lg object-contain flex-shrink-0 bg-secondary"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
-          ) : (
+    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      {/* Header: logo + symbol + name | price + change + trash */}
+      <div className="px-4 pt-3 pb-2.5 flex items-center gap-2">
+        {quote.logourl ? (
+          <img
+            src={quote.logourl}
+            alt={quote.symbol}
+            className="h-7 w-7 rounded-md object-contain flex-shrink-0 bg-secondary"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        ) : (
+          <div
+            className="h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0 text-white font-bold text-[10px]"
+            style={{ backgroundColor: "#3b82f6" }}
+          >
+            {quote.symbol.slice(0, 2)}
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-sm text-foreground leading-tight">{quote.symbol}</p>
+          <p className="text-[11px] text-muted-foreground truncate leading-tight">{quote.shortName}</p>
+        </div>
+
+        {/* Price + change badge */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="text-right">
+            <p className="font-bold text-sm text-foreground leading-tight">{fmtBRL(quote.regularMarketPrice)}</p>
             <div
-              className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
-              style={{ backgroundColor: "#3b82f6" }}
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-semibold"
+              style={{ backgroundColor: badgeBg, color }}
             >
-              {quote.symbol.slice(0, 2)}
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="font-bold text-base text-foreground leading-tight">{quote.symbol}</p>
-            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{quote.shortName}</p>
-          </div>
-        </div>
-        <button
-          onClick={onRemove}
-          disabled={removing}
-          className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0 p-1 rounded"
-          aria-label="Remover ativo"
-        >
-          {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-        </button>
-      </div>
-
-      {/* Price */}
-      <div className="px-5 pb-3">
-        <div
-          className="rounded-xl px-4 py-3 flex items-center justify-between"
-          style={{ backgroundColor: bgColor }}
-        >
-          <div>
-            <p className="text-2xl font-bold" style={{ color }}>
-              {fmtBRL(quote.regularMarketPrice)}
-            </p>
-            <div className="flex items-center gap-1.5 mt-0.5">
               {up
-                ? <TrendingUp className="h-3.5 w-3.5" style={{ color }} />
-                : <TrendingDown className="h-3.5 w-3.5" style={{ color }} />}
-              <span className="text-sm font-semibold" style={{ color }}>
-                {fmtBRL(Math.abs(quote.regularMarketChange))} ({fmtPct(quote.regularMarketChangePercent)})
-              </span>
+                ? <TrendingUp className="h-3 w-3" />
+                : <TrendingDown className="h-3 w-3" />}
+              {fmtPct(quote.regularMarketChangePercent)}
             </div>
           </div>
-          <span className="text-xs text-muted-foreground">vs. fechamento</span>
+          <button
+            onClick={onRemove}
+            disabled={removing}
+            className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded flex-shrink-0"
+            aria-label="Remover ativo"
+          >
+            {removing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+          </button>
         </div>
       </div>
 
-      {/* Day stats */}
-      <div className="px-5 pb-3">
-        <div className="grid grid-cols-4 gap-2 text-center">
-          {[
-            { label: "Abertura", value: fmtBRL(quote.regularMarketOpen) },
-            { label: "Máx. dia", value: fmtBRL(quote.regularMarketDayHigh) },
-            { label: "Mín. dia", value: fmtBRL(quote.regularMarketDayLow) },
-            { label: "Volume", value: fmtVol(quote.regularMarketVolume) },
-          ].map(({ label, value }) => (
-            <div key={label} className="bg-secondary/50 rounded-lg py-2 px-1">
-              <p className="text-[10px] text-muted-foreground leading-tight mb-0.5">{label}</p>
-              <p className="text-xs font-semibold text-foreground leading-tight">{value}</p>
-            </div>
-          ))}
-        </div>
+      {/* Stats row */}
+      <div className="px-4 pb-2.5 grid grid-cols-6 gap-1">
+        {stats.map(({ label, value }) => (
+          <div key={label} className="bg-secondary/40 rounded px-1 py-1.5 text-center">
+            <p className="text-[9px] text-muted-foreground leading-tight">{label}</p>
+            <p className="text-[11px] font-semibold text-foreground leading-tight mt-0.5">{value}</p>
+          </div>
+        ))}
       </div>
 
       {/* 52-week range */}
-      <div className="px-5 pb-3">
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
-          <span>Mín. 52s: {fmtBRL(quote.fiftyTwoWeekLow)}</span>
-          <span className="font-medium text-foreground">Range 52 semanas</span>
-          <span>Máx. 52s: {fmtBRL(quote.fiftyTwoWeekHigh)}</span>
-        </div>
-        <div className="relative h-2 bg-secondary rounded-full">
-          <div
-            className="absolute top-0 bottom-0 left-0 rounded-full"
-            style={{ width: `${w52Pos}%`, backgroundColor: "#3b82f6" }}
-          />
-          <div
-            className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 border-white shadow-sm"
-            style={{ left: `calc(${w52Pos}% - 7px)`, backgroundColor: "#3b82f6" }}
-          />
-        </div>
-      </div>
-
-      {/* Fundamentals */}
-      <div className="border-t border-border px-5 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Fech. anterior", value: fmtBRL(quote.regularMarketPreviousClose) },
-          { label: "Cap. mercado", value: fmtMktCap(quote.marketCap) },
-          { label: "P/L", value: quote.priceEarnings != null ? quote.priceEarnings.toFixed(2).replace(".", ",") : "–" },
-          { label: "LPA", value: quote.earningsPerShare != null ? fmtBRL(quote.earningsPerShare) : "–" },
-        ].map(({ label, value }) => (
-          <div key={label}>
-            <p className="text-[10px] text-muted-foreground mb-0.5">{label}</p>
-            <p className="text-sm font-semibold text-foreground">{value}</p>
+      <div className="px-4 pb-3">
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="flex-shrink-0">{fmtBRL(quote.fiftyTwoWeekLow)}</span>
+          <div className="relative flex-1 h-1.5 bg-secondary rounded-full">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full"
+              style={{ width: `${w52Pos}%`, backgroundColor: "#3b82f6" }}
+            />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-white shadow-sm"
+              style={{ left: `calc(${w52Pos}% - 6px)`, backgroundColor: "#3b82f6" }}
+            />
           </div>
-        ))}
+          <span className="flex-shrink-0">{fmtBRL(quote.fiftyTwoWeekHigh)}</span>
+          <span className="text-muted-foreground/60 flex-shrink-0">52s</span>
+        </div>
       </div>
     </div>
   );
@@ -496,7 +475,7 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
 
       {/* Quotes grid */}
       {!loading && filteredQuotes.filter((q) => !q.error).length > 0 && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filteredQuotes
             .filter((q) => !q.error)
             .map((quote) => (

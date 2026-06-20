@@ -6,27 +6,26 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, Users, House, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const BASE_NAV = [
+const EXPENSES_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/investments", label: "Investimentos", icon: TrendingUp },
+  { href: "/settings", label: "Configurações", icon: Settings },
 ];
 
-function getNavItems(isInvestments: boolean) {
-  return [
-    ...BASE_NAV,
-    {
-      href: isInvestments ? "/investments/settings" : "/settings",
-      label: "Configurações",
-      icon: Settings,
-      exact: false as const,
-    },
-  ];
-}
+const INVESTMENTS_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
+  { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
+  { href: "/investments/indicators", label: "Indicadores", icon: Activity },
+  { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
+  { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
+  { href: "/investments/evolution", label: "Evolução", icon: TrendingUp },
+  { href: "/investments/settings", label: "Configurações", icon: Settings },
+];
 
 // Accent color per module
 const INVEST_COLOR = "#3b82f6";
@@ -81,7 +80,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {getNavItems(isInvestments).map(({ href, label, icon: Icon, exact }) => {
+        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV).map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link

@@ -3,26 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, TrendingUp } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp, DollarSign, Activity, AreaChart, Briefcase } from "lucide-react";
 
-const BASE_NAV = [
+const EXPENSES_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/investments", label: "Invest.", icon: TrendingUp },
+  { href: "/settings", label: "Config.", icon: Settings },
 ];
 
-function getNavItems(isInvestments: boolean) {
-  return [
-    ...BASE_NAV,
-    {
-      href: isInvestments ? "/investments/settings" : "/settings",
-      label: "Config.",
-      icon: Settings,
-      exact: false,
-    },
-  ];
-}
+const INVESTMENTS_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
+  { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
+  { href: "/investments/indicators", label: "Indicadores", icon: Activity },
+  { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
+  { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
+  { href: "/investments/evolution", label: "Evolução", icon: TrendingUp },
+  { href: "/investments/settings", label: "Config.", icon: Settings },
+];
 
 const INVEST_COLOR = "#3b82f6";
 
@@ -33,14 +32,14 @@ export function MobileNav() {
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border shadow-lg">
       <div className="flex items-center justify-around px-2 py-2 safe-area-pb">
-        {getNavItems(isInvestments).map(({ href, label, icon: Icon, exact }) => {
+        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV).map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all",
+                "flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-all min-w-0",
                 active
                   ? isInvestments ? "" : "text-primary"
                   : "text-muted-foreground"

@@ -36,12 +36,15 @@ interface ChartsClientProps {
 
 // ─── Periods ─────────────────────────────────────────────────────────────────
 
-// brapi free plan supports only: 1d, 5d, 1mo, 3mo
 const PERIODS = [
-  { label: "1D",  range: "1d",   interval: "30m",  fmt: "time"   },
+  { label: "1D",  range: "1d",   interval: "30m",  fmt: "time"    },
   { label: "5D",  range: "5d",   interval: "1h",   fmt: "dayTime" },
-  { label: "1M",  range: "1mo",  interval: "1d",   fmt: "day"    },
-  { label: "3M",  range: "3mo",  interval: "1d",   fmt: "day"    },
+  { label: "1M",  range: "1mo",  interval: "1d",   fmt: "day"     },
+  { label: "3M",  range: "3mo",  interval: "1d",   fmt: "day"     },
+  { label: "1A",  range: "1y",   interval: "1wk",  fmt: "month"   },
+  { label: "2A",  range: "2y",   interval: "1mo",  fmt: "month"   },
+  { label: "5A",  range: "5y",   interval: "1mo",  fmt: "year"    },
+  { label: "10A", range: "10y",  interval: "3mo",  fmt: "year"    },
 ] as const;
 
 type PeriodFmt = typeof PERIODS[number]["fmt"];
@@ -128,17 +131,20 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
   const [data, setData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   const fetchChart = useCallback(async (symbol: string, period: typeof PERIODS[number]) => {
     if (!symbol) return;
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     try {
       const res = await fetch(
         `/api/investments/chart?symbol=${symbol}&range=${period.range}&interval=${period.interval}`
       );
       const json = await res.json();
       if (!res.ok) {
+        setErrorCode(json.code ?? null);
         setError(json.detail ?? json.error ?? "Erro ao carregar gráfico");
         setData(null);
         return;
@@ -218,24 +224,21 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
         </div>
 
         {/* Period selector */}
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
-            {PERIODS.map((p) => (
-              <button
-                key={p.label}
-                onClick={() => setSelectedPeriod(p)}
-                className="px-2.5 py-1 rounded-md text-xs font-semibold transition-all"
-                style={
-                  selectedPeriod.range === p.range
-                    ? { backgroundColor: ACCENT, color: "#fff" }
-                    : { color: "var(--muted-foreground)" }
-                }
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground/60">plano gratuito: máx. 3 meses</p>
+        <div className="flex gap-1 bg-secondary/50 rounded-lg p-1 flex-wrap">
+          {PERIODS.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => setSelectedPeriod(p)}
+              className="px-2.5 py-1 rounded-md text-xs font-semibold transition-all"
+              style={
+                selectedPeriod.range === p.range
+                  ? { backgroundColor: ACCENT, color: "#fff" }
+                  : { color: "var(--muted-foreground)" }
+              }
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -286,10 +289,22 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
           <div className="flex items-center gap-2 h-72 justify-center text-center px-4">
             <div className="space-y-2">
               <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <Button size="sm" variant="outline" onClick={() => fetchChart(selectedSymbol, selectedPeriod)}>
-                Tentar novamente
-              </Button>
+              {errorCode === "INVALID_RANGE" ? (
+                <>
+                  <p className="text-sm font-medium text-foreground">Período não disponível para {selectedSymbol}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Este ativo não possui dados históricos para o período selecionado.<br />
+                    Tente um período menor.
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">{error}</p>
+              )}
+              {errorCode !== "INVALID_RANGE" && (
+                <Button size="sm" variant="outline" onClick={() => fetchChart(selectedSymbol, selectedPeriod)}>
+                  Tentar novamente
+                </Button>
+              )}
             </div>
           </div>
         )}

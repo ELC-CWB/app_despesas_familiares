@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: `brapi HTTP ${res.status}`, detail: body.slice(0, 300) }, { status: 502 });
     }
     const data = await res.json();
-    if (data.error) return NextResponse.json({ error: data.message ?? "brapi error" }, { status: 502 });
+    if (data.error) {
+      return NextResponse.json(
+        { error: data.message ?? "brapi error", code: data.code ?? null },
+        { status: 502 }
+      );
+    }
 
     const result = (data.results ?? [])[0];
     if (!result) return NextResponse.json({ error: "No data" }, { status: 404 });

@@ -9,13 +9,24 @@ import { getInitials } from "@/lib/utils";
 import { LayoutDashboard, Receipt, Settings, LogOut, Users, House, TrendingUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const navItems = [
+const BASE_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/investments", label: "Investimentos", icon: TrendingUp },
-  { href: "/settings", label: "Configurações", icon: Settings },
 ];
+
+function getNavItems(isInvestments: boolean) {
+  return [
+    ...BASE_NAV,
+    {
+      href: isInvestments ? "/investments/settings" : "/settings",
+      label: "Configurações",
+      icon: Settings,
+      exact: false as const,
+    },
+  ];
+}
 
 // Accent color per module
 const INVEST_COLOR = "#3b82f6";
@@ -70,7 +81,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map(({ href, label, icon: Icon, exact }) => {
+        {getNavItems(isInvestments).map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link

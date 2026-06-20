@@ -12,6 +12,14 @@ export interface Profile {
   email: string;
   avatar_url: string | null;
   group_id: string | null;
+  investment_group_id: string | null;
+  created_at: string;
+}
+
+export interface InvestmentGroup {
+  id: string;
+  name: string;
+  created_by: string;
   created_at: string;
 }
 

@@ -6,13 +6,14 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, Users, House } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, Users, House, TrendingUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
+  { href: "/investments", label: "Investimentos", icon: TrendingUp },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
 

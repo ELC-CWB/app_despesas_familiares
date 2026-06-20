@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
+  { href: "/investments", label: "Invest.", icon: TrendingUp },
   { href: "/settings", label: "Config.", icon: Settings },
 ];
 

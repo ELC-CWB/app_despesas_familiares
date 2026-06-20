@@ -83,10 +83,8 @@ export default function Home() {
         </Link>
 
         {/* Investimentos — coming soon */}
-        <a
+        <Link
           href="/investments"
-          target="_blank"
-          rel="noopener noreferrer"
           className="group rounded-2xl p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5"
           style={{
             backgroundColor: "hsl(222, 47%, 16%)",
@@ -117,7 +115,7 @@ export default function Home() {
             <Clock className="w-3.5 h-3.5" />
             <span>Em breve</span>
           </div>
-        </a>
+        </Link>
 
       </div>
     </main>

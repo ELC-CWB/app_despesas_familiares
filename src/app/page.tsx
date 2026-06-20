@@ -37,7 +37,7 @@ export default function Home() {
           className="text-white font-bold text-2xl tracking-tight"
           style={{ fontFamily: "Sora, sans-serif" }}
         >
-          Despesas Familiares
+          Finanças Familiares
         </h1>
         <p className="text-sm mt-1.5" style={{ color: "hsl(220, 9%, 50%)" }}>
           Selecione um módulo para continuar

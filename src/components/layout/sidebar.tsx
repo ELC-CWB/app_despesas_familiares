@@ -17,6 +17,10 @@ const navItems = [
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
 
+// Accent color per module
+const INVEST_COLOR = "#3b82f6";
+const EXPENSES_COLOR = "hsl(var(--primary))";
+
 interface SidebarProps {
   profile: Profile | null;
 }
@@ -24,6 +28,10 @@ interface SidebarProps {
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const isInvestments = pathname.startsWith("/investments");
+  const accentColor = isInvestments ? INVEST_COLOR : EXPENSES_COLOR;
+  const accentBg = isInvestments ? "rgba(59,130,246,0.15)" : "hsl(var(--primary))";
 
   async function handleLogout() {
     const supabase = createClient();
@@ -37,19 +45,22 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+          <div
+            className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300"
+            style={{ backgroundColor: accentColor }}
+          >
             <span className="text-white font-bold text-lg">$</span>
           </div>
           <div>
             <span
-              className="text-sidebar-fg font-semibold text-base leading-tight block"
+              className="text-sidebar-fg font-semibold text-base leading-tight block transition-all duration-300"
               style={{ fontFamily: "Sora, sans-serif" }}
             >
-              Despesas
+              {isInvestments ? "Investimentos" : "Despesas"}
             </span>
             <span
-              className="text-primary text-xs font-medium"
-              style={{ fontFamily: "Sora, sans-serif" }}
+              className="text-xs font-medium transition-colors duration-300"
+              style={{ fontFamily: "Sora, sans-serif", color: accentColor }}
             >
               Familiares
             </span>
@@ -68,9 +79,10 @@ export function Sidebar({ profile }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                 active
-                  ? "bg-primary text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
               )}
+              style={active ? { backgroundColor: accentColor } : undefined}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
               {label}

@@ -16,7 +16,7 @@ export default async function InvestmentsPage() {
 
   return (
     <div>
-      <Header title="Investimentos" profile={profile} />
+      <Header title="Investimentos Familiares" profile={profile} />
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-6">
         <div
           className="w-16 h-16 rounded-2xl flex items-center justify-center"

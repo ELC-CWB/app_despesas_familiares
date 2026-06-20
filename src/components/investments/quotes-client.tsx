@@ -329,13 +329,17 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
     if (!silent) setRefreshing(true);
     try {
       const res = await fetch(`/api/investments/quotes?symbols=${syms.join(",")}`);
-      if (!res.ok) throw new Error("Falha ao buscar cotações");
       const data = await res.json();
+      if (!res.ok) {
+        const detail = data?.detail ?? data?.error ?? `HTTP ${res.status}`;
+        if (!silent) toast({ variant: "destructive", title: "Erro ao buscar cotações", description: detail });
+        return;
+      }
       setQuotes(data.results ?? []);
       setLastUpdated(new Date());
       setCountdown(REFRESH_INTERVAL);
-    } catch {
-      if (!silent) toast({ variant: "destructive", title: "Erro ao atualizar cotações" });
+    } catch (err) {
+      if (!silent) toast({ variant: "destructive", title: "Erro de rede", description: String(err) });
     } finally {
       setRefreshing(false);
       setLoading(false);

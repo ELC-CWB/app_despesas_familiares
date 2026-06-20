@@ -288,6 +288,24 @@ create policy "InvInvites: update (accept)"
   on public.investment_group_invites for update
   using (invited_email = (select email from public.profiles where id = auth.uid()));
 
+-- Investment Tickers (watchlist per profile)
+create table if not exists public.investment_tickers (
+  id         uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  symbol     text not null,
+  created_at timestamptz default now(),
+  unique(profile_id, symbol)
+);
+
+create index if not exists investment_tickers_profile_id_idx on public.investment_tickers(profile_id);
+
+alter table public.investment_tickers enable row level security;
+
+create policy "InvTickers: own"
+  on public.investment_tickers for all
+  using (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
 -- ============================================================
 -- EXPENSES
 -- ============================================================

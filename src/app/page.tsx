@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ReceiptText, TrendingUp, ArrowRight, Clock } from "lucide-react";
+import { ReceiptText, TrendingUp, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       />
       <div
         className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-        style={{ backgroundColor: "hsl(160, 84%, 39%)", opacity: 0.07 }}
+        style={{ backgroundColor: "#3b82f6", opacity: 0.10 }}
       />
 
       {/* Logo + title */}
@@ -82,38 +82,38 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Investimentos — coming soon */}
+        {/* Investimentos */}
         <Link
           href="/investments"
           className="group rounded-2xl p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5"
           style={{
-            backgroundColor: "hsl(222, 47%, 16%)",
-            border: "1px solid hsl(220, 20%, 21%)",
+            background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+            boxShadow: "0 8px 40px rgba(59,130,246,0.28)",
           }}
         >
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: "hsl(222, 47%, 21%)" }}
+            style={{ backgroundColor: "rgba(255,255,255,0.18)" }}
           >
-            <TrendingUp className="w-6 h-6" style={{ color: "hsl(220, 9%, 42%)" }} />
+            <TrendingUp className="w-6 h-6 text-white" />
           </div>
           <div>
             <h2
-              className="text-xl font-bold"
-              style={{ fontFamily: "Sora, sans-serif", color: "hsl(220, 9%, 52%)" }}
+              className="text-xl font-bold text-white"
+              style={{ fontFamily: "Sora, sans-serif" }}
             >
               Investimentos
             </h2>
-            <p className="text-sm mt-1" style={{ color: "hsl(220, 9%, 38%)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.65)" }}>
               Controle de investimentos
             </p>
           </div>
           <div
-            className="flex items-center gap-1.5 text-sm mt-auto"
-            style={{ color: "hsl(220, 9%, 36%)" }}
+            className="flex items-center gap-1.5 text-sm mt-auto transition-colors duration-200"
+            style={{ color: "rgba(255,255,255,0.55)" }}
           >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Em breve</span>
+            <span className="group-hover:text-white transition-colors">Acessar</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
           </div>
         </Link>
 

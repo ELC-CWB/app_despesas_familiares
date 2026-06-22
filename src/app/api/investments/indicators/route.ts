@@ -15,13 +15,13 @@ export async function GET(request: NextRequest) {
   const brapiToken = process.env.BRAPI_TOKEN!;
   const bolsaiKey = process.env.BOLSAI_API_KEY!;
 
-  // Fetch bolsai (fundamentals) + brapi (real-time price + logo) in parallel
+  // Fetch bolsai (fundamentals) + brapi (real-time price + logo + dividends) in parallel
   const [bolsaiRes, brapiRes] = await Promise.allSettled([
     fetch(`${BOLSAI_BASE}/fundamentals/${symbol}`, {
       headers: { "X-API-Key": bolsaiKey },
       cache: "no-store",
     }),
-    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}`, {
+    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}&dividends=true`, {
       cache: "no-store",
     }),
   ]);
@@ -41,12 +41,19 @@ export async function GET(request: NextRequest) {
     bolsaiError = "Erro de rede (bolsai)";
   }
 
-  // Parse brapi — real-time price + logo only
+  // Parse brapi — price, logo, and dividends history
   let price: number | null = null;
   let change: number | null = null;
   let changePct: number | null = null;
   let logourl: string | null = null;
   let shortName: string | null = null;
+  let cashDividends: Array<{
+    paymentDate: string;
+    rate: number;
+    label: string;
+    lastDatePrior: string;
+  }> = [];
+
   if (brapiRes.status === "fulfilled" && brapiRes.value.ok) {
     try {
       const data = await brapiRes.value.json();
@@ -57,6 +64,14 @@ export async function GET(request: NextRequest) {
         changePct = r.regularMarketChangePercent ?? null;
         logourl = r.logourl ?? null;
         shortName = r.shortName ?? null;
+        cashDividends = (r.dividendsData?.cashDividends ?? []).map(
+          (d: { paymentDate: string; rate: number; label: string; lastDatePrior: string }) => ({
+            paymentDate: d.paymentDate,
+            rate: d.rate,
+            label: d.label,
+            lastDatePrior: d.lastDatePrior,
+          })
+        );
       }
     } catch { /* ignore brapi parse error */ }
   }
@@ -72,5 +87,6 @@ export async function GET(request: NextRequest) {
     changePct,
     logourl,
     shortName,
+    cashDividends,
   });
 }

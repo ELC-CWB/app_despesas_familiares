@@ -58,6 +58,13 @@ interface BolsaiData {
   current_liabilities?: number;
 }
 
+interface CashDividend {
+  paymentDate: string;
+  rate: number;
+  label: string;
+  lastDatePrior: string;
+}
+
 interface IndicatorsClientProps {
   symbols: string[];
 }
@@ -168,6 +175,7 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
     changePct: number | null;
     logourl: string | null;
     shortName: string | null;
+    cashDividends: CashDividend[];
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -347,6 +355,127 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
             <KPI label="DL/PL" value={fmtMul(n(b.net_debt_equity))} description="Dívida Líquida / Patrimônio Líquido." positive={b.net_debt_equity != null ? b.net_debt_equity < 1 : null} />
             <KPI label="D/PL" value={fmtMul(n(b.debt_equity))} description="Dívida Total / Patrimônio Líquido." positive={b.debt_equity != null ? b.debt_equity < 1.5 : null} />
           </Section>
+
+          {/* Dividendos */}
+          {(() => {
+            const divs = data?.cashDividends ?? [];
+            const now = new Date();
+            const oneYearAgo = new Date(now); oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+            // Paid in last 12 months
+            const paid12m = divs.filter(d => {
+              const dt = new Date(d.paymentDate);
+              return dt <= now && dt >= oneYearAgo;
+            });
+            const dpa12m = paid12m.reduce((s, d) => s + d.rate, 0);
+            const dy12m = data?.price && data.price > 0 ? (dpa12m / data.price) * 100 : null;
+            const payout = b.lpa && b.lpa > 0 ? (dpa12m / b.lpa) * 100 : null;
+
+            // Next upcoming payment
+            const upcoming = divs
+              .filter(d => new Date(d.paymentDate) > now)
+              .sort((a, b) => new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime())[0];
+
+            // Recent history (last 10)
+            const history = [...divs]
+              .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
+              .slice(0, 10);
+
+            if (divs.length === 0) return null;
+
+            return (
+              <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <span className="w-1 h-4 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: ACCENT }} />
+                  Dividendos
+                </h3>
+
+                {/* KPIs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <KPI
+                    label="DY 12m"
+                    value={dy12m != null ? fmtPct(dy12m) : "–"}
+                    description="Dividend Yield: soma dos dividendos pagos nos últimos 12 meses dividida pelo preço atual."
+                    positive={dy12m != null ? dy12m > 4 : null}
+                  />
+                  <KPI
+                    label="DPA 12m"
+                    value={dpa12m > 0 ? fmtBRL(dpa12m) : "–"}
+                    description="Dividendo por ação pago nos últimos 12 meses."
+                    positive={dpa12m > 0 ? true : null}
+                  />
+                  <KPI
+                    label="Payout"
+                    value={payout != null ? fmtPct(payout) : "–"}
+                    description="Percentual do lucro por ação distribuído como dividendo."
+                  />
+                  <KPI
+                    label="Próx. pagamento"
+                    value={upcoming ? fmtBRL(upcoming.rate) : "–"}
+                    description={upcoming
+                      ? `${upcoming.label} em ${new Date(upcoming.paymentDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`
+                      : "Nenhum pagamento futuro anunciado."}
+                    positive={upcoming ? true : null}
+                  />
+                </div>
+
+                {/* History table */}
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-2">Histórico recente</p>
+                  <div className="rounded-xl overflow-hidden border border-border">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-secondary/50">
+                          <th className="text-left px-3 py-2 text-muted-foreground font-medium">Tipo</th>
+                          <th className="text-left px-3 py-2 text-muted-foreground font-medium">Data ex</th>
+                          <th className="text-left px-3 py-2 text-muted-foreground font-medium">Pagamento</th>
+                          <th className="text-right px-3 py-2 text-muted-foreground font-medium">R$/ação</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((d, i) => {
+                          const isPaid = new Date(d.paymentDate) <= now;
+                          return (
+                            <tr key={i} className="border-t border-border hover:bg-secondary/20 transition-colors">
+                              <td className="px-3 py-2">
+                                <span
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                                  style={{
+                                    backgroundColor: d.label === "DIVIDENDO" ? "rgba(34,197,94,0.12)"
+                                      : d.label === "JCP" ? "rgba(59,130,246,0.12)"
+                                      : "rgba(168,85,247,0.12)",
+                                    color: d.label === "DIVIDENDO" ? "#16a34a"
+                                      : d.label === "JCP" ? "#2563eb"
+                                      : "#7c3aed",
+                                  }}
+                                >
+                                  {d.label}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-muted-foreground">
+                                {d.lastDatePrior
+                                  ? new Date(d.lastDatePrior).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })
+                                  : "–"}
+                              </td>
+                              <td className="px-3 py-2">
+                                <span className={isPaid ? "text-muted-foreground" : "font-medium"} style={{ color: isPaid ? undefined : ACCENT }}>
+                                  {new Date(d.paymentDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })}
+                                  {!isPaid && <span className="ml-1 text-[10px]">●</span>}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-right font-semibold text-foreground">
+                                {fmtBRL(d.rate)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Financeiro */}
           <Section title="Dados Financeiros">

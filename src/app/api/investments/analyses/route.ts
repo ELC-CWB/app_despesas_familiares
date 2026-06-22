@@ -169,7 +169,7 @@ async function fetchBrapiMeta(symbol: string, token: string): Promise<{ shortNam
     if (data.error) return null;
     const r = data.results?.[0];
     if (!r) return null;
-    return { shortName: r.shortName ?? symbol, logourl: r.logourl ?? null };
+    return { shortName: r.longName ?? r.shortName ?? symbol, logourl: r.logourl ?? null };
   } catch {
     return null;
   }

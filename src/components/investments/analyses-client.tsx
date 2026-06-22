@@ -325,7 +325,7 @@ export function AnalysesClient() {
                       )}
                       <div className="min-w-0">
                         <p className="font-semibold text-foreground text-xs leading-tight">{row.symbol}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{row.sector}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{row.shortName !== row.symbol ? row.shortName : row.sector}</p>
                       </div>
                     </div>
                   </td>

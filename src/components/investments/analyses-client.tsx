@@ -3,8 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Loader2, AlertCircle, BookOpen, Calculator } from "lucide-react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 interface CashDividend {
   paymentDate: string;
   rate: number;
@@ -12,6 +10,7 @@ interface CashDividend {
 
 interface TickerRow {
   symbol: string;
+  sector: string;
   shortName: string;
   logourl: string | null;
   price: number;
@@ -21,8 +20,6 @@ interface TickerRow {
 
 const ACCENT = "#3b82f6";
 const DEFAULT_FATOR = "8";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }).format(v);
@@ -43,27 +40,69 @@ function dpaForYear(divs: CashDividend[], year: number): number {
     .reduce((s, d) => s + d.rate, 0);
 }
 
-// ─── DY Cell ─────────────────────────────────────────────────────────────────
-
 function DYCell({ dy, fator }: { dy: number | null; fator: number }) {
-  if (dy == null) return <span className="text-xs text-muted-foreground">–</span>;
+  if (dy == null || dy === 0) return <span className="text-xs text-muted-foreground">–</span>;
   const good = dy >= fator * 100;
   return (
-    <span className="text-sm font-medium" style={{ color: good ? "#16a34a" : "var(--muted-foreground)" }}>
+    <span className="text-xs font-medium" style={{ color: good ? "#16a34a" : "inherit" }}>
       {fmtPct(dy)}
     </span>
   );
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ─── Sector filter pills ─────────────────────────────────────────────────────
+
+function SectorPills({
+  sectors,
+  selected,
+  onToggle,
+  onAll,
+}: {
+  sectors: string[];
+  selected: Set<string>;
+  onToggle: (s: string) => void;
+  onAll: () => void;
+}) {
+  const allSelected = selected.size === 0;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <button
+        onClick={onAll}
+        className="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+        style={allSelected
+          ? { backgroundColor: ACCENT, color: "#fff" }
+          : { backgroundColor: "var(--secondary)", color: "var(--muted-foreground)" }}
+      >
+        Todos
+      </button>
+      {sectors.map(s => {
+        const active = selected.has(s);
+        return (
+          <button
+            key={s}
+            onClick={() => onToggle(s)}
+            className="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+            style={active
+              ? { backgroundColor: ACCENT, color: "#fff" }
+              : { backgroundColor: "var(--secondary)", color: "var(--muted-foreground)" }}
+          >
+            {s}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
 
 export function AnalysesClient() {
   const [rows, setRows] = useState<TickerRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadedCount, setLoadedCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [fatorInput, setFatorInput] = useState(DEFAULT_FATOR);
   const [fatorConfirmed, setFatorConfirmed] = useState(DEFAULT_FATOR);
+  const [selectedSectors, setSelectedSectors] = useState<Set<string>>(new Set());
 
   const fator = parseFator(fatorConfirmed);
   const currentYear = new Date().getFullYear();
@@ -72,21 +111,22 @@ export function AnalysesClient() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    setLoadedCount(0);
     fetch("/api/investments/analyses")
       .then(r => r.json())
       .then(json => {
         if (json.error) { setError(json.error); return; }
         const valid = (json.results ?? []).filter((r: TickerRow & { error?: string }) => !r.error);
         setRows(valid);
-        setLoadedCount(valid.length);
       })
       .catch(() => setError("Erro de rede"))
       .finally(() => setLoading(false));
   }, []);
 
+  const sectors = useMemo(() => [...new Set(rows.map(r => r.sector))].sort(), [rows]);
+
   const tableRows = useMemo(() => {
     return rows
+      .filter(r => selectedSectors.size === 0 || selectedSectors.has(r.sector))
       .map(r => {
         const dyAtual = r.price > 0 && r.dpa12m > 0 ? (r.dpa12m / r.price) * 100 : null;
         const precoTeto = fator > 0 && r.dpa12m > 0 ? r.dpa12m / fator : null;
@@ -102,15 +142,21 @@ export function AnalysesClient() {
         if (b.dyAtual == null) return -1;
         return b.dyAtual - a.dyAtual;
       });
-  }, [rows, fator, years]);
+  }, [rows, fator, years, selectedSectors]);
+
+  const toggleSector = (s: string) => {
+    setSelectedSectors(prev => {
+      const next = new Set(prev);
+      if (next.has(s)) next.delete(s); else next.add(s);
+      return next;
+    });
+  };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
         <Loader2 className="h-7 w-7 animate-spin" style={{ color: ACCENT }} />
-        <span className="text-sm text-muted-foreground">
-          Carregando ações da B3{loadedCount > 0 ? ` (${loadedCount} carregadas)` : "..."}
-        </span>
+        <span className="text-sm text-muted-foreground">Carregando ações da B3...</span>
       </div>
     );
   }
@@ -134,20 +180,25 @@ export function AnalysesClient() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Controls */}
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-semibold text-foreground text-sm">
               Ações B3 com dividendos — {tableRows.length} ativos
+              {selectedSectors.size > 0 && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  (filtrado por setor)
+                </span>
+              )}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Ordenado por DY Atual (maior → menor) · Preço Teto = DPA 12m ÷ Fator · DY histórico sobre preço atual
+              Ordenado por DY Atual · Preço Teto = DPA 12m ÷ Fator · DY histórico sobre preço atual
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-muted-foreground whitespace-nowrap">Fator</label>
+            <label className="text-xs font-medium text-muted-foreground">Fator</label>
             <div className="flex items-center gap-1">
               <input
                 type="text"
@@ -156,7 +207,6 @@ export function AnalysesClient() {
                 onKeyDown={e => { if (e.key === "Enter") setFatorConfirmed(fatorInput); }}
                 className="w-14 text-sm font-semibold text-right rounded-lg border border-border bg-secondary/50 px-2 py-1.5 focus:outline-none focus:ring-2"
                 style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
-                placeholder="8"
               />
               <span className="text-sm font-semibold text-muted-foreground">%</span>
             </div>
@@ -170,25 +220,35 @@ export function AnalysesClient() {
             </button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-4 mt-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/40" />
-            <span>Preço Teto &gt; Preço Atual (oportunidade) · DY verde ≥ {fatorInput || "8"}%</span>
-          </div>
+
+        {/* Sector filter */}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1.5">Setor</p>
+          <SectorPills
+            sectors={sectors}
+            selected={selectedSectors}
+            onToggle={toggleSector}
+            onAll={() => setSelectedSectors(new Set())}
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/40" />
+          <span>Preço Teto &gt; Preço Atual (oportunidade de compra) · DY verde ≥ {fatorInput || "8"}%</span>
         </div>
       </div>
 
-      {/* Table — full width, no horizontal scroll */}
+      {/* Table */}
       <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-sm table-fixed">
           <colgroup>
-            <col className="w-8" />          {/* # */}
-            <col className="w-40" />         {/* Ativo */}
-            <col className="w-24" />         {/* DPA 12m */}
-            <col className="w-28" />         {/* Preço Teto */}
-            <col className="w-24" />         {/* Preço Atual */}
-            <col className="w-20" />         {/* DY Atual */}
-            {years.map(y => <col key={y} className="w-16" />)}
+            <col style={{ width: "2rem" }} />
+            <col style={{ width: "11rem" }} />
+            <col style={{ width: "6rem" }} />
+            <col style={{ width: "7.5rem" }} />
+            <col style={{ width: "6.5rem" }} />
+            <col style={{ width: "5.5rem" }} />
+            {years.map(y => <col key={y} style={{ width: "5rem" }} />)}
           </colgroup>
           <thead>
             <tr className="border-b border-border bg-secondary/30">
@@ -212,7 +272,7 @@ export function AnalysesClient() {
           </thead>
           <tbody>
             {tableRows.map((row, i) => {
-              const tetoMaiorAtual = row.precoTeto != null && row.precoTeto > row.price;
+              const tetoOportunidade = row.precoTeto != null && row.precoTeto > row.price;
 
               return (
                 <tr key={row.symbol} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
@@ -231,22 +291,22 @@ export function AnalysesClient() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-semibold text-foreground text-xs leading-tight truncate">{row.symbol}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{row.shortName}</p>
+                        <p className="font-semibold text-foreground text-xs leading-tight">{row.symbol}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{row.sector}</p>
                       </div>
                     </div>
                   </td>
 
                   <td className="px-3 py-2 text-right">
                     {row.dpa12m > 0
-                      ? <span className="text-xs font-medium text-foreground">{fmtBRL(row.dpa12m)}</span>
+                      ? <span className="text-xs font-medium">{fmtBRL(row.dpa12m)}</span>
                       : <span className="text-xs text-muted-foreground">–</span>}
                   </td>
 
                   <td className="px-3 py-2 text-right">
                     {row.precoTeto != null ? (
                       <span className="inline-block px-2 py-0.5 rounded text-xs font-bold"
-                        style={tetoMaiorAtual
+                        style={tetoOportunidade
                           ? { backgroundColor: "rgba(34,197,94,0.15)", color: "#15803d" }
                           : { color: "var(--foreground)" }}>
                         {fmtBRL(row.precoTeto)}
@@ -255,7 +315,7 @@ export function AnalysesClient() {
                   </td>
 
                   <td className="px-3 py-2 text-right">
-                    <span className="text-xs font-semibold text-foreground">{fmtBRL(row.price)}</span>
+                    <span className="text-xs font-semibold">{fmtBRL(row.price)}</span>
                   </td>
 
                   <td className="px-3 py-2 text-right">

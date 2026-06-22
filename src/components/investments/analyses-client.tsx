@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, AlertCircle, BookOpen, Calculator } from "lucide-react";
+import { Loader2, AlertCircle, BookOpen, Calculator, Search } from "lucide-react";
 
 interface CashDividend {
   paymentDate: string;
@@ -109,6 +109,7 @@ export function AnalysesClient() {
   const [fatorInput, setFatorInput] = useState(DEFAULT_FATOR);
   const [fatorConfirmed, setFatorConfirmed] = useState(DEFAULT_FATOR);
   const [selectedSectors, setSelectedSectors] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
   const [fetchKey, setFetchKey] = useState(0);
 
   const fator = parseFator(fatorConfirmed);
@@ -141,6 +142,11 @@ export function AnalysesClient() {
   const tableRows = useMemo(() => {
     return rows
       .filter(r => selectedSectors.size === 0 || selectedSectors.has(r.sector))
+      .filter(r => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toUpperCase();
+        return r.symbol.includes(q) || r.shortName.toUpperCase().includes(q);
+      })
       .map(r => {
         const dyAtual = r.price > 0 && r.dpa12m > 0 ? (r.dpa12m / r.price) * 100 : null;
         const precoTeto = fator > 0 && r.dpa12m > 0 ? r.dpa12m / fator : null;
@@ -233,6 +239,19 @@ export function AnalysesClient() {
               Calcular
             </button>
           </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar por código ou nome da empresa..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-secondary/50 focus:outline-none focus:ring-2 placeholder:text-muted-foreground/60"
+            style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
+          />
         </div>
 
         {/* Sector filter */}

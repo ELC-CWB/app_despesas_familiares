@@ -19,7 +19,13 @@ interface TickerRow {
 }
 
 const ACCENT = "#3b82f6";
-const DEFAULT_FATOR = "8";
+const DEFAULT_FATOR = "8,0";
+
+function formatFator(raw: string): string {
+  const n = parseFloat(raw.replace(",", "."));
+  if (isNaN(n) || n <= 0) return raw;
+  return n.toFixed(1).replace(".", ",");
+}
 
 function fmtBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }).format(v);
@@ -103,6 +109,7 @@ export function AnalysesClient() {
   const [fatorInput, setFatorInput] = useState(DEFAULT_FATOR);
   const [fatorConfirmed, setFatorConfirmed] = useState(DEFAULT_FATOR);
   const [selectedSectors, setSelectedSectors] = useState<Set<string>>(new Set());
+  const [fetchKey, setFetchKey] = useState(0);
 
   const fator = parseFator(fatorConfirmed);
   const currentYear = new Date().getFullYear();
@@ -120,7 +127,14 @@ export function AnalysesClient() {
       })
       .catch(() => setError("Erro de rede"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchKey]);
+
+  const handleCalcular = () => {
+    const formatted = formatFator(fatorInput);
+    setFatorInput(formatted);
+    setFatorConfirmed(formatted);
+    setFetchKey(k => k + 1);
+  };
 
   const sectors = useMemo(() => [...new Set(rows.map(r => r.sector))].sort(), [rows]);
 
@@ -204,14 +218,14 @@ export function AnalysesClient() {
                 type="text"
                 value={fatorInput}
                 onChange={e => setFatorInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") setFatorConfirmed(fatorInput); }}
-                className="w-14 text-sm font-semibold text-right rounded-lg border border-border bg-secondary/50 px-2 py-1.5 focus:outline-none focus:ring-2"
+                onKeyDown={e => { if (e.key === "Enter") handleCalcular(); }}
+                className="w-14 text-sm font-semibold text-center rounded-lg border border-border bg-secondary/50 px-2 py-1.5 focus:outline-none focus:ring-2"
                 style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
               />
               <span className="text-sm font-semibold text-muted-foreground">%</span>
             </div>
             <button
-              onClick={() => setFatorConfirmed(fatorInput)}
+              onClick={handleCalcular}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: ACCENT }}
             >

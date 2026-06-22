@@ -19,7 +19,7 @@ interface AnalysesClientProps {
 }
 
 const ACCENT = "#3b82f6";
-const DEFAULT_FATOR = "0,08";
+const DEFAULT_FATOR = "8";
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ function fmtBRL(v: number) {
 function parseFator(raw: string): number {
   const clean = raw.replace(",", ".");
   const n = parseFloat(clean);
-  return isNaN(n) || n <= 0 ? 0.08 : n;
+  return isNaN(n) || n <= 0 ? 0.08 : n / 100;
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -126,16 +126,18 @@ export function AnalysesClient({ symbols }: AnalysesClientProps) {
           {/* Fator input */}
           <div className="flex items-center gap-2">
             <label className="text-xs font-medium text-muted-foreground whitespace-nowrap">Fator de referência</label>
-            <input
-              type="text"
-              value={fatorInput}
-              onChange={e => setFatorInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") setFatorConfirmed(fatorInput); }}
-              className="w-20 text-sm font-semibold text-center rounded-lg border border-border bg-secondary/50 px-2 py-1.5 focus:outline-none focus:ring-2"
-              style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
-              placeholder="0,08"
-            />
-            <span className="text-xs text-muted-foreground">({(fator * 100).toFixed(1).replace(".", ",")}% DY alvo)</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={fatorInput}
+                onChange={e => setFatorInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") setFatorConfirmed(fatorInput); }}
+                className="w-16 text-sm font-semibold text-right rounded-lg border border-border bg-secondary/50 px-2 py-1.5 focus:outline-none focus:ring-2"
+                style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
+                placeholder="8"
+              />
+              <span className="text-sm font-semibold text-muted-foreground">%</span>
+            </div>
             <button
               onClick={() => setFatorConfirmed(fatorInput)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
@@ -172,7 +174,7 @@ export function AnalysesClient({ symbols }: AnalysesClientProps) {
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground">
                   <div className="flex flex-col items-end gap-0.5">
-                    <span className="text-[10px] text-muted-foreground/60 font-normal">fator: {fatorInput || "0,08"}</span>
+                    <span className="text-[10px] text-muted-foreground/60 font-normal">fator: {fatorInput || "8"}%</span>
                     <div className="flex items-center gap-1">
                       <ArrowDownUp className="h-3 w-3" />
                       Preço Teto

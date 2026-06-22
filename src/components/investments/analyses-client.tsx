@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, AlertCircle, BookOpen, ArrowDownUp } from "lucide-react";
+import { Loader2, AlertCircle, BookOpen, ArrowDownUp, Calculator } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -42,8 +42,9 @@ export function AnalysesClient({ symbols }: AnalysesClientProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fatorInput, setFatorInput] = useState(DEFAULT_FATOR);
+  const [fatorConfirmed, setFatorConfirmed] = useState(DEFAULT_FATOR);
 
-  const fator = parseFator(fatorInput);
+  const fator = parseFator(fatorConfirmed);
 
   useEffect(() => {
     if (symbols.length === 0) return;
@@ -129,11 +130,20 @@ export function AnalysesClient({ symbols }: AnalysesClientProps) {
               type="text"
               value={fatorInput}
               onChange={e => setFatorInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") setFatorConfirmed(fatorInput); }}
               className="w-20 text-sm font-semibold text-center rounded-lg border border-border bg-secondary/50 px-2 py-1.5 focus:outline-none focus:ring-2"
               style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
               placeholder="0,08"
             />
             <span className="text-xs text-muted-foreground">({(fator * 100).toFixed(1).replace(".", ",")}% DY alvo)</span>
+            <button
+              onClick={() => setFatorConfirmed(fatorInput)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: ACCENT }}
+            >
+              <Calculator className="h-3.5 w-3.5" />
+              Calcular
+            </button>
           </div>
         </div>
 
@@ -141,7 +151,7 @@ export function AnalysesClient({ symbols }: AnalysesClientProps) {
         <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/40" />
-            <span>Preço Teto abaixo do preço atual</span>
+            <span>Preço Teto acima do preço atual (oportunidade de compra)</span>
           </div>
         </div>
       </div>
@@ -176,7 +186,7 @@ export function AnalysesClient({ symbols }: AnalysesClientProps) {
             <tbody>
               {tableRows.map((row, i) => {
                 const teto = row.precoTeto;
-                const tetoAbaixoAtual = teto != null && teto < row.price;
+                const tetoAbaixoAtual = teto != null && teto > row.price;
                 const dyAtual = row.price > 0 && row.dpa12m > 0
                   ? (row.dpa12m / row.price) * 100
                   : null;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, TrendingUp, DollarSign, Activity, AreaChart, Briefcase } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen } from "lucide-react";
 
 const EXPENSES_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
@@ -18,6 +18,7 @@ const INVESTMENTS_NAV = [
   { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
   { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
   { href: "/investments/indicators", label: "Indicadores", icon: Activity },
+  { href: "/investments/analyses", label: "Análises", icon: BookOpen },
   { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
   { href: "/investments/evolution", label: "Evolução", icon: TrendingUp },
   { href: "/investments/settings", label: "Config.", icon: Settings },

@@ -56,50 +56,6 @@ function DYCell({ dy, fator }: { dy: number | null; fator: number }) {
   );
 }
 
-// ─── Sector filter pills ─────────────────────────────────────────────────────
-
-function SectorPills({
-  sectors,
-  selected,
-  onToggle,
-  onAll,
-}: {
-  sectors: string[];
-  selected: Set<string>;
-  onToggle: (s: string) => void;
-  onAll: () => void;
-}) {
-  const allSelected = selected.size === 0;
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      <button
-        onClick={onAll}
-        className="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-        style={allSelected
-          ? { backgroundColor: ACCENT, color: "#fff" }
-          : { backgroundColor: "var(--secondary)", color: "var(--muted-foreground)" }}
-      >
-        Todos
-      </button>
-      {sectors.map(s => {
-        const active = selected.has(s);
-        return (
-          <button
-            key={s}
-            onClick={() => onToggle(s)}
-            className="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-            style={active
-              ? { backgroundColor: ACCENT, color: "#fff" }
-              : { backgroundColor: "var(--secondary)", color: "var(--muted-foreground)" }}
-          >
-            {s}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export function AnalysesClient() {
@@ -162,15 +118,7 @@ export function AnalysesClient() {
         if (b.dyAtual == null) return -1;
         return b.dyAtual - a.dyAtual;
       });
-  }, [rows, fator, years, selectedSectors]);
-
-  const toggleSector = (s: string) => {
-    setSelectedSectors(prev => {
-      const next = new Set(prev);
-      if (next.has(s)) next.delete(s); else next.add(s);
-      return next;
-    });
-  };
+  }, [rows, fator, years, selectedSectors, searchQuery]);
 
   if (loading) {
     return (
@@ -241,33 +189,28 @@ export function AnalysesClient() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Buscar por código ou nome da empresa..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-secondary/50 focus:outline-none focus:ring-2 placeholder:text-muted-foreground/60"
+        {/* Search + sector */}
+        <div className="flex gap-2">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Código ou nome..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border bg-secondary/50 focus:outline-none focus:ring-2 placeholder:text-muted-foreground/60"
+              style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
+            />
+          </div>
+          <select
+            value={[...selectedSectors][0] ?? ""}
+            onChange={e => setSelectedSectors(e.target.value ? new Set([e.target.value]) : new Set())}
+            className="px-2 py-1.5 text-xs rounded-lg border border-border bg-secondary/50 focus:outline-none focus:ring-2 text-foreground"
             style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
-          />
-        </div>
-
-        {/* Sector filter */}
-        <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1.5">Setor</p>
-          <SectorPills
-            sectors={sectors}
-            selected={selectedSectors}
-            onToggle={toggleSector}
-            onAll={() => setSelectedSectors(new Set())}
-          />
-        </div>
-
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <div className="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/40" />
-          <span>Preço Teto &gt; Preço Atual (oportunidade de compra) · DY verde ≥ {fatorInput || "8"}%</span>
+          >
+            <option value="">Todos os setores</option>
+            {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
         </div>
       </div>
 

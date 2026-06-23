@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, AlertCircle, Activity, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { Loader2, AlertCircle, Activity, TrendingUp, TrendingDown, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -168,6 +168,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
   const [selectedSymbol, setSelectedSymbol] = useState<string>(symbols[0] ?? "");
+  const [filterQuery, setFilterQuery] = useState("");
   const [data, setData] = useState<{
     bolsai: BolsaiData;
     price: number | null;
@@ -229,21 +230,36 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
   return (
     <div className="space-y-5">
       {/* Stock selector */}
-      <div className="flex flex-wrap gap-2">
-        {symbols.map((s) => (
-          <button
-            key={s}
-            onClick={() => setSelectedSymbol(s)}
-            className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-            style={
-              selectedSymbol === s
-                ? { backgroundColor: ACCENT, color: "#fff" }
-                : { color: "var(--muted-foreground)", border: "1px solid var(--border)" }
-            }
-          >
-            {s}
-          </button>
-        ))}
+      <div className="space-y-2">
+        <div className="relative max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar ativo..."
+            value={filterQuery}
+            onChange={e => setFilterQuery(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border bg-secondary/50 focus:outline-none focus:ring-2 placeholder:text-muted-foreground/60"
+            style={{ "--tw-ring-color": ACCENT } as React.CSSProperties}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {symbols
+            .filter(s => s.toUpperCase().includes(filterQuery.toUpperCase()))
+            .map((s) => (
+              <button
+                key={s}
+                onClick={() => setSelectedSymbol(s)}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                style={
+                  selectedSymbol === s
+                    ? { backgroundColor: ACCENT, color: "#fff" }
+                    : { color: "var(--muted-foreground)", border: "1px solid var(--border)" }
+                }
+              >
+                {s}
+              </button>
+            ))}
+        </div>
       </div>
 
       {/* Loading */}

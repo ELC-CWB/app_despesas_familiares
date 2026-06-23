@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,10 +81,12 @@ function QuoteCard({
   quote,
   onRemove,
   removing,
+  onCardClick,
 }: {
   quote: QuoteResult;
   onRemove: () => void;
   removing: boolean;
+  onCardClick: () => void;
 }) {
   const up = quote.regularMarketChange >= 0;
   const color = up ? "#22c55e" : "#ef4444";
@@ -106,7 +109,10 @@ function QuoteCard({
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       {/* Header: logo + symbol + name | price + change + trash */}
-      <div className="px-4 pt-3 pb-2.5 flex items-center gap-2">
+      <div
+        className="px-4 pt-3 pb-2.5 flex items-center gap-2 cursor-pointer"
+        onClick={onCardClick}
+      >
         {quote.logourl ? (
           <img
             src={quote.logourl}
@@ -143,7 +149,7 @@ function QuoteCard({
             </div>
           </div>
           <button
-            onClick={onRemove}
+            onClick={e => { e.stopPropagation(); onRemove(); }}
             disabled={removing}
             className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded flex-shrink-0"
             aria-label="Remover ativo"
@@ -291,6 +297,7 @@ function AddTickerDialog({
 const REFRESH_INTERVAL = 60;
 
 export function QuotesClient({ profileId, initialSymbols, initialQuotes }: QuotesClientProps) {
+  const router = useRouter();
   const { toast } = useToast();
 
   const [symbols, setSymbols] = useState<string[]>(initialSymbols);
@@ -484,6 +491,7 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
                 quote={quote}
                 onRemove={() => handleRemove(quote.symbol)}
                 removing={removingSymbol === quote.symbol}
+                onCardClick={() => router.push(`/investments/charts?symbol=${quote.symbol}`)}
               />
             ))}
         </div>

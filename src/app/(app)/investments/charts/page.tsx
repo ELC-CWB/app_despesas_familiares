@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
@@ -19,7 +20,9 @@ export default async function ChartsPage() {
     <div>
       <Header title="Gráficos" profile={profile} />
       <div className="p-4 md:p-6 max-w-5xl mx-auto">
-        <ChartsClient symbols={symbols} />
+        <Suspense>
+          <ChartsClient symbols={symbols} />
+        </Suspense>
       </div>
     </div>
   );

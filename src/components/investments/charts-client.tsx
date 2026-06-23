@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
@@ -127,7 +128,14 @@ function CustomTooltip({
 const ACCENT = "#3b82f6";
 
 export function ChartsClient({ symbols }: ChartsClientProps) {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(symbols[0] ?? "");
+  const searchParams = useSearchParams();
+  const urlSymbol = searchParams.get("symbol")?.toUpperCase() ?? null;
+  const allSymbols = useMemo(
+    () => urlSymbol && !symbols.includes(urlSymbol) ? [urlSymbol, ...symbols] : symbols,
+    [symbols, urlSymbol]
+  );
+
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol ?? symbols[0] ?? "");
   const [selectedPeriod, setSelectedPeriod] = useState(PERIODS[2]); // 1M default
   const [data, setData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -186,7 +194,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
   const yMin = prices.length ? Math.min(...prices) * 0.995 : 0;
   const yMax = prices.length ? Math.max(...prices) * 1.005 : 100;
 
-  if (symbols.length === 0) {
+  if (allSymbols.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-6">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(59,130,246,0.1)" }}>
@@ -208,7 +216,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         {/* Stock selector */}
         <div className="flex flex-wrap gap-2">
-          {symbols.map((s) => (
+          {allSymbols.map((s) => (
             <button
               key={s}
               onClick={() => setSelectedSymbol(s)}

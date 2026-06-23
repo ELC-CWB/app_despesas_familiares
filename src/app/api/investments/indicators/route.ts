@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const BRAPI_BASE = "https://brapi.dev/api";
 const BOLSAI_BASE = "https://api.usebolsai.com/api/v1";
+const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -15,13 +16,17 @@ export async function GET(request: NextRequest) {
   const brapiToken = process.env.BRAPI_TOKEN!;
   const bolsaiKey = process.env.BOLSAI_API_KEY!;
 
-  // Fetch bolsai (fundamentals) + brapi (real-time price + logo + dividends) in parallel
-  const [bolsaiRes, brapiRes] = await Promise.allSettled([
+  // Fetch bolsai + brapi + Yahoo Finance in parallel
+  const [bolsaiRes, brapiRes, yahooRes] = await Promise.allSettled([
     fetch(`${BOLSAI_BASE}/fundamentals/${symbol}`, {
       headers: { "X-API-Key": bolsaiKey },
       cache: "no-store",
     }),
     fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}&dividends=true`, {
+      cache: "no-store",
+    }),
+    fetch(`${YAHOO_BASE}/${symbol}.SA?events=div&range=5y&interval=1mo`, {
+      headers: { "User-Agent": "Mozilla/5.0" },
       cache: "no-store",
     }),
   ]);
@@ -63,7 +68,7 @@ export async function GET(request: NextRequest) {
         change = r.regularMarketChange ?? null;
         changePct = r.regularMarketChangePercent ?? null;
         logourl = r.logourl ?? null;
-        shortName = r.shortName ?? null;
+        shortName = r.longName ?? r.shortName ?? null;
         cashDividends = (r.dividendsData?.cashDividends ?? []).map(
           (d: { paymentDate: string; rate: number; label: string; lastDatePrior: string }) => ({
             paymentDate: d.paymentDate,
@@ -74,6 +79,25 @@ export async function GET(request: NextRequest) {
         );
       }
     } catch { /* ignore brapi parse error */ }
+  }
+
+  // brapi blocks dividends=true for most tickers on free plan — fallback to Yahoo Finance
+  if (cashDividends.length === 0 && yahooRes.status === "fulfilled" && yahooRes.value.ok) {
+    try {
+      const yahooData = await yahooRes.value.json();
+      const rawDivs: Record<string, { date: number; amount: number }> =
+        yahooData.chart?.result?.[0]?.events?.dividends ?? {};
+      cashDividends = Object.values(rawDivs).map(d => ({
+        paymentDate: new Date(d.date * 1000).toISOString(),
+        rate: d.amount,
+        label: "Dividendo",
+        lastDatePrior: "",
+      }));
+      // Also use Yahoo price if brapi gave nothing
+      if (price == null) {
+        price = yahooData.chart?.result?.[0]?.meta?.regularMarketPrice ?? null;
+      }
+    } catch { /* ignore */ }
   }
 
   if (!bolsai) {

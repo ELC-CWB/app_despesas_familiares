@@ -23,6 +23,7 @@ interface HistoricalPoint {
 interface ChartData {
   symbol: string;
   shortName: string;
+  logourl: string | null;
   currency: string;
   regularMarketPrice: number;
   regularMarketChange: number;
@@ -247,16 +248,33 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
         {/* Header stats */}
         {data && !loading && (
           <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
-            <div>
-              <p className="text-xs text-muted-foreground">{data.shortName}</p>
-              <p className="text-2xl font-bold text-foreground">{fmtBRL(data.regularMarketPrice)}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {isUp
-                  ? <TrendingUp className="h-3.5 w-3.5" style={{ color: lineColor }} />
-                  : <TrendingDown className="h-3.5 w-3.5" style={{ color: lineColor }} />}
-                <span className="text-sm font-semibold" style={{ color: lineColor }}>
-                  {fmtBRL(Math.abs(periodChange))} ({fmtPct(periodChangePct)}) no período
-                </span>
+            <div className="flex items-center gap-3">
+              {data.logourl ? (
+                <img
+                  src={data.logourl}
+                  alt={data.symbol}
+                  className="h-10 w-10 rounded-xl object-contain bg-secondary flex-shrink-0"
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                <div
+                  className="h-10 w-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                  style={{ backgroundColor: ACCENT }}
+                >
+                  {data.symbol.slice(0, 2)}
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground">{data.shortName}</p>
+                <p className="text-2xl font-bold text-foreground">{fmtBRL(data.regularMarketPrice)}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {isUp
+                    ? <TrendingUp className="h-3.5 w-3.5" style={{ color: lineColor }} />
+                    : <TrendingDown className="h-3.5 w-3.5" style={{ color: lineColor }} />}
+                  <span className="text-sm font-semibold" style={{ color: lineColor }}>
+                    {fmtBRL(Math.abs(periodChange))} ({fmtPct(periodChangePct)}) no período
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex gap-6 text-right">

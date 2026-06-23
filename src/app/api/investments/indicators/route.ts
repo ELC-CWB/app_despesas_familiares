@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       headers: { "X-API-Key": bolsaiKey },
       cache: "no-store",
     }),
-    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}&dividends=true`, {
+    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}`, {
       cache: "no-store",
     }),
     fetch(`${YAHOO_BASE}/${symbol}.SA?events=div&range=5y&interval=1mo`, {

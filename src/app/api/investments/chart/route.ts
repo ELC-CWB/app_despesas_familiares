@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       symbol: result.symbol,
-      shortName: result.shortName ?? symbol,
+      shortName: result.longName ?? result.shortName ?? symbol,
+      logourl: result.logourl ?? null,
       currency: result.currency ?? "BRL",
       regularMarketPrice: result.regularMarketPrice,
       regularMarketChange: result.regularMarketChange,

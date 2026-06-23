@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle, Activity, TrendingUp, TrendingDown, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -167,7 +168,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(symbols[0] ?? "");
+  const searchParams = useSearchParams();
+  const urlSymbol = searchParams.get("symbol")?.toUpperCase() ?? null;
+
+  // Merge URL symbol with watchlist (URL symbol may not be in watchlist)
+  const allSymbols = useMemo(() => {
+    if (urlSymbol && !symbols.includes(urlSymbol)) return [urlSymbol, ...symbols];
+    return symbols;
+  }, [symbols, urlSymbol]);
+
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol ?? symbols[0] ?? "");
   const [filterQuery, setFilterQuery] = useState("");
   const [data, setData] = useState<{
     bolsai: BolsaiData;
@@ -205,7 +215,7 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
     if (selectedSymbol) fetchIndicators(selectedSymbol);
   }, [selectedSymbol, fetchIndicators]);
 
-  if (symbols.length === 0) {
+  if (allSymbols.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-6">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(59,130,246,0.1)" }}>
@@ -246,7 +256,7 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {symbols
+          {allSymbols
             .filter(s => s.toUpperCase().includes(filterQuery.toUpperCase()))
             .map((s) => (
               <button

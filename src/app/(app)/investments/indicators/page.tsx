@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
@@ -19,7 +20,9 @@ export default async function IndicatorsPage() {
     <div>
       <Header title="Indicadores" profile={profile} />
       <div className="p-4 md:p-6 max-w-5xl mx-auto">
-        <IndicatorsClient symbols={symbols} />
+        <Suspense>
+          <IndicatorsClient symbols={symbols} />
+        </Suspense>
       </div>
     </div>
   );

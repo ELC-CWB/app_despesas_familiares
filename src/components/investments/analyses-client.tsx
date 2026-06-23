@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle, BookOpen, Calculator, Search } from "lucide-react";
 
 interface CashDividend {
@@ -59,6 +60,7 @@ function DYCell({ dy, fator }: { dy: number | null; fator: number }) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export function AnalysesClient() {
+  const router = useRouter();
   const [rows, setRows] = useState<TickerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -251,7 +253,11 @@ export function AnalysesClient() {
               const tetoOportunidade = row.precoTeto != null && row.precoTeto > row.price;
 
               return (
-                <tr key={row.symbol} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
+                <tr
+                  key={row.symbol}
+                  className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors cursor-pointer"
+                  onClick={() => router.push(`/investments/indicators?symbol=${row.symbol}`)}
+                >
                   <td className="px-2 py-2 text-xs text-muted-foreground text-center">{i + 1}</td>
 
                   <td className="px-3 py-2">

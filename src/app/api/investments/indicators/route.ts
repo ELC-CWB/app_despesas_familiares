@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { fetchFundamentusIndicators, fetchFundamentusProventos } from "@/lib/investments/fundamentus";
 
 const BRAPI_BASE = "https://brapi.dev/api";
-const BOLSAI_BASE = "https://api.usebolsai.com/api/v1";
-const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -14,50 +13,27 @@ export async function GET(request: NextRequest) {
   if (!symbol) return NextResponse.json({ error: "No symbol" }, { status: 400 });
 
   const brapiToken = process.env.BRAPI_TOKEN!;
-  const bolsaiKey = process.env.BOLSAI_API_KEY!;
 
-  // Fetch bolsai + brapi + Yahoo Finance in parallel
-  const [bolsaiRes, brapiRes, yahooRes] = await Promise.allSettled([
-    fetch(`${BOLSAI_BASE}/fundamentals/${symbol}`, {
-      headers: { "X-API-Key": bolsaiKey },
-      cache: "no-store",
-    }),
-    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}`, {
-      cache: "no-store",
-    }),
-    fetch(`${YAHOO_BASE}/${symbol}.SA?events=div&range=5y&interval=1mo`, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      cache: "no-store",
-    }),
+  // Fundamentus: fundamentals + dividends. BRAPI: live price, logo, name.
+  const [fundRes, proventosRes, brapiRes] = await Promise.allSettled([
+    fetchFundamentusIndicators(symbol),
+    fetchFundamentusProventos(symbol, 5),
+    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}`, { cache: "no-store" }),
   ]);
 
-  // Parse bolsai — primary source
-  let bolsai: Record<string, unknown> | null = null;
-  let bolsaiError: string | null = null;
-  if (bolsaiRes.status === "fulfilled") {
-    if (bolsaiRes.value.ok) {
-      try { bolsai = await bolsaiRes.value.json(); }
-      catch { bolsaiError = "Erro ao parsear resposta bolsai"; }
-    } else {
-      const body = await bolsaiRes.value.text().catch(() => "");
-      bolsaiError = `bolsai HTTP ${bolsaiRes.value.status}: ${body.slice(0, 200)}`;
-    }
-  } else {
-    bolsaiError = "Erro de rede (bolsai)";
+  const fund = fundRes.status === "fulfilled" ? fundRes.value : null;
+  const proventos = proventosRes.status === "fulfilled" ? proventosRes.value : [];
+
+  if (!fund) {
+    return NextResponse.json({ error: "Sem dados do Fundamentus para esse ativo" }, { status: 502 });
   }
 
-  // Parse brapi — price, logo, and dividends history
+  // BRAPI: live price, day change, logo, name
   let price: number | null = null;
   let change: number | null = null;
   let changePct: number | null = null;
   let logourl: string | null = null;
   let shortName: string | null = null;
-  let cashDividends: Array<{
-    paymentDate: string;
-    rate: number;
-    label: string;
-    lastDatePrior: string;
-  }> = [];
 
   if (brapiRes.status === "fulfilled" && brapiRes.value.ok) {
     try {
@@ -69,48 +45,72 @@ export async function GET(request: NextRequest) {
         changePct = r.regularMarketChangePercent ?? null;
         logourl = r.logourl ?? null;
         shortName = r.longName ?? r.shortName ?? null;
-        cashDividends = (r.dividendsData?.cashDividends ?? []).map(
-          (d: { paymentDate: string; rate: number; label: string; lastDatePrior: string }) => ({
-            paymentDate: d.paymentDate,
-            rate: d.rate,
-            label: d.label,
-            lastDatePrior: d.lastDatePrior,
-          })
-        );
-      }
-    } catch { /* ignore brapi parse error */ }
-  }
-
-  // brapi blocks dividends=true for most tickers on free plan — fallback to Yahoo Finance
-  if (cashDividends.length === 0 && yahooRes.status === "fulfilled" && yahooRes.value.ok) {
-    try {
-      const yahooData = await yahooRes.value.json();
-      const rawDivs: Record<string, { date: number; amount: number }> =
-        yahooData.chart?.result?.[0]?.events?.dividends ?? {};
-      cashDividends = Object.values(rawDivs).map(d => ({
-        paymentDate: new Date(d.date * 1000).toISOString(),
-        rate: d.amount,
-        label: "Dividendo",
-        lastDatePrior: "",
-      }));
-      // Also use Yahoo price if brapi gave nothing
-      if (price == null) {
-        price = yahooData.chart?.result?.[0]?.meta?.regularMarketPrice ?? null;
       }
     } catch { /* ignore */ }
   }
 
-  if (!bolsai) {
-    return NextResponse.json({ error: bolsaiError ?? "Sem dados" }, { status: 502 });
-  }
+  // Map Fundamentus data to the BolsaiData interface expected by indicators-client.tsx.
+  // Financial fields (netDebt, equity, ebitda, etc.) are in R$ thousands — the client
+  // multiplies by 1000 via fmtFin(). marketCap is multiplied here to give actual R$
+  // because the client formats it with fmtLarge() which does not multiply.
+  const bolsai = {
+    ticker: symbol,
+    corporate_name: shortName ?? symbol,
+    // Valuation
+    pl: fund.pl ?? undefined,
+    pvp: fund.pvp ?? undefined,
+    ev_ebitda: fund.evEbitda ?? undefined,
+    ev_ebit: fund.evEbit ?? undefined,
+    p_ebitda: fund.pEbitda ?? undefined,
+    p_ebit: fund.pEbit ?? undefined,
+    p_sr: fund.psr ?? undefined,
+    p_assets: fund.pAtivo ?? undefined,
+    lpa: fund.lpa ?? undefined,
+    vpa: fund.vpa ?? undefined,
+    market_cap: fund.marketCap != null ? fund.marketCap * 1000 : undefined,
+    // Margins (already in %)
+    gross_margin: fund.margBruta ?? undefined,
+    net_margin: fund.margLiquida ?? undefined,
+    ebitda_margin: fund.margEbitda ?? undefined,
+    ebit_margin: fund.margEbit ?? undefined,
+    // Returns (already in %)
+    roe: fund.roe ?? undefined,
+    roa: undefined, // not available on Fundamentus
+    roic: fund.roic ?? undefined,
+    ebit_over_assets: fund.ebit != null && fund.totalAssets != null && fund.totalAssets !== 0
+      ? (fund.ebit / fund.totalAssets) * 100 : undefined,
+    asset_turnover: fund.giroAtivo ?? undefined,
+    // CAGR not available on Fundamentus
+    cagr_revenue_5y: undefined,
+    cagr_earnings_5y: undefined,
+    // Debt / Liquidity (dimensionless ratios — units cancel)
+    current_ratio: fund.liqCorrente ?? undefined,
+    debt_equity: fund.divBrutaPl ?? undefined,
+    net_debt_equity: fund.netDebt != null && fund.equity != null && fund.equity !== 0
+      ? fund.netDebt / fund.equity : undefined,
+    net_debt_ebitda: fund.netDebt != null && fund.ebitda != null && fund.ebitda !== 0
+      ? fund.netDebt / fund.ebitda : undefined,
+    net_debt_ebit: fund.netDebt != null && fund.ebit != null && fund.ebit !== 0
+      ? fund.netDebt / fund.ebit : undefined,
+    // Financials in R$ thousands (client multiplies ×1000 internally)
+    net_income: fund.netIncome ?? undefined,
+    equity: fund.equity ?? undefined,
+    net_revenue: fund.netRevenue ?? undefined,
+    total_debt: fund.totalDebt ?? undefined,
+    ebitda: fund.ebitda ?? undefined,
+    ebit: fund.ebit ?? undefined,
+    net_debt: fund.netDebt ?? undefined,
+    cash: fund.cash ?? undefined,
+    total_assets: fund.totalAssets ?? undefined,
+  };
 
-  return NextResponse.json({
-    bolsai,
-    price,
-    change,
-    changePct,
-    logourl,
-    shortName,
-    cashDividends,
-  });
+  // Map proventos to CashDividend format for the indicators client
+  const cashDividends = proventos.map(p => ({
+    paymentDate: `${p.paymentDate}T00:00:00.000Z`,
+    rate: p.rate,
+    label: p.label,
+    lastDatePrior: `${p.exDate}T00:00:00.000Z`,
+  }));
+
+  return NextResponse.json({ bolsai, price, change, changePct, logourl, shortName, cashDividends });
 }

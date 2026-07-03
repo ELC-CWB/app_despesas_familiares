@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Mail, Check, Crown, Loader2, Trash2 } from "lucide-react";
+import { UserPlus, Users, Mail, Check, Crown, Loader2, Trash2, LogOut } from "lucide-react";
 
 const ACCENT = "#3b82f6";
 const USER_COLORS = [ACCENT, "#10b981", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"];
@@ -52,6 +52,10 @@ export function InvestmentSettingsClient({
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<{ id: string; name: string } | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [leavingGroup, setLeavingGroup] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(false);
 
   async function handleUpdateName() {
     setUpdatingName(true);
@@ -67,18 +71,14 @@ export function InvestmentSettingsClient({
     if (!groupName.trim()) return;
     setCreatingGroup(true);
     const supabase = createClient();
-    const { data: newGroup, error } = await supabase
-      .from("investment_groups")
-      .insert({ name: groupName.trim(), created_by: currentUserId })
-      .select()
-      .single();
-    if (error || !newGroup) {
-      setCreatingGroup(false);
-      toast({ variant: "destructive", title: "Erro", description: error?.message });
+    const { error } = await supabase.rpc("create_investment_group", {
+      group_name: groupName.trim(),
+    });
+    setCreatingGroup(false);
+    if (error) {
+      toast({ variant: "destructive", title: "Erro", description: error.message });
       return;
     }
-    await supabase.from("profiles").update({ investment_group_id: newGroup.id }).eq("id", currentUserId);
-    setCreatingGroup(false);
     toast({ title: "Grupo criado!" });
     router.refresh();
   }
@@ -113,6 +113,36 @@ export function InvestmentSettingsClient({
     await supabase.from("profiles").update({ investment_group_id: groupId }).eq("id", currentUserId);
     setAcceptingId(null);
     toast({ title: "Convite aceito!", description: "Você entrou no grupo de investimentos." });
+    router.refresh();
+  }
+
+  async function handleLeaveGroup() {
+    setLeavingGroup(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ investment_group_id: null })
+      .eq("id", currentUserId);
+    setLeavingGroup(false);
+    if (error) {
+      toast({ variant: "destructive", title: "Erro ao sair do grupo", description: error.message });
+      return;
+    }
+    toast({ title: "Você saiu do grupo de investimentos." });
+    router.refresh();
+  }
+
+  async function handleDeleteGroup() {
+    if (!group) return;
+    setDeletingGroup(true);
+    const supabase = createClient();
+    const { error } = await supabase.rpc("delete_investment_group", { grp_id: group.id });
+    setDeletingGroup(false);
+    if (error) {
+      toast({ variant: "destructive", title: "Erro ao excluir grupo", description: error.message });
+      return;
+    }
+    toast({ title: "Grupo excluído.", description: "Todos os membros foram removidos." });
     router.refresh();
   }
 
@@ -299,6 +329,36 @@ export function InvestmentSettingsClient({
                 </div>
               </>
             )}
+
+            {!isAdmin && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  className="gap-2 text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setConfirmLeave(true)}
+                  disabled={leavingGroup}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair do grupo
+                </Button>
+              </>
+            )}
+
+            {isAdmin && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  className="gap-2 text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={deletingGroup}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir grupo
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -331,6 +391,50 @@ export function InvestmentSettingsClient({
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir grupo?</DialogTitle>
+            <DialogDescription>
+              Todos os membros serão removidos do grupo <strong>{group?.name}</strong> e perderão acesso à carteira compartilhada. Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={deletingGroup}
+              onClick={() => { setConfirmDelete(false); handleDeleteGroup(); }}
+            >
+              {deletingGroup ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Excluir grupo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmLeave} onOpenChange={setConfirmLeave}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Sair do grupo?</DialogTitle>
+            <DialogDescription>
+              Você deixará de ter acesso à carteira compartilhada do grupo. Poderá ser convidado novamente pelo administrador.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmLeave(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={leavingGroup}
+              onClick={() => { setConfirmLeave(false); handleLeaveGroup(); }}
+            >
+              {leavingGroup ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Sair do grupo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!confirmRemove} onOpenChange={(o) => { if (!o) setConfirmRemove(null); }}>
         <DialogContent className="max-w-sm">

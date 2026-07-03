@@ -13,7 +13,6 @@ const EXPENSES_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
-  { href: "/investments", label: "Investimentos", icon: TrendingUp },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
 
@@ -24,7 +23,6 @@ const INVESTMENTS_NAV = [
   { href: "/investments/indicators", label: "Indicadores", icon: Activity },
   { href: "/investments/analyses", label: "Análises", icon: BookOpen },
   { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
-  { href: "/investments/evolution", label: "Evolução", icon: TrendingUp },
   { href: "/investments/settings", label: "Configurações", icon: Settings },
 ];
 

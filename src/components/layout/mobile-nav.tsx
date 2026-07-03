@@ -20,7 +20,6 @@ const INVESTMENTS_NAV = [
   { href: "/investments/indicators", label: "Indicadores", icon: Activity },
   { href: "/investments/analyses", label: "Análises", icon: BookOpen },
   { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
-  { href: "/investments/evolution", label: "Evolução", icon: TrendingUp },
   { href: "/investments/settings", label: "Config.", icon: Settings },
 ];
 

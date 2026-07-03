@@ -1,126 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { SECTOR_MAP } from "@/lib/investments/sectors";
+import { fetchFundamentusIndicators, fetchFundamentusProventos } from "@/lib/investments/fundamentus";
 
 const BRAPI_BASE = "https://brapi.dev/api";
-const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 
 interface StockDef {
   symbol: string;
   sector: string;
 }
 
-const B3_DIVIDEND_STOCKS: StockDef[] = [
-  // Bancos
-  { symbol: "ITUB4", sector: "Bancos" },
-  { symbol: "ITUB3", sector: "Bancos" },
-  { symbol: "BBDC4", sector: "Bancos" },
-  { symbol: "BBDC3", sector: "Bancos" },
-  { symbol: "SANB11", sector: "Bancos" },
-  { symbol: "SANB4", sector: "Bancos" },
-  { symbol: "SANB3", sector: "Bancos" },
-  { symbol: "BBAS3", sector: "Bancos" },
-  { symbol: "BPAC11", sector: "Bancos" },
-  { symbol: "BPAC3", sector: "Bancos" },
-  { symbol: "BRSR6", sector: "Bancos" },
-  { symbol: "BRSR3", sector: "Bancos" },
-  { symbol: "ABCB4", sector: "Bancos" },
-  { symbol: "BMGB4", sector: "Bancos" },
-  { symbol: "ITSA4", sector: "Bancos" },
-  { symbol: "ITSA3", sector: "Bancos" },
-  { symbol: "BPAN4", sector: "Bancos" },
-  // Energia Elétrica
-  { symbol: "EGIE3", sector: "Energia Elétrica" },
-  { symbol: "CPFE3", sector: "Energia Elétrica" },
-  { symbol: "TRPL4", sector: "Energia Elétrica" },
-  { symbol: "TRPL3", sector: "Energia Elétrica" },
-  { symbol: "ENGI11", sector: "Energia Elétrica" },
-  { symbol: "ENGI3", sector: "Energia Elétrica" },
-  { symbol: "TAEE11", sector: "Energia Elétrica" },
-  { symbol: "TAEE4", sector: "Energia Elétrica" },
-  { symbol: "TAEE3", sector: "Energia Elétrica" },
-  { symbol: "CMIG4", sector: "Energia Elétrica" },
-  { symbol: "CMIG3", sector: "Energia Elétrica" },
-  { symbol: "CPLE6", sector: "Energia Elétrica" },
-  { symbol: "CPLE3", sector: "Energia Elétrica" },
-  { symbol: "ENBR3", sector: "Energia Elétrica" },
-  { symbol: "AURE3", sector: "Energia Elétrica" },
-  { symbol: "EQTL3", sector: "Energia Elétrica" },
-  { symbol: "NEOE3", sector: "Energia Elétrica" },
-  { symbol: "CESP6", sector: "Energia Elétrica" },
-  { symbol: "ALUP11", sector: "Energia Elétrica" },
-  { symbol: "ALUP4", sector: "Energia Elétrica" },
-  { symbol: "ALUP3", sector: "Energia Elétrica" },
-  // Saneamento
-  { symbol: "SAPR4", sector: "Saneamento" },
-  { symbol: "SAPR3", sector: "Saneamento" },
-  { symbol: "SAPR11", sector: "Saneamento" },
-  { symbol: "CSMG3", sector: "Saneamento" },
-  { symbol: "SBSP3", sector: "Saneamento" },
-  // Petróleo & Gás
-  { symbol: "PETR4", sector: "Petróleo & Gás" },
-  { symbol: "PETR3", sector: "Petróleo & Gás" },
-  { symbol: "PRIO3", sector: "Petróleo & Gás" },
-  { symbol: "RRRP3", sector: "Petróleo & Gás" },
-  { symbol: "RECV3", sector: "Petróleo & Gás" },
-  { symbol: "VBBR3", sector: "Petróleo & Gás" },
-  { symbol: "CGAS5", sector: "Petróleo & Gás" },
-  // Mineração & Siderurgia
-  { symbol: "VALE3", sector: "Mineração & Siderurgia" },
-  { symbol: "CMIN3", sector: "Mineração & Siderurgia" },
-  { symbol: "CSNA3", sector: "Mineração & Siderurgia" },
-  { symbol: "GGBR4", sector: "Mineração & Siderurgia" },
-  { symbol: "GGBR3", sector: "Mineração & Siderurgia" },
-  { symbol: "GOAU4", sector: "Mineração & Siderurgia" },
-  { symbol: "GOAU3", sector: "Mineração & Siderurgia" },
-  { symbol: "FESA4", sector: "Mineração & Siderurgia" },
-  { symbol: "FESA3", sector: "Mineração & Siderurgia" },
-  { symbol: "BRAP4", sector: "Mineração & Siderurgia" },
-  { symbol: "BRAP3", sector: "Mineração & Siderurgia" },
-  { symbol: "USIM5", sector: "Mineração & Siderurgia" },
-  { symbol: "KLBN11", sector: "Mineração & Siderurgia" },
-  { symbol: "KLBN4", sector: "Mineração & Siderurgia" },
-  { symbol: "SUZB3", sector: "Mineração & Siderurgia" },
-  // Telecom
-  { symbol: "VIVT3", sector: "Telecom" },
-  { symbol: "TIMS3", sector: "Telecom" },
-  // Seguros
-  { symbol: "BBSE3", sector: "Seguros" },
-  { symbol: "CXSE3", sector: "Seguros" },
-  { symbol: "PSSA3", sector: "Seguros" },
-  // Consumo & Alimentos
-  { symbol: "AMBEV3", sector: "Consumo" },
-  { symbol: "MDIA3", sector: "Consumo" },
-  { symbol: "GRND3", sector: "Consumo" },
-  { symbol: "VULC3", sector: "Consumo" },
-  { symbol: "RANI3", sector: "Consumo" },
-  // Saúde
-  { symbol: "FLRY3", sector: "Saúde" },
-  { symbol: "HAPV3", sector: "Saúde" },
-  { symbol: "DASA3", sector: "Saúde" },
-  { symbol: "RDOR3", sector: "Saúde" },
-  // Logística & Transporte
-  { symbol: "RAIL3", sector: "Logística" },
-  { symbol: "POMO4", sector: "Logística" },
-  { symbol: "POMO3", sector: "Logística" },
-  { symbol: "TPIS3", sector: "Logística" },
-  // Indústria
-  { symbol: "WEGE3", sector: "Indústria" },
-  { symbol: "TUPY3", sector: "Indústria" },
-  { symbol: "UNIP6", sector: "Indústria" },
-  { symbol: "FRAS3", sector: "Indústria" },
-  // Varejo & Outros
-  { symbol: "ALPA4", sector: "Varejo" },
-  { symbol: "TOTS3", sector: "Varejo" },
-  { symbol: "EVEN3", sector: "Varejo" },
-  { symbol: "CYRE3", sector: "Varejo" },
-  // Agronegócio
-  { symbol: "BEEF3", sector: "Agronegócio" },
-  { symbol: "SLCE3", sector: "Agronegócio" },
-  { symbol: "AGRO3", sector: "Agronegócio" },
-];
+const B3_DIVIDEND_STOCKS: StockDef[] = Object.entries(SECTOR_MAP).map(([symbol, sector]) => ({ symbol, sector }));
 
 interface CashDividend {
-  paymentDate: string;
+  paymentDate: string; // ex-date used as paymentDate for year-grouping in client
   rate: number;
 }
 
@@ -132,30 +25,9 @@ interface TickerResult {
   price: number;
   dpa12m: number;
   cashDividends: CashDividend[];
-}
-
-async function fetchYahooData(symbol: string): Promise<{ price: number; cashDividends: CashDividend[] } | null> {
-  try {
-    const res = await fetch(
-      `${YAHOO_BASE}/${symbol}.SA?events=div&range=5y&interval=1mo`,
-      { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const r = data.chart?.result?.[0];
-    if (!r) return null;
-
-    const price: number = r.meta?.regularMarketPrice ?? 0;
-    const rawDivs: Record<string, { date: number; amount: number }> = r.events?.dividends ?? {};
-    const cashDividends: CashDividend[] = Object.values(rawDivs).map(d => ({
-      paymentDate: new Date(d.date * 1000).toISOString(),
-      rate: d.amount,
-    }));
-
-    return { price, cashDividends };
-  } catch {
-    return null;
-  }
+  netDebt: number | null;
+  ebitda: number | null;
+  payoutRatio: number | null;
 }
 
 async function fetchBrapiMeta(symbol: string, token: string): Promise<{ shortName: string; logourl: string | null } | null> {
@@ -175,24 +47,38 @@ async function fetchBrapiMeta(symbol: string, token: string): Promise<{ shortNam
   }
 }
 
-async function fetchTicker(item: StockDef, token: string): Promise<TickerResult | { symbol: string; error: string }> {
+async function fetchTicker(
+  item: StockDef,
+  token: string,
+): Promise<TickerResult | { symbol: string; error: string }> {
   const { symbol, sector } = item;
 
-  const [yahooRes, brapiRes] = await Promise.allSettled([
-    fetchYahooData(symbol),
+  const [fundRes, proventosRes, brapiRes] = await Promise.allSettled([
+    fetchFundamentusIndicators(symbol),
+    fetchFundamentusProventos(symbol, 7),
     fetchBrapiMeta(symbol, token),
   ]);
 
-  const yahoo = yahooRes.status === "fulfilled" ? yahooRes.value : null;
+  const fund = fundRes.status === "fulfilled" ? fundRes.value : null;
+  const proventos = proventosRes.status === "fulfilled" ? proventosRes.value : [];
   const brapi = brapiRes.status === "fulfilled" ? brapiRes.value : null;
 
-  if (!yahoo) return { symbol, error: "Yahoo fetch failed" };
+  // Map proventos to CashDividend — use ex-date as the paymentDate for year-grouping
+  const cashDividends: CashDividend[] = proventos.map(p => ({
+    paymentDate: `${p.exDate}T00:00:00.000Z`,
+    rate: p.rate,
+  }));
 
-  const { price, cashDividends } = yahoo;
+  const price = fund?.price ?? 0;
+  if (price === 0 && cashDividends.length === 0) return { symbol, error: "No data" };
+
   const shortName = brapi?.shortName ?? symbol;
   const logourl = brapi?.logourl ?? null;
+  const netDebt = fund?.netDebt ?? null;
+  const ebitda = fund?.ebitda ?? null;
+  const lpa = fund?.lpa ?? null;
 
-  // DPA last 12 months (paid only, not future)
+  // DPA last 12 months (filtered by ex-date)
   const now = new Date();
   const oneYearAgo = new Date(now);
   oneYearAgo.setFullYear(now.getFullYear() - 1);
@@ -200,7 +86,8 @@ async function fetchTicker(item: StockDef, token: string): Promise<TickerResult 
     .filter(d => { const dt = new Date(d.paymentDate); return dt <= now && dt >= oneYearAgo; })
     .reduce((sum, d) => sum + d.rate, 0);
 
-  return { symbol, sector, shortName, logourl, price, dpa12m, cashDividends };
+  const payoutRatio = lpa != null && lpa > 0 && dpa12m > 0 ? dpa12m / lpa : null;
+  return { symbol, sector, shortName, logourl, price, dpa12m, cashDividends, netDebt, ebitda, payoutRatio };
 }
 
 export async function GET() {

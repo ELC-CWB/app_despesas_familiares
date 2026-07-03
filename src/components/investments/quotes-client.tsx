@@ -186,6 +186,7 @@ function QuoteCard({
           <span className="flex-shrink-0">{fmtBRL(quote.fiftyTwoWeekHigh)}</span>
           <span className="text-muted-foreground/60 flex-shrink-0">52s</span>
         </div>
+        <p className="text-[10px] text-muted-foreground/40 text-right mt-1.5 select-none">Fonte: BRAPI</p>
       </div>
     </div>
   );

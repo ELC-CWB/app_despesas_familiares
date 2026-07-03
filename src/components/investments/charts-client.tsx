@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useInvestmentFilters } from "@/contexts/investment-filters-context";
 import { useSearchParams } from "next/navigation";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer, ReferenceLine,
 } from "recharts";
-import { Loader2, TrendingUp, TrendingDown, AlertCircle, BarChart2 } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -21,6 +22,13 @@ interface HistoricalPoint {
   adjustedClose?: number;
 }
 
+interface OperationMark {
+  date: string;      // "YYYY-MM-DD"
+  quantity: number;
+  price: number;
+  type: "BUY" | "SELL";
+}
+
 interface ChartData {
   symbol: string;
   shortName: string;
@@ -30,6 +38,7 @@ interface ChartData {
   regularMarketChange: number;
   regularMarketChangePercent: number;
   historicalDataPrice: HistoricalPoint[];
+  operations: OperationMark[];
 }
 
 interface ChartsClientProps {
@@ -82,17 +91,21 @@ function fmtTooltipDate(ts: number, fmt: PeriodFmt): string {
 // ─── Custom Tooltip ──────────────────────────────────────────────────────────
 
 function CustomTooltip({
-  active, payload, fmt,
+  active, payload, fmt, buyMarks,
 }: {
   active?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any[];
   fmt: PeriodFmt;
+  buyMarks: Array<OperationMark & { ts: number; nearestDate: number }>;
 }) {
   if (!active || !payload?.length) return null;
-  const d = payload[0].payload as HistoricalPoint & { dateLabel: string };
+  const d = payload[0].payload as HistoricalPoint;
   const isUp = d.close >= d.open;
   const color = isUp ? "#22c55e" : "#ef4444";
+
+  // Find buy operations whose nearest chart point is this one
+  const buysHere = buyMarks.filter((op) => op.nearestDate === d.date);
 
   return (
     <div className="bg-card border border-border rounded-lg px-3 py-2.5 shadow-lg text-xs space-y-1 min-w-[160px]">
@@ -119,6 +132,20 @@ function CustomTooltip({
           <span className="font-medium">{(d.volume / 1e6).toFixed(1).replace(".", ",")}M</span>
         </div>
       )}
+      {buysHere.length > 0 && (
+        <div className="border-t border-orange-200 pt-1.5 mt-1 space-y-1">
+          {buysHere.map((op, i) => (
+            <div key={i} className="flex justify-between gap-4">
+              <span className="font-semibold" style={{ color: "#f97316" }}>
+                ▲ Compra {op.date.slice(8)}/{op.date.slice(5, 7)}
+              </span>
+              <span className="font-semibold" style={{ color: "#f97316" }}>
+                {op.quantity.toLocaleString("pt-BR")} × {fmtBRL(op.price)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -130,17 +157,28 @@ const ACCENT = "#3b82f6";
 export function ChartsClient({ symbols }: ChartsClientProps) {
   const searchParams = useSearchParams();
   const urlSymbol = searchParams.get("symbol")?.toUpperCase() ?? null;
-  const allSymbols = useMemo(
-    () => urlSymbol && !symbols.includes(urlSymbol) ? [urlSymbol, ...symbols] : symbols,
-    [symbols, urlSymbol]
-  );
+  const { chartsSymbol, setChartsSymbol, chartsPeriodRange, setChartsPeriodRange,
+          recentChartSymbols, addRecentChartSymbol } = useInvestmentFilters();
 
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol ?? symbols[0] ?? "");
-  const [selectedPeriod, setSelectedPeriod] = useState(PERIODS[2]); // 1M default
+  const allSymbols = useMemo(() => {
+    const base = urlSymbol && !symbols.includes(urlSymbol) ? [urlSymbol, ...symbols] : symbols;
+    if (chartsSymbol && !base.includes(chartsSymbol)) return [chartsSymbol, ...base];
+    return base;
+  }, [symbols, urlSymbol, chartsSymbol]);
+
+  const selectedSymbol = chartsSymbol || urlSymbol || allSymbols[0] || "PETR4";
+  const setSelectedSymbol = (s: string) => setChartsSymbol(s);
+
+  const selectedPeriod = PERIODS.find(p => p.range === chartsPeriodRange) ?? PERIODS[2];
+  const setSelectedPeriod = (p: typeof PERIODS[number]) => setChartsPeriodRange(p.range);
   const [data, setData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [nameCache, setNameCache] = useState<Record<string, string>>({});
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const fetchChart = useCallback(async (symbol: string, period: typeof PERIODS[number]) => {
     if (!symbol) return;
@@ -170,6 +208,49 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
     if (selectedSymbol) fetchChart(selectedSymbol, selectedPeriod);
   }, [selectedSymbol, selectedPeriod, fetchChart]);
 
+  // Sync URL symbol to context on first load
+  useEffect(() => {
+    if (urlSymbol) setChartsSymbol(urlSymbol);
+    else if (!chartsSymbol) setChartsSymbol(allSymbols[0] || "PETR4");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cache company names as chart data loads
+  useEffect(() => {
+    if (data) setNameCache(prev => ({ ...prev, [data.symbol]: data.shortName }));
+  }, [data]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node))
+        setShowDropdown(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const queryUpper = searchQuery.trim().toUpperCase();
+  const filteredSymbols = useMemo(() => {
+    if (!queryUpper) return allSymbols;
+    return allSymbols.filter(s =>
+      s.includes(queryUpper) || (nameCache[s] ?? "").toUpperCase().includes(queryUpper)
+    );
+  }, [allSymbols, queryUpper, nameCache]);
+
+  // true when query looks like a valid ticker and is not already in the list
+  const showSearchOption =
+    queryUpper.length >= 4 &&
+    /^[A-Z]{3,4}[0-9]{1,2}$/.test(queryUpper) &&
+    !allSymbols.includes(queryUpper);
+
+  const selectSymbol = (s: string) => {
+    setSelectedSymbol(s);
+    addRecentChartSymbol(s);
+    setSearchQuery("");
+    setShowDropdown(false);
+  };
+
   // Prepare chart points
   const chartPoints = (data?.historicalDataPrice ?? [])
     .filter((p) => p.close > 0)
@@ -194,42 +275,94 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
   const yMin = prices.length ? Math.min(...prices) * 0.995 : 0;
   const yMax = prices.length ? Math.max(...prices) * 1.005 : 100;
 
-  if (allSymbols.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-6">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(59,130,246,0.1)" }}>
-          <BarChart2 className="w-7 h-7" style={{ color: ACCENT }} />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">Nenhum ativo na carteira</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Adicione ativos na aba <strong>Cotações</strong> para visualizar gráficos.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Map buy operations to nearest chart point (for ReferenceLine x value)
+  const buyMarks = useMemo(() => {
+    const ops = (data?.operations ?? []).filter((op) => op.type === "BUY");
+    const pts = (data?.historicalDataPrice ?? []).filter((p) => p.close > 0);
+    if (!ops.length || !pts.length) return [];
+    const chartMin = pts[0].date;
+    const chartMax = pts[pts.length - 1].date;
+
+    return ops.flatMap((op) => {
+      // Noon Brasília time to avoid day boundary issues
+      const ts = new Date(op.date + "T12:00:00-03:00").getTime() / 1000;
+      if (ts < chartMin - 86400 || ts > chartMax + 86400) return [];
+      // Find nearest chart point
+      let nearest = pts[0];
+      let minDiff = Math.abs(nearest.date - ts);
+      for (const p of pts) {
+        const diff = Math.abs(p.date - ts);
+        if (diff < minDiff) { minDiff = diff; nearest = p; }
+      }
+      return [{ ...op, ts, nearestDate: nearest.date }];
+    });
+  }, [data]);
 
   return (
     <div className="space-y-4">
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        {/* Stock selector */}
-        <div className="flex flex-wrap gap-2">
-          {allSymbols.map((s) => (
-            <button
-              key={s}
-              onClick={() => setSelectedSymbol(s)}
-              className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-              style={
-                selectedSymbol === s
-                  ? { backgroundColor: ACCENT, color: "#fff" }
-                  : { backgroundColor: "transparent", color: "var(--muted-foreground)", border: "1px solid var(--border)" }
-              }
-            >
-              {s}
-            </button>
-          ))}
+        {/* Stock search */}
+        <div className="relative w-full sm:w-64" ref={searchRef}>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 shadow-sm">
+            <Search className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+            <input
+              type="text"
+              placeholder="Buscar código ou nome..."
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); }}
+              onFocus={() => setShowDropdown(true)}
+              onKeyDown={e => { if (e.key === "Enter" && queryUpper.length >= 4) selectSymbol(queryUpper); }}
+              className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground/50 min-w-0"
+            />
+            {selectedSymbol && !searchQuery && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md text-white flex-shrink-0" style={{ backgroundColor: ACCENT }}>
+                {selectedSymbol}
+              </span>
+            )}
+          </div>
+
+          {showDropdown && (() => {
+            const isSearching = queryUpper.length > 0;
+            const listToShow = isSearching ? filteredSymbols : recentChartSymbols;
+            const hasItems = listToShow.length > 0 || showSearchOption;
+            if (!hasItems) return null;
+            return (
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+                {!isSearching && recentChartSymbols.length > 0 && (
+                  <div className="px-3 py-1.5 border-b border-border">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Recentes</span>
+                  </div>
+                )}
+                {listToShow.map(s => (
+                  <button
+                    key={s}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 transition-colors"
+                    style={selectedSymbol === s ? { backgroundColor: "rgba(59,130,246,0.07)" } : {}}
+                    onMouseDown={() => selectSymbol(s)}
+                  >
+                    <span className="text-sm font-semibold text-foreground">{s}</span>
+                    {nameCache[s] && (
+                      <span className="text-xs text-muted-foreground truncate">{nameCache[s]}</span>
+                    )}
+                    {selectedSymbol === s && (
+                      <span className="ml-auto text-[10px] font-semibold flex-shrink-0" style={{ color: ACCENT }}>✓</span>
+                    )}
+                  </button>
+                ))}
+                {showSearchOption && (
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 transition-colors border-t border-border"
+                    onMouseDown={() => selectSymbol(queryUpper)}
+                  >
+                    <Search className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Abrir gráfico para</span>
+                    <span className="text-sm font-bold text-foreground">{queryUpper}</span>
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Period selector */}
@@ -285,7 +418,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                 </div>
               </div>
             </div>
-            <div className="flex gap-6 text-right">
+            <div className="flex gap-6 text-right items-start">
               <div>
                 <p className="text-[10px] text-muted-foreground mb-0.5">Máx. período</p>
                 <p className="text-sm font-semibold text-green-600">{fmtBRL(periodHigh)}</p>
@@ -294,10 +427,18 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                 <p className="text-[10px] text-muted-foreground mb-0.5">Mín. período</p>
                 <p className="text-sm font-semibold text-red-500">{fmtBRL(periodLow)}</p>
               </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground mb-0.5">Pontos</p>
-                <p className="text-sm font-semibold text-foreground">{chartPoints.length}</p>
-              </div>
+              {buyMarks.length > 0 && (
+                <div className="flex flex-col items-center">
+                  <p className="text-[10px] text-muted-foreground mb-0.5">Compras</p>
+                  <div className="flex items-center gap-1.5">
+                    <svg width="14" height="10" viewBox="0 0 14 10">
+                      <line x1="7" y1="0" x2="7" y2="10" stroke="#f97316" strokeWidth="1.5" strokeDasharray="4 2" />
+                      <polygon points="3,2 11,2 7,8" fill="#f97316" />
+                    </svg>
+                    <p className="text-sm font-semibold" style={{ color: "#f97316" }}>{buyMarks.length}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -348,11 +489,15 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.12)" vertical={false} />
                 <XAxis
-                  dataKey="dateLabel"
+                  dataKey="date"
+                  type="number"
+                  scale="time"
+                  domain={["dataMin", "dataMax"]}
                   tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                   tickLine={false}
                   axisLine={false}
                   interval="preserveStartEnd"
+                  tickFormatter={(v) => fmtAxisDate(v as number, selectedPeriod.fmt)}
                 />
                 <YAxis
                   domain={[yMin, yMax]}
@@ -363,7 +508,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                   width={62}
                 />
                 <Tooltip
-                  content={<CustomTooltip fmt={selectedPeriod.fmt} />}
+                  content={<CustomTooltip fmt={selectedPeriod.fmt} buyMarks={buyMarks} />}
                   cursor={{ stroke: "rgba(128,128,128,0.3)", strokeWidth: 1 }}
                 />
                 <Area
@@ -375,6 +520,27 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                   dot={false}
                   activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }}
                 />
+                {buyMarks.map((op, i) => (
+                  <ReferenceLine
+                    key={i}
+                    x={op.nearestDate}
+                    stroke="#f97316"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 3"
+                    label={({ viewBox }) => {
+                      const vb = viewBox as { x?: number; y?: number };
+                      if (vb?.x == null || vb?.y == null) return null;
+                      return (
+                        <g>
+                          <polygon
+                            points={`${vb.x - 4},${vb.y + 2} ${vb.x + 4},${vb.y + 2} ${vb.x},${vb.y + 9}`}
+                            fill="#f97316"
+                          />
+                        </g>
+                      );
+                    }}
+                  />
+                ))}
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -385,6 +551,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
             Sem dados históricos para o período selecionado.
           </div>
         )}
+        <p className="text-[10px] text-muted-foreground/40 text-right mt-2 select-none">Fonte: Yahoo Finance</p>
       </div>
     </div>
   );

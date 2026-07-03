@@ -14,6 +14,8 @@ interface Filters {
   category: string;
   user_id: string;
   search: string;
+  amountMin: string;
+  amountMax: string;
 }
 
 interface ExpenseFiltersProps {
@@ -25,11 +27,11 @@ interface ExpenseFiltersProps {
 }
 
 export function ExpenseFilters({ filters, onChange, members, currentUserId, categories }: ExpenseFiltersProps) {
-  const hasFilters = filters.month || filters.category || filters.user_id || filters.search;
+  const hasFilters = filters.month || filters.category || filters.user_id || filters.search || filters.amountMin || filters.amountMax;
 
   function reset() {
     const now = new Date();
-    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "" });
+    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amountMin: "", amountMax: "" });
   }
 
   const currentYear = new Date().getFullYear();
@@ -37,13 +39,33 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
 
   return (
     <div className="space-y-3">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por descrição..."
+            value={filters.search}
+            onChange={(e) => onChange({ ...filters, search: e.target.value })}
+            className="pl-9"
+          />
+        </div>
         <Input
-          placeholder="Buscar por descrição..."
-          value={filters.search}
-          onChange={(e) => onChange({ ...filters, search: e.target.value })}
-          className="pl-9"
+          type="number"
+          placeholder="R$ mín."
+          value={filters.amountMin}
+          onChange={(e) => onChange({ ...filters, amountMin: e.target.value })}
+          className="w-28"
+          min="0"
+          step="0.01"
+        />
+        <Input
+          type="number"
+          placeholder="R$ máx."
+          value={filters.amountMax}
+          onChange={(e) => onChange({ ...filters, amountMax: e.target.value })}
+          className="w-28"
+          min="0"
+          step="0.01"
         />
       </div>
 

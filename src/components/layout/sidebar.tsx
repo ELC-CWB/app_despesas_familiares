@@ -6,14 +6,29 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, Users } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const navItems = [
+const EXPENSES_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
+
+const INVESTMENTS_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
+  { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
+  { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
+  { href: "/investments/indicators", label: "Indicadores", icon: Activity },
+  { href: "/investments/analyses", label: "Análises", icon: BookOpen },
+  { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
+  { href: "/investments/settings", label: "Configurações", icon: Settings },
+];
+
+// Accent color per module
+const INVEST_COLOR = "#3b82f6";
+const EXPENSES_COLOR = "hsl(var(--primary))";
 
 interface SidebarProps {
   profile: Profile | null;
@@ -22,6 +37,10 @@ interface SidebarProps {
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const isInvestments = pathname.startsWith("/investments");
+  const accentColor = isInvestments ? INVEST_COLOR : EXPENSES_COLOR;
+  const accentBg = isInvestments ? "rgba(59,130,246,0.15)" : "hsl(var(--primary))";
 
   async function handleLogout() {
     const supabase = createClient();
@@ -35,19 +54,22 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+          <div
+            className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300"
+            style={{ backgroundColor: accentColor }}
+          >
             <span className="text-white font-bold text-lg">$</span>
           </div>
           <div>
             <span
-              className="text-sidebar-fg font-semibold text-base leading-tight block"
+              className="text-sidebar-fg font-semibold text-base leading-tight block transition-all duration-300"
               style={{ fontFamily: "Sora, sans-serif" }}
             >
-              Despesas
+              {isInvestments ? "Investimentos" : "Despesas"}
             </span>
             <span
-              className="text-primary text-xs font-medium"
-              style={{ fontFamily: "Sora, sans-serif" }}
+              className="text-xs font-medium transition-colors duration-300"
+              style={{ fontFamily: "Sora, sans-serif", color: accentColor }}
             >
               Familiares
             </span>
@@ -57,8 +79,8 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV).map(({ href, label, icon: Icon, exact }) => {
+          const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
               key={href}
@@ -66,9 +88,10 @@ export function Sidebar({ profile }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                 active
-                  ? "bg-primary text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
               )}
+              style={active ? { backgroundColor: accentColor } : undefined}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
               {label}

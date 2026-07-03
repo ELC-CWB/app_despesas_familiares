@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import type { PieLabelRenderProps } from "recharts";
+import { PieChart, Pie, Tooltip, ResponsiveContainer, Sector } from "recharts";
+import type { PieLabelRenderProps, PieSectorShapeProps } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import type { Expense, Category } from "@/types";
@@ -32,6 +32,21 @@ function renderCustomizedLabel(props: PieLabelRenderProps) {
   );
 }
 
+function renderSector(props: PieSectorShapeProps) {
+  return (
+    <Sector
+      cx={props.cx}
+      cy={props.cy}
+      innerRadius={props.innerRadius}
+      outerRadius={props.outerRadius}
+      startAngle={props.startAngle}
+      endAngle={props.endAngle}
+      fill={props.fill}
+      stroke="transparent"
+    />
+  );
+}
+
 export function CategoryChart({ expenses, month, year, categories }: CategoryChartProps) {
   const data = useMemo(() => {
     const filtered = expenses.filter((e) => e.payment_month === month && e.payment_year === year);
@@ -42,10 +57,13 @@ export function CategoryChart({ expenses, month, year, categories }: CategoryCha
     return Object.entries(byCategory)
       .map(([id, value]) => {
         const cat = categories.find((c) => c.id === id);
+        const color = cat?.color ?? "#6b7280";
         return {
           name: cat?.label ?? id,
           value,
-          color: cat?.color ?? "#6b7280",
+          color,
+          fill: color,
+          stroke: "transparent",
           emoji: cat?.emoji ?? "📦",
         };
       })
@@ -67,28 +85,27 @@ export function CategoryChart({ expenses, month, year, categories }: CategoryCha
     <Card>
       <CardHeader><CardTitle className="text-base">Despesas por Categoria</CardTitle></CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={renderCustomizedLabel}
-              outerRadius={100}
-              innerRadius={40}
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value) => [formatCurrency(Number(value)), ""]}
-              contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "13px" }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <div style={{ WebkitTapHighlightColor: "transparent" }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                outerRadius={100}
+                innerRadius={40}
+                dataKey="value"
+                shape={renderSector}
+              />
+              <Tooltip
+                formatter={(value) => [formatCurrency(Number(value)), ""]}
+                contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "13px" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
 
         <div className="space-y-2 mt-2">
           {data.map((item) => (

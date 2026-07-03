@@ -29,6 +29,7 @@ interface SettingsClientProps {
 
 const USER_COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"];
 const PRESET_COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4", "#6b7280", "#ec4899", "#f97316", "#84cc16"];
+const PRESET_EMOJIS = ["🏠","🍽️","🚗","💊","📚","👕","🎉","💆","🐾","🛒","💼","✈️","🎮","📱","💰","🏋️","🎁","🌿","🔧","⚡","🌊","🐶","🍺","☕","🎵","🎓","🧴","🏥","🌎","💻"];
 
 export function SettingsClient({ profile, group, members, pendingInvites, myInvites, currentUserId, categories: initialCategories, isAdmin }: SettingsClientProps) {
   const router = useRouter();
@@ -405,7 +406,6 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                           onChange={(e) => setEditForm({ ...editForm, emoji: e.target.value })}
                           placeholder="🏠"
                           className="h-8 text-sm text-center"
-                          maxLength={4}
                         />
                       </div>
                       <div className="space-y-1">
@@ -416,6 +416,21 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                           onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
                           className="h-8 w-full rounded-md border border-input cursor-pointer"
                         />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Emojis sugeridos</Label>
+                      <div className="flex gap-1 flex-wrap">
+                        {PRESET_EMOJIS.map((e) => (
+                          <button
+                            key={e}
+                            type="button"
+                            onClick={() => setEditForm((f) => ({ ...f, emoji: e }))}
+                            className={`h-7 w-7 rounded text-base flex items-center justify-center transition-all border ${editForm.emoji === e ? "border-primary bg-primary/10" : "border-transparent hover:bg-secondary"}`}
+                          >
+                            {e}
+                          </button>
+                        ))}
                       </div>
                     </div>
                     <div className="flex gap-1.5 flex-wrap">
@@ -444,7 +459,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                     </div>
                     <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                     <span className="text-sm font-medium flex-1">{cat.label}</span>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => startEdit(cat)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -469,7 +484,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                 {categories.length > 0 && <Separator />}
                 <div className="border border-primary/30 rounded-lg p-3 space-y-3 bg-secondary/20">
                   <p className="text-sm font-medium">Nova categoria</p>
-                  <div className="grid grid-cols-[1fr_80px_44px] gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-[1fr_80px_44px] gap-2">
                     <div className="space-y-1">
                       <Label className="text-xs">Nome</Label>
                       <Input
@@ -487,7 +502,6 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                         onChange={(e) => setNewForm({ ...newForm, emoji: e.target.value })}
                         placeholder="🐶"
                         className="h-8 text-sm text-center"
-                        maxLength={4}
                       />
                     </div>
                     <div className="space-y-1">
@@ -498,6 +512,21 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                         onChange={(e) => setNewForm({ ...newForm, color: e.target.value })}
                         className="h-8 w-full rounded-md border border-input cursor-pointer"
                       />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Emojis sugeridos</Label>
+                    <div className="flex gap-1 flex-wrap">
+                      {PRESET_EMOJIS.map((e) => (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => setNewForm((f) => ({ ...f, emoji: e }))}
+                          className={`h-7 w-7 rounded text-base flex items-center justify-center transition-all border ${newForm.emoji === e ? "border-primary bg-primary/10" : "border-transparent hover:bg-secondary"}`}
+                        >
+                          {e}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   <div className="flex gap-1.5 flex-wrap">

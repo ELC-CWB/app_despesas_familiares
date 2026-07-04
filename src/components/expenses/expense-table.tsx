@@ -17,6 +17,13 @@ import { ExpenseModal } from "./expense-modal";
 
 const USER_COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"];
 
+const PAYMENT_SHORT: Record<string, string> = {
+  dinheiro:       "Din.",
+  debito:         "Déb.",
+  pix:            "Pix",
+  cartao_credito: "Créd.",
+};
+
 interface ExpenseTableProps {
   expenses: Expense[];
   currentUserId: string;
@@ -179,27 +186,22 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{expense.description}</p>
-                    <p className="text-xs text-muted-foreground">{name.split(" ")[0]} · {formatDate(expense.date)}</p>
+                    <p className="text-xs text-muted-foreground">{name.split(" ")[0]} · {formatDate(expense.date)} · {PAYMENT_SHORT[expense.payment_method] ?? expense.payment_method}</p>
                   </div>
                 </div>
                 <p className="font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>
               </div>
               <div className="flex items-center justify-between mt-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge
-                    variant="secondary"
-                    className="text-xs gap-1"
-                    style={{
-                      backgroundColor: category.color + "18",
-                      color: category.color,
-                    }}
-                  >
-                    {category.emoji} {category.label}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {PAYMENT_METHODS[expense.payment_method] ?? expense.payment_method}
-                  </span>
-                </div>
+                <Badge
+                  variant="secondary"
+                  className="text-xs gap-1"
+                  style={{
+                    backgroundColor: category.color + "18",
+                    color: category.color,
+                  }}
+                >
+                  {category.emoji} {category.label}
+                </Badge>
                 {isOwn && (
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditExpense(expense)}>

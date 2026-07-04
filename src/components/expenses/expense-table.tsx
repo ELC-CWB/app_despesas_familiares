@@ -186,7 +186,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{expense.description}</p>
-                    <p className="text-xs text-muted-foreground">{name.split(" ")[0]} · {formatDate(expense.date)} · {PAYMENT_SHORT[expense.payment_method] ?? expense.payment_method}</p>
+                    <p className="text-xs text-muted-foreground truncate">{name.split(" ")[0]} · {formatDate(expense.date)} · {PAYMENT_SHORT[expense.payment_method] ?? expense.payment_method}</p>
                   </div>
                 </div>
                 <p className="font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>

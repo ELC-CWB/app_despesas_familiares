@@ -76,7 +76,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
         displayMonth={Number(filters.month)}
         displayYear={Number(filters.year)}
       />
-      <div className="p-5 lg:p-8 space-y-5">
+      <div className="p-3 lg:p-8 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
       />
 
       <Card>
-        <CardContent className="p-5">
+        <CardContent className="p-2 sm:p-5">
           {loading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
               Carregando...

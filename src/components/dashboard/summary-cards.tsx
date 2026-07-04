@@ -82,18 +82,18 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear, cat
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
       {cards.map((card, i) => (
         <Card key={card.title} className={`animate-fade-in-up-delay-${i + 1} hover:shadow-md transition-shadow`}>
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-sm text-muted-foreground font-medium">{card.title}</p>
-              <div className={`h-8 w-8 rounded-lg ${card.bg} flex items-center justify-center flex-shrink-0`}>
-                <card.icon className={`h-4 w-4 ${card.color}`} />
+          <CardContent className="p-3 lg:p-5">
+            <div className="flex items-start justify-between mb-1.5 lg:mb-3">
+              <p className="text-[11px] lg:text-sm text-muted-foreground font-medium leading-tight">{card.title}</p>
+              <div className={`h-6 w-6 lg:h-8 lg:w-8 rounded-lg ${card.bg} flex items-center justify-center flex-shrink-0`}>
+                <card.icon className={`h-3 w-3 lg:h-4 lg:w-4 ${card.color}`} />
               </div>
             </div>
-            <p className="text-xl font-bold text-foreground leading-tight">{card.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{card.sub}</p>
+            <p className="text-sm lg:text-xl font-bold text-foreground leading-tight break-all">{card.value}</p>
+            <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 lg:mt-1 truncate">{card.sub}</p>
           </CardContent>
         </Card>
       ))}

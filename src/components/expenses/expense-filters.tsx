@@ -15,7 +15,6 @@ interface Filters {
   user_id: string;
   search: string;
   amount: string;
-  amountOp: "<=" | ">=" | "=";
 }
 
 interface ExpenseFiltersProps {
@@ -31,7 +30,7 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
 
   function reset() {
     const now = new Date();
-    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amount: "", amountOp: "<=" });
+    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amount: "" });
   }
 
   const currentYear = new Date().getFullYear();
@@ -49,26 +48,15 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
             className="pl-9"
           />
         </div>
-        <div className="flex rounded-lg border border-border overflow-hidden flex-shrink-0">
-          <select
-            value={filters.amountOp}
-            onChange={(e) => onChange({ ...filters, amountOp: e.target.value as Filters["amountOp"] })}
-            className="bg-background text-xs font-semibold text-muted-foreground px-2 border-r border-border focus:outline-none"
-          >
-            <option value="<=">Até</option>
-            <option value=">=">A partir de</option>
-            <option value="=">Igual a</option>
-          </select>
-          <Input
-            type="number"
-            placeholder="R$ valor"
-            value={filters.amount}
-            onChange={(e) => onChange({ ...filters, amount: e.target.value })}
-            className="w-28 border-0 rounded-none focus-visible:ring-0"
-            min="0"
-            step="0.01"
-          />
-        </div>
+        <Input
+          type="number"
+          placeholder="R$ valor"
+          value={filters.amount}
+          onChange={(e) => onChange({ ...filters, amount: e.target.value })}
+          className="w-28"
+          min="0"
+          step="0.01"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-2">

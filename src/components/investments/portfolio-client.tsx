@@ -1104,21 +1104,32 @@ function EvolucaoTab({ operations, totals }: { operations: Operation[]; totals: 
     if (!operations.length) return [];
 
     const state = { APORTE: 0, REALOCACAO: 0, PROVENTO: 0 };
-    let totalInv = 0;
+    const bySymbol: Record<string, { qty: number; cost: number }> = {};
     const byMonth: Record<string, { APORTE: number; REALOCACAO: number; PROVENTO: number }> = {};
 
     const sorted = [...operations].sort((a, b) => a.operation_date.localeCompare(b.operation_date));
     for (const op of sorted) {
       if (op.operation_type === "BUY") {
+        if (!bySymbol[op.symbol]) bySymbol[op.symbol] = { qty: 0, cost: 0 };
+        bySymbol[op.symbol].qty += op.quantity;
+        bySymbol[op.symbol].cost += op.total;
         const origin = (op.origem_recursos ?? "APORTE") as keyof typeof state;
         state[origin] += op.total;
-        totalInv += op.total;
-      } else if (totalInv > 0) {
-        const ratio = Math.min(op.total / totalInv, 1);
-        state.APORTE    = Math.max(0, state.APORTE    * (1 - ratio));
-        state.REALOCACAO = Math.max(0, state.REALOCACAO * (1 - ratio));
-        state.PROVENTO  = Math.max(0, state.PROVENTO  * (1 - ratio));
-        totalInv = Math.max(0, totalInv - op.total);
+      } else {
+        const sym = bySymbol[op.symbol];
+        if (sym && sym.qty > 0) {
+          const avgCost = sym.cost / sym.qty;
+          const costOfSold = avgCost * Math.min(op.quantity, sym.qty);
+          const totalInvested = state.APORTE + state.REALOCACAO + state.PROVENTO;
+          if (totalInvested > 0) {
+            const ratio = Math.min(costOfSold / totalInvested, 1);
+            state.APORTE     = Math.max(0, state.APORTE     * (1 - ratio));
+            state.REALOCACAO = Math.max(0, state.REALOCACAO * (1 - ratio));
+            state.PROVENTO   = Math.max(0, state.PROVENTO   * (1 - ratio));
+          }
+          sym.qty  = Math.max(0, sym.qty - op.quantity);
+          sym.cost = Math.max(0, sym.cost - costOfSold);
+        }
       }
       const monthKey = op.operation_date.slice(0, 7);
       byMonth[monthKey] = { ...state };

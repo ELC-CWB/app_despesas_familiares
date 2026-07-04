@@ -13,6 +13,7 @@ export interface Profile {
   avatar_url: string | null;
   group_id: string | null;
   investment_group_id: string | null;
+  has_investments_access: boolean;
   created_at: string;
 }
 

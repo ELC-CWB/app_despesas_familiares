@@ -15,8 +15,9 @@ export default async function InvestmentSettingsPage() {
     .single();
 
   let group = null;
-  let members: { id: string; name: string; email: string; avatar_url: string | null; group_id: string | null; investment_group_id: string | null; created_at: string }[] = [];
+  let members: { id: string; name: string; email: string; avatar_url: string | null; group_id: string | null; investment_group_id: string | null; has_investments_access: boolean; created_at: string }[] = [];
   let pendingInvites: { id: string; invited_email: string; accepted: boolean; created_at: string }[] = [];
+  let allProfiles: { id: string; name: string; email: string; avatar_url: string | null; has_investments_access: boolean }[] = [];
 
   if (profile?.investment_group_id) {
     const [{ data: groupData }, { data: membersData }, { data: invitesData }] = await Promise.all([
@@ -27,6 +28,12 @@ export default async function InvestmentSettingsPage() {
     group = groupData;
     members = membersData ?? [];
     pendingInvites = invitesData ?? [];
+
+    const isGroupAdmin = !!groupData && groupData.created_by === user.id;
+    if (isGroupAdmin) {
+      const { data: allProfilesData } = await supabase.rpc("get_all_profiles_for_admin");
+      allProfiles = allProfilesData ?? [];
+    }
   }
 
   const { data: myInvites } = await supabase
@@ -49,6 +56,7 @@ export default async function InvestmentSettingsPage() {
           myInvites={myInvites ?? []}
           currentUserId={user.id}
           isAdmin={isAdmin}
+          allProfiles={allProfiles}
         />
       </div>
     </div>

@@ -14,10 +14,19 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, Mail, Check, Crown, Loader2, Trash2, LogOut } from "lucide-react";
+import { UserPlus, Users, Mail, Check, Crown, Loader2, Trash2, LogOut, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 const ACCENT = "#3b82f6";
 const USER_COLORS = [ACCENT, "#10b981", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"];
+
+interface AllProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url: string | null;
+  has_investments_access: boolean;
+}
 
 interface InvestmentSettingsClientProps {
   profile: Profile | null;
@@ -27,6 +36,7 @@ interface InvestmentSettingsClientProps {
   myInvites: { id: string; group_id: string; investment_groups?: { id: string; name: string } }[];
   currentUserId: string;
   isAdmin: boolean;
+  allProfiles?: AllProfile[];
 }
 
 export function InvestmentSettingsClient({
@@ -37,6 +47,7 @@ export function InvestmentSettingsClient({
   myInvites,
   currentUserId,
   isAdmin,
+  allProfiles = [],
 }: InvestmentSettingsClientProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -56,6 +67,8 @@ export function InvestmentSettingsClient({
   const [leavingGroup, setLeavingGroup] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deletingGroup, setDeletingGroup] = useState(false);
+  const [accessProfiles, setAccessProfiles] = useState<AllProfile[]>(allProfiles);
+  const [togglingAccess, setTogglingAccess] = useState<string | null>(null);
 
   async function handleUpdateName() {
     setUpdatingName(true);
@@ -144,6 +157,24 @@ export function InvestmentSettingsClient({
     }
     toast({ title: "Grupo excluído.", description: "Todos os membros foram removidos." });
     router.refresh();
+  }
+
+  async function handleToggleAccess(targetId: string, currentAccess: boolean) {
+    setTogglingAccess(targetId);
+    const supabase = createClient();
+    const { error } = await supabase.rpc("set_investment_access", {
+      target_user_id: targetId,
+      has_access: !currentAccess,
+    });
+    setTogglingAccess(null);
+    if (error) {
+      toast({ variant: "destructive", title: "Erro ao alterar acesso", description: error.message });
+      return;
+    }
+    setAccessProfiles((prev) =>
+      prev.map((p) => p.id === targetId ? { ...p, has_investments_access: !currentAccess } : p)
+    );
+    toast({ title: !currentAccess ? "Acesso liberado" : "Acesso revogado" });
   }
 
   async function handleRemoveMember(memberId: string, memberName: string) {
@@ -388,6 +419,54 @@ export function InvestmentSettingsClient({
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Access Management (admin only) */}
+      {isAdmin && accessProfiles.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" style={{ color: ACCENT }} />
+              Gerenciar Acessos
+            </CardTitle>
+            <CardDescription>
+              Defina quais usuários podem acessar a área de investimentos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {accessProfiles.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/50">
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarFallback
+                    className="text-xs font-semibold text-white"
+                    style={{ backgroundColor: USER_COLORS[i % USER_COLORS.length] }}
+                  >
+                    {getInitials(p.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {p.name}
+                    {p.id === currentUserId && <span className="text-muted-foreground ml-1">(eu)</span>}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{p.email}</p>
+                </div>
+                {p.id === currentUserId ? (
+                  <Badge variant="secondary" className="text-xs gap-1 flex-shrink-0">
+                    <Crown className="h-3 w-3" /> Admin
+                  </Badge>
+                ) : (
+                  <Switch
+                    checked={p.has_investments_access}
+                    disabled={togglingAccess === p.id}
+                    onCheckedChange={() => handleToggleAccess(p.id, p.has_investments_access)}
+                    aria-label={`Acesso de ${p.name}`}
+                  />
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}

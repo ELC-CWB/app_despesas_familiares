@@ -15,7 +15,7 @@ export default async function SettingsPage() {
     .single();
 
   let group = null;
-  let members: { id: string; name: string; email: string; avatar_url: string | null; group_id: string | null; investment_group_id: string | null; created_at: string }[] = [];
+  let members: { id: string; name: string; email: string; avatar_url: string | null; group_id: string | null; investment_group_id: string | null; has_investments_access: boolean; created_at: string }[] = [];
   let pendingInvites: { id: string; invited_email: string; accepted: boolean; created_at: string }[] = [];
   let categories: { id: string; group_id: string; label: string; emoji: string; color: string; position: number; created_at: string }[] = [];
 

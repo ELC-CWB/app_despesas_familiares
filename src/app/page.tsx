@@ -104,50 +104,56 @@ export default async function Home() {
       <HomeLogoutButton />
 
       {/* ── Title ──────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 text-center mb-12">
-        <h1 className="text-white font-bold text-3xl sm:text-4xl tracking-tight"
+      <div className="relative z-10 text-center mb-6 sm:mb-12">
+        <h1 className="text-white font-bold text-2xl sm:text-4xl tracking-tight"
           style={{ fontFamily: "Sora, sans-serif" }}>
           Gestão Financeira Familiar
         </h1>
       </div>
 
       {/* ── Module cards ────────────────────────────────────────────────────── */}
-      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+      <div className="relative z-10 grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-xl px-0">
         <Link href="/dashboard"
-          className="group rounded-2xl p-7 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-2"
+          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
           style={{ background: "linear-gradient(135deg, hsl(160,84%,39%) 0%, hsl(160,84%,28%) 100%)", boxShadow: "0 8px 40px rgba(16,185,129,0.28)" }}>
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-            <ReceiptText className="w-6 h-6 text-white" />
+            <ReceiptText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Despesas</h2>
-            <p className="text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
+            <h2 className="text-base sm:text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Despesas</h2>
+            <p className="hidden sm:block text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
               Registre e analise os gastos da família por categoria, membro e período. Saiba exatamente para onde vai cada real.
             </p>
+            <p className="sm:hidden text-xs mt-1 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
+              Controle gastos da família por categoria e período.
+            </p>
           </div>
-          <div className="flex items-center gap-1.5 text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
+          <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
             <span className="group-hover:text-white transition-colors">Acessar</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
+            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
           </div>
         </Link>
 
         <Link href="/investments"
-          className="group rounded-2xl p-7 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-2"
+          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
           style={{ background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", boxShadow: "0 8px 40px rgba(59,130,246,0.28)" }}>
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-            <TrendingUp className="w-6 h-6 text-white" />
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Investimentos</h2>
-            <p className="text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
+            <h2 className="text-base sm:text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Investimentos</h2>
+            <p className="hidden sm:block text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
               Monitore sua carteira de ações, cotações em tempo real, indicadores fundamentalistas e histórico de dividendos.
             </p>
+            <p className="sm:hidden text-xs mt-1 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
+              Monitore carteira, cotações e indicadores em tempo real.
+            </p>
           </div>
-          <div className="flex items-center gap-1.5 text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
+          <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
             <span className="group-hover:text-white transition-colors">Acessar</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
+            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
           </div>
         </Link>
       </div>

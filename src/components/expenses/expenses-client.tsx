@@ -34,8 +34,8 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
     category: "",
     user_id: "",
     search: "",
-    amountMin: "",
-    amountMax: "",
+    amount: "",
+    amountOp: "<=" as "<=" | ">=" | "=",
   });
 
   const refresh = useCallback(async () => {
@@ -57,8 +57,13 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
       if (filters.category && filters.category !== "all" && e.category !== filters.category) return false;
       if (filters.user_id && filters.user_id !== "all" && e.user_id !== filters.user_id) return false;
       if (filters.search && !e.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
-      if (filters.amountMin && Number(e.amount) < Number(filters.amountMin)) return false;
-      if (filters.amountMax && Number(e.amount) > Number(filters.amountMax)) return false;
+      if (filters.amount) {
+        const v = Number(filters.amount);
+        const a = Number(e.amount);
+        if (filters.amountOp === "<=" && a > v) return false;
+        if (filters.amountOp === ">=" && a < v) return false;
+        if (filters.amountOp === "=" && a !== v) return false;
+      }
       return true;
     });
   }, [expenses, filters]);

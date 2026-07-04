@@ -79,7 +79,9 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV).map(({ href, label, icon: Icon, exact }) => {
+        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV)
+          .filter(item => item.href !== "/" || profile?.has_investments_access)
+          .map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link

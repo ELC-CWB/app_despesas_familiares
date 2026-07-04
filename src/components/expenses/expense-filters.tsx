@@ -49,13 +49,12 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
           />
         </div>
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
           placeholder="R$ valor"
           value={filters.amount}
           onChange={(e) => onChange({ ...filters, amount: e.target.value })}
           className="w-28"
-          min="0"
-          step="0.01"
         />
       </div>
 

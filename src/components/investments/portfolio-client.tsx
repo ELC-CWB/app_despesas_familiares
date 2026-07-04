@@ -117,22 +117,24 @@ function SummaryCard({
   positive?: boolean;
   icon: React.ReactNode;
 }) {
+  const iconBg = positive === undefined ? "rgba(59,130,246,0.1)" : positive ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)";
+  const subColor = positive === undefined ? "var(--muted-foreground)" : positive ? "#16a34a" : "#dc2626";
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 flex items-start gap-3 shadow-sm">
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: positive === undefined ? "rgba(59,130,246,0.1)" : positive ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)" }}>
-        {icon}
+    <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-sm">
+      {/* Mobile: compact single column; desktop: icon + content side by side */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: iconBg }}>
+          <span className="[&>svg]:w-3.5 [&>svg]:h-3.5 sm:[&>svg]:w-5 sm:[&>svg]:h-5">{icon}</span>
+        </div>
+        <p className="text-[10px] sm:text-xs text-muted-foreground font-medium leading-tight">{label}</p>
       </div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground font-medium">{label}</p>
-        <p className="text-base font-bold text-foreground leading-tight truncate">{value}</p>
-        {sub && (
-          <p className="text-xs font-semibold mt-0.5"
-            style={{ color: positive === undefined ? "var(--muted-foreground)" : positive ? "#16a34a" : "#dc2626" }}>
-            {sub}
-          </p>
-        )}
-      </div>
+      <p className="text-sm sm:text-base font-bold text-foreground leading-tight break-all">{value}</p>
+      {sub && (
+        <p className="text-[10px] sm:text-xs font-semibold mt-0.5 truncate" style={{ color: subColor }}>
+          {sub}
+        </p>
+      )}
     </div>
   );
 }

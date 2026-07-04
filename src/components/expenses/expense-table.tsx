@@ -185,16 +185,21 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
                 <p className="font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>
               </div>
               <div className="flex items-center justify-between mt-1">
-                <Badge
-                  variant="secondary"
-                  className="text-xs gap-1"
-                  style={{
-                    backgroundColor: category.color + "18",
-                    color: category.color,
-                  }}
-                >
-                  {category.emoji} {category.label}
-                </Badge>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs gap-1"
+                    style={{
+                      backgroundColor: category.color + "18",
+                      color: category.color,
+                    }}
+                  >
+                    {category.emoji} {category.label}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {PAYMENT_METHODS[expense.payment_method] ?? expense.payment_method}
+                  </span>
+                </div>
                 {isOwn && (
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditExpense(expense)}>

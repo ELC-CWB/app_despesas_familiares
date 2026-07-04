@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ReceiptText, TrendingUp, ArrowRight } from "lucide-react";
 import { HomeLogoutButton } from "@/components/home-logout-button";
+import { hasInvestmentsAccess } from "@/lib/investments-access";
 
 const CANDLES = [
   { x: 60,   o: 730, c: 700, h: 740, l: 695 },
@@ -35,13 +36,7 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("has_investments_access")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.has_investments_access) redirect("/dashboard");
+  if (!await hasInvestmentsAccess(supabase, user.id)) redirect("/dashboard");
 
   return (
     <main

@@ -189,7 +189,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
                     <p className="text-xs text-muted-foreground truncate">{name.split(" ")[0]} · {expense.date.slice(8, 10)}/{expense.date.slice(5, 7)} · {PAYMENT_SHORT[expense.payment_method] ?? expense.payment_method}</p>
                   </div>
                 </div>
-                <p className="font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>
+                <p className="text-sm font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>
               </div>
               <div className="flex items-center justify-between mt-1">
                 <Badge

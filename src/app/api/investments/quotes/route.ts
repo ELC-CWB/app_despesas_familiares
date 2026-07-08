@@ -26,33 +26,30 @@ function mapResult(r: Record<string, unknown>, symbol: string) {
   };
 }
 
-async function brapiQuote(symbol: string, token: string, fundamental: boolean) {
+async function brapiQuote(symbol: string, token: string, fundamental: boolean): Promise<{ r: Record<string, unknown> | null; detail: string }> {
   const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}${fundamental ? "&fundamental=true" : ""}`;
-  const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (data.error) return null;
-  const r = (data.results ?? [])[0];
-  return r ?? null;
+  try {
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return { r: null, detail: `HTTP ${res.status}` };
+    const data = await res.json();
+    if (data.error) return { r: null, detail: data.message ?? "BRAPI error" };
+    const r = (data.results ?? [])[0] ?? null;
+    return { r, detail: r ? "ok" : "results=[]" };
+  } catch (e) {
+    return { r: null, detail: `timeout` };
+  }
 }
 
 // Fetches one ticker; retries without fundamental=true if first attempt fails
 async function fetchOne(symbol: string, token: string) {
   const sym = symbol.trim().toUpperCase();
-  try {
-    // Try with fundamentals first
-    let r = await brapiQuote(sym, token, true);
-    // Retry without fundamentals (some tickers fail with fundamental=true)
-    if (!r) r = await brapiQuote(sym, token, false);
-    if (!r) {
-      console.error(`brapi ${sym}: no data`);
-      return { symbol: sym, error: "Sem dados" };
-    }
-    return mapResult(r as Record<string, unknown>, sym);
-  } catch (e) {
-    console.error(`brapi ${sym}:`, e);
-    return { symbol: sym, error: "Timeout" };
-  }
+  const first = await brapiQuote(sym, token, true);
+  if (first.r) return mapResult(first.r, sym);
+  const second = await brapiQuote(sym, token, false);
+  if (second.r) return mapResult(second.r, sym);
+  const detail = first.detail !== "ok" ? first.detail : second.detail;
+  console.error(`[quotes] ${sym}: ${detail}`);
+  return { symbol: sym, error: detail };
 }
 
 export const maxDuration = 60;

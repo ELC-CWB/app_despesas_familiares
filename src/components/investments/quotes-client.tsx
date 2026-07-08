@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, RefreshCw, Search, TrendingUp, TrendingDown,
-  Loader2, X, AlertCircle,
+  Loader2, X,
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -73,6 +73,45 @@ function fmtMktCap(n: number | undefined) {
   if (n >= 1e9) return `R$ ${(n / 1e9).toFixed(2).replace(".", ",")}B`;
   if (n >= 1e6) return `R$ ${(n / 1e6).toFixed(1).replace(".", ",")}M`;
   return fmtBRL(n);
+}
+
+// ─── Error Quote Card ────────────────────────────────────────────────────────
+
+function ErrorQuoteCard({
+  symbol,
+  error,
+  onRemove,
+  removing,
+}: {
+  symbol: string;
+  error: string;
+  onRemove: () => void;
+  removing: boolean;
+}) {
+  return (
+    <div className="bg-card border border-destructive/20 rounded-xl overflow-hidden shadow-sm opacity-70">
+      <div className="px-4 py-3 flex items-center gap-2">
+        <div
+          className="h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0 text-white font-bold text-[10px]"
+          style={{ backgroundColor: "#94a3b8" }}
+        >
+          {symbol.slice(0, 2)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-sm text-foreground leading-tight">{symbol}</p>
+          <p className="text-[11px] text-destructive/70 leading-tight truncate">{error}</p>
+        </div>
+        <button
+          onClick={onRemove}
+          disabled={removing}
+          className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded flex-shrink-0"
+          aria-label="Remover ativo"
+        >
+          {removing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ─── Quote Card ─────────────────────────────────────────────────────────────
@@ -477,29 +516,19 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
         </div>
       )}
 
-      {/* Error quotes */}
-      {!loading && filteredQuotes.some((q) => q.error) && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <div>
-            <span>Ativos não carregados: </span>
-            {filteredQuotes.filter(q => q.error).map((q, i, arr) => (
-              <span key={q.symbol}>
-                <strong>{q.symbol}</strong>
-                {q.error ? ` (${q.error})` : ""}
-                {i < arr.length - 1 ? ", " : ""}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quotes grid */}
-      {!loading && filteredQuotes.filter((q) => !q.error).length > 0 && (
+      {/* Quotes grid — shows all tickers, error cards for failed ones */}
+      {!loading && filteredQuotes.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {filteredQuotes
-            .filter((q) => !q.error)
-            .map((quote) => (
+          {filteredQuotes.map((quote) =>
+            quote.error ? (
+              <ErrorQuoteCard
+                key={quote.symbol}
+                symbol={quote.symbol}
+                error={quote.error}
+                onRemove={() => handleRemove(quote.symbol)}
+                removing={removingSymbol === quote.symbol}
+              />
+            ) : (
               <QuoteCard
                 key={quote.symbol}
                 quote={quote}
@@ -508,7 +537,8 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
                 onCardClick={() => router.push(`/investments/charts?symbol=${quote.symbol}`)}
                 lastUpdated={lastUpdated}
               />
-            ))}
+            )
+          )}
         </div>
       )}
 

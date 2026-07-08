@@ -228,7 +228,7 @@ function QuoteCard({
           <span className="text-muted-foreground/60 flex-shrink-0">52s</span>
         </div>
         <p className="text-[10px] text-muted-foreground/40 text-right mt-1.5 select-none">
-          Fonte: BRAPI{lastUpdated ? ` · ${lastUpdated.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
+          Fonte: Yahoo Finance{lastUpdated ? ` · ${lastUpdated.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
         </p>
       </div>
     </div>

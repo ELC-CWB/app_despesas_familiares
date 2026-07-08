@@ -338,7 +338,7 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
               </div>
             </div>
             <p className="w-full text-[10px] text-muted-foreground/40 text-right -mt-1 select-none">
-              Cotação: BRAPI · Indicadores: Fundamentus{fetchedAt ? ` · ${fetchedAt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
+              Cotação: Yahoo Finance · Indicadores: Fundamentus{fetchedAt ? ` · ${fetchedAt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
             </p>
           </div>
 

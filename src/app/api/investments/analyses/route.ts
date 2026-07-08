@@ -90,13 +90,25 @@ async function fetchTicker(
   return { symbol, sector, shortName, logourl, price, dpa12m, cashDividends, netDebt, ebitda, payoutRatio };
 }
 
+export const maxDuration = 60;
+
+async function fetchInBatches(stocks: StockDef[], token: string, batchSize = 20) {
+  const out: (TickerResult | { symbol: string; error: string })[] = [];
+  for (let i = 0; i < stocks.length; i += batchSize) {
+    const batch = stocks.slice(i, i + batchSize);
+    const results = await Promise.all(batch.map(s => fetchTicker(s, token)));
+    out.push(...results);
+  }
+  return out;
+}
+
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const token = process.env.BRAPI_TOKEN!;
-  const results = await Promise.all(B3_DIVIDEND_STOCKS.map(s => fetchTicker(s, token)));
+  const results = await fetchInBatches(B3_DIVIDEND_STOCKS, token, 20);
 
   const valid = results.filter((r): r is TickerResult => !("error" in r));
   return NextResponse.json({ results: valid });

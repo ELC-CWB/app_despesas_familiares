@@ -89,6 +89,7 @@ export function AnalysesClient() {
   const [rows, setRows] = useState<TickerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<Date | null>(null);
   const {
     fatorInput, setFatorInput,
     dlEbitdaFilter, setDlEbitdaFilter,
@@ -122,6 +123,7 @@ export function AnalysesClient() {
         if (json.error) { setError(json.error); return; }
         const valid = (json.results ?? []).filter((r: TickerRow & { error?: string }) => !r.error);
         setRows(valid);
+        setFetchedAt(new Date());
       })
       .catch(() => setError("Erro de rede"))
       .finally(() => setLoading(false));
@@ -484,7 +486,9 @@ export function AnalysesClient() {
           </tbody>
         </table>
       </div>
-      <p className="text-[10px] text-muted-foreground/40 text-right select-none">Fonte: Fundamentus</p>
+      <p className="text-[10px] text-muted-foreground/40 text-right select-none">
+        Fonte: Fundamentus{fetchedAt ? ` · ${fetchedAt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
+      </p>
     </div>
   );
 }

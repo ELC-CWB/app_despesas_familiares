@@ -175,6 +175,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [nameCache, setNameCache] = useState<Record<string, string>>({});
@@ -197,6 +198,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
         return;
       }
       setData(json);
+      setFetchedAt(new Date());
     } catch {
       setError("Erro de rede ao carregar gráfico");
     } finally {
@@ -551,7 +553,9 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
             Sem dados históricos para o período selecionado.
           </div>
         )}
-        <p className="text-[10px] text-muted-foreground/40 text-right mt-2 select-none">Fonte: Yahoo Finance</p>
+        <p className="text-[10px] text-muted-foreground/40 text-right mt-2 select-none">
+          Fonte: Yahoo Finance{fetchedAt ? ` · ${fetchedAt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
+        </p>
       </div>
     </div>
   );

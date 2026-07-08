@@ -193,6 +193,7 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<Date | null>(null);
 
   const fetchIndicators = useCallback(async (symbol: string) => {
     if (!symbol) return;
@@ -207,6 +208,7 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
         return;
       }
       setData(json);
+      setFetchedAt(new Date());
     } catch {
       setError("Erro de rede");
     } finally {
@@ -335,7 +337,9 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
                 <p className="text-sm font-bold text-foreground">{fmtLarge(b.market_cap)}</p>
               </div>
             </div>
-            <p className="w-full text-[10px] text-muted-foreground/40 text-right -mt-1 select-none">Cotação: BRAPI · Indicadores: Fundamentus</p>
+            <p className="w-full text-[10px] text-muted-foreground/40 text-right -mt-1 select-none">
+              Cotação: BRAPI · Indicadores: Fundamentus{fetchedAt ? ` · ${fetchedAt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
+            </p>
           </div>
 
           {/* Valuation */}

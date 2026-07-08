@@ -432,7 +432,7 @@ export function InvestmentSettingsClient({
               Gerenciar Acessos
             </CardTitle>
             <CardDescription>
-              Defina quais usuários podem acessar a área de investimentos
+              Defina quais usuários podem acessar a área de investimentos e metas
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">

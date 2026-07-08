@@ -82,11 +82,13 @@ function QuoteCard({
   onRemove,
   removing,
   onCardClick,
+  lastUpdated,
 }: {
   quote: QuoteResult;
   onRemove: () => void;
   removing: boolean;
   onCardClick: () => void;
+  lastUpdated: Date | null;
 }) {
   const up = quote.regularMarketChange >= 0;
   const color = up ? "#22c55e" : "#ef4444";
@@ -186,7 +188,9 @@ function QuoteCard({
           <span className="flex-shrink-0">{fmtBRL(quote.fiftyTwoWeekHigh)}</span>
           <span className="text-muted-foreground/60 flex-shrink-0">52s</span>
         </div>
-        <p className="text-[10px] text-muted-foreground/40 text-right mt-1.5 select-none">Fonte: BRAPI</p>
+        <p className="text-[10px] text-muted-foreground/40 text-right mt-1.5 select-none">
+          Fonte: BRAPI{lastUpdated ? ` · ${lastUpdated.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}
+        </p>
       </div>
     </div>
   );
@@ -493,6 +497,7 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
                 onRemove={() => handleRemove(quote.symbol)}
                 removing={removingSymbol === quote.symbol}
                 onCardClick={() => router.push(`/investments/charts?symbol=${quote.symbol}`)}
+                lastUpdated={lastUpdated}
               />
             ))}
         </div>

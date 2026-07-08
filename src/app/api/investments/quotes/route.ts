@@ -26,30 +26,47 @@ function mapResult(r: Record<string, unknown>, symbol: string) {
   };
 }
 
-async function brapiQuote(symbol: string, token: string, fundamental: boolean): Promise<{ r: Record<string, unknown> | null; detail: string }> {
-  const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}${fundamental ? "&fundamental=true" : ""}`;
+async function brapiQuote(
+  symbol: string,
+  token: string | null,
+  fundamental: boolean
+): Promise<{ r: Record<string, unknown> | null; status: number }> {
+  const tokenPart = token ? `?token=${token}` : "?";
+  const fundPart = fundamental ? "&fundamental=true" : "";
+  const url = `${BRAPI_BASE}/quote/${symbol}${tokenPart}${fundPart}`;
   try {
     const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return { r: null, detail: `HTTP ${res.status}` };
+    if (!res.ok) return { r: null, status: res.status };
     const data = await res.json();
-    if (data.error) return { r: null, detail: data.message ?? "BRAPI error" };
+    if (data.error) return { r: null, status: 200 };
     const r = (data.results ?? [])[0] ?? null;
-    return { r, detail: r ? "ok" : "results=[]" };
-  } catch (e) {
-    return { r: null, detail: `timeout` };
+    return { r, status: 200 };
+  } catch {
+    return { r: null, status: 0 };
   }
 }
 
-// Fetches one ticker; retries without fundamental=true if first attempt fails
+// Fetches one ticker with multiple fallbacks:
+// 1. token + fundamental=true
+// 2. token + fundamental=false
+// 3. no token + fundamental=false  (public BRAPI endpoint for some tickers)
 async function fetchOne(symbol: string, token: string) {
   const sym = symbol.trim().toUpperCase();
-  const first = await brapiQuote(sym, token, true);
-  if (first.r) return mapResult(first.r, sym);
-  const second = await brapiQuote(sym, token, false);
-  if (second.r) return mapResult(second.r, sym);
-  const detail = first.detail !== "ok" ? first.detail : second.detail;
-  console.error(`[quotes] ${sym}: ${detail}`);
-  return { symbol: sym, error: detail };
+
+  const attempts: [string | null, boolean][] = [
+    [token, true],
+    [token, false],
+    [null, false],
+  ];
+
+  for (const [tok, fund] of attempts) {
+    const { r, status } = await brapiQuote(sym, tok, fund);
+    if (r) return mapResult(r, sym);
+    if (status !== 401 && status !== 200) break; // network error — don't retry
+  }
+
+  console.error(`[quotes] ${sym}: all attempts failed`);
+  return { symbol: sym, error: "HTTP 401 — token inválido" };
 }
 
 export const maxDuration = 60;

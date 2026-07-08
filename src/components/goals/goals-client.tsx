@@ -443,6 +443,7 @@ function Gantt({ project, onPick, showBaselines }: GanttProps) {
   const [containerW, setContainerW] = useState(900);
   const [nameW, setNameW] = useState(NAME_W_DEFAULT);
   const dragRef = useRef<{ startX: number; startW: number } | null>(null);
+  const storageKey = `goals:nameW:${project.id}`;
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -455,12 +456,24 @@ function Gantt({ project, onPick, showBaselines }: GanttProps) {
     return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, []);
 
+  // Carrega largura salva ao abrir o projeto
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) setNameW(clamp(Number(saved), NAME_W_MIN, NAME_W_MAX));
+  }, [storageKey]);
+
+  const updateNameW = (w: number) => {
+    const clamped = clamp(w, NAME_W_MIN, NAME_W_MAX);
+    setNameW(clamped);
+    localStorage.setItem(storageKey, String(clamped));
+  };
+
   const onResizerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     dragRef.current = { startX: e.clientX, startW: nameW };
     const onMove = (ev: PointerEvent) => {
       if (!dragRef.current) return;
-      setNameW(clamp(dragRef.current.startW + ev.clientX - dragRef.current.startX, NAME_W_MIN, NAME_W_MAX));
+      updateNameW(dragRef.current.startW + ev.clientX - dragRef.current.startX);
     };
     const onUp = () => {
       dragRef.current = null;
@@ -661,28 +674,43 @@ function TaskModal({ task, allTasks = [], onSave, onDelete, onClose }: TaskModal
   const isNew = !task;
   const [name, setName] = useState(task?.name || "");
   const [description, setDescription] = useState(task?.description || "");
-  const [start, setStart] = useState(task?.start || today());
-  const [end, setEnd] = useState(task?.end || shift(7));
   const [baselineStart, setBaselineStart] = useState(task?.baselineStart || task?.start || today());
   const [baselineEnd, setBaselineEnd] = useState(task?.baselineEnd || task?.end || shift(7));
+  // Para nova tarefa, real = baseline por padrão; usuário pode personalizar
+  const [start, setStart] = useState(task?.start || today());
+  const [end, setEnd] = useState(task?.end || shift(7));
   const [progress, setProgress] = useState<number>(task?.progress ?? 0);
   const [milestone, setMilestone] = useState(task ? task.start === task.end : false);
   const [dependsOn, setDependsOn] = useState<string[]>(task?.dependsOn || []);
-  const [showBaselineFields, setShowBaselineFields] = useState(false);
+  // Nova tarefa: datas reais ficam ocultas (sincronizadas com baseline)
+  const [customReal, setCustomReal] = useState(!isNew);
 
   const candidates = allTasks.filter((t) => t.id !== task?.id);
   const toggleDep = (id: string) =>
     setDependsOn((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
+  // Ao alterar baseline em nova tarefa, sincroniza datas reais automaticamente
+  const handleBaselineStart = (val: string) => {
+    setBaselineStart(val);
+    if (!customReal) setStart(val);
+  };
+  const handleBaselineEnd = (val: string) => {
+    setBaselineEnd(val);
+    if (!customReal) setEnd(val);
+  };
+
   const save = () => {
     if (!name.trim()) return;
     const e = milestone ? start : (end < start ? start : end);
     const be = milestone ? baselineStart : (baselineEnd < baselineStart ? baselineStart : baselineEnd);
+    // Para nova tarefa sem personalização real, garante sincronismo final
+    const s = (!customReal && isNew) ? baselineStart : start;
+    const ef = (!customReal && isNew) ? be : e;
     onSave({
       id: task?.id || uid(),
       name: name.trim(),
       description: description.trim(),
-      start, end: e,
+      start: s, end: ef,
       baselineStart, baselineEnd: be,
       progress: Number(progress),
       dependsOn,
@@ -708,23 +736,56 @@ function TaskModal({ task, allTasks = [], onSave, onDelete, onClose }: TaskModal
           <Diamond size={14} /> É um marco (data única)
         </label>
 
-        <label className="lab">Real / atual {isNew ? "(previsto)" : ""}</label>
-        <div className="row2">
-          <div><span className="sublab">Início</span><input type="date" className="in" value={start} onChange={(e) => setStart(e.target.value)} /></div>
-          {!milestone && <div><span className="sublab">Término</span><input type="date" className="in" value={end} onChange={(e) => setEnd(e.target.value)} /></div>}
-        </div>
-
-        <button className="linklike" onClick={() => setShowBaselineFields((v) => !v)}>
-          {showBaselineFields ? "Ocultar linha de base" : "Ajustar linha de base (planejado original)"}
-        </button>
-        {showBaselineFields && (
-          <div className="baseline-box">
+        {isNew ? (
+          /* ── Nova tarefa: baseline é a entrada principal ── */
+          <>
+            <label className="lab">Datas planejadas (linha de base)</label>
             <div className="row2">
-              <div><span className="sublab">Início planejado</span><input type="date" className="in" value={baselineStart} onChange={(e) => setBaselineStart(e.target.value)} /></div>
-              {!milestone && <div><span className="sublab">Término planejado</span><input type="date" className="in" value={baselineEnd} onChange={(e) => setBaselineEnd(e.target.value)} /></div>}
+              <div><span className="sublab">Início</span><input type="date" className="in" value={baselineStart} onChange={(e) => handleBaselineStart(e.target.value)} /></div>
+              {!milestone && <div><span className="sublab">Término</span><input type="date" className="in" value={baselineEnd} onChange={(e) => handleBaselineEnd(e.target.value)} /></div>}
             </div>
-            <p className="hint">A linha de base é o compromisso original. Ela não muda quando você reagenda a tarefa — assim dá para comparar planejado × real.</p>
-          </div>
+
+            <button className="linklike" onClick={() => {
+              if (!customReal) {
+                // ao abrir, inicializa real com os valores atuais do baseline
+                setStart(baselineStart);
+                setEnd(baselineEnd);
+              }
+              setCustomReal((v) => !v);
+            }}>
+              {customReal ? "Remover datas reais personalizadas" : "Personalizar datas reais (se diferente do planejado)"}
+            </button>
+            {customReal && (
+              <div className="baseline-box">
+                <div className="row2">
+                  <div><span className="sublab">Início real</span><input type="date" className="in" value={start} onChange={(e) => setStart(e.target.value)} /></div>
+                  {!milestone && <div><span className="sublab">Término real</span><input type="date" className="in" value={end} onChange={(e) => setEnd(e.target.value)} /></div>}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* ── Editar tarefa: real é a entrada principal ── */
+          <>
+            <label className="lab">Real / atual</label>
+            <div className="row2">
+              <div><span className="sublab">Início</span><input type="date" className="in" value={start} onChange={(e) => setStart(e.target.value)} /></div>
+              {!milestone && <div><span className="sublab">Término</span><input type="date" className="in" value={end} onChange={(e) => setEnd(e.target.value)} /></div>}
+            </div>
+
+            <button className="linklike" onClick={() => setCustomReal((v) => !v)}>
+              {customReal ? "Ocultar linha de base" : "Ajustar linha de base (planejado original)"}
+            </button>
+            {customReal && (
+              <div className="baseline-box">
+                <div className="row2">
+                  <div><span className="sublab">Início planejado</span><input type="date" className="in" value={baselineStart} onChange={(e) => setBaselineStart(e.target.value)} /></div>
+                  {!milestone && <div><span className="sublab">Término planejado</span><input type="date" className="in" value={baselineEnd} onChange={(e) => setBaselineEnd(e.target.value)} /></div>}
+                </div>
+                <p className="hint">A linha de base é o compromisso original. Ela não muda quando você reagenda a tarefa — assim dá para comparar planejado × real.</p>
+              </div>
+            )}
+          </>
         )}
 
         <label className="lab">Progresso · {progress}%</label>
@@ -906,8 +967,8 @@ const CSS = `
 .delay-lbl{ position:absolute; top:58%; transform:translateY(-50%); font-size:11px; font-weight:700; color:var(--late); white-space:nowrap; z-index:2; }
 .ms{ position:absolute; top:58%; transform:translateY(-50%) rotate(45deg); width:16px; height:16px; border-radius:3px; background:var(--accent); box-shadow:0 1px 2px rgba(0,0,0,.12); z-index:2; }
 .ms.done{ background:var(--done); } .ms.late{ background:var(--late); } .ms.future{ background:var(--future); }
-.bar-baseline{ position:absolute; top:22%; transform:translateY(-50%); height:7px; border-radius:4px; background:var(--baseline); opacity:.9; z-index:1; }
-.ms-baseline{ position:absolute; top:22%; transform:translateY(-50%) rotate(45deg); width:10px; height:10px; border:2px solid var(--baseline); background:transparent; z-index:1; }
+.bar-baseline{ position:absolute; bottom:5px; height:6px; border-radius:4px; background:var(--baseline); opacity:.9; z-index:1; }
+.ms-baseline{ position:absolute; bottom:4px; transform:rotate(45deg); width:10px; height:10px; border:2px solid var(--baseline); background:transparent; z-index:1; }
 .dep-svg{ position:absolute; z-index:1; pointer-events:none; overflow:visible; }
 .gantt-empty{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px; text-align:center; color:var(--mut); font-size:13.5px; }
 

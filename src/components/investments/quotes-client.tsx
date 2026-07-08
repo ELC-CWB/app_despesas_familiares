@@ -479,9 +479,18 @@ export function QuotesClient({ profileId, initialSymbols, initialQuotes }: Quote
 
       {/* Error quotes */}
       {!loading && filteredQuotes.some((q) => q.error) && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          Alguns ativos não puderam ser carregados. Verifique se os tickers estão corretos.
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <div>
+            <span>Ativos não carregados: </span>
+            {filteredQuotes.filter(q => q.error).map((q, i, arr) => (
+              <span key={q.symbol}>
+                <strong>{q.symbol}</strong>
+                {q.error ? ` (${q.error})` : ""}
+                {i < arr.length - 1 ? ", " : ""}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 

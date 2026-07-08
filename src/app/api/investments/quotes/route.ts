@@ -3,47 +3,56 @@ import { createClient } from "@/lib/supabase/server";
 
 const BRAPI_BASE = "https://brapi.dev/api";
 
-// Fetches one ticker at a time (brapi free plan allows only 1 per request)
-async function fetchOne(symbol: string, token: string) {
-  const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}&fundamental=true`;
-  const res = await fetch(url, { cache: "no-store" });
-
-  if (!res.ok) {
-    console.error(`brapi ${symbol}: HTTP ${res.status}`);
-    return { symbol, error: `HTTP ${res.status}` };
-  }
-
-  const data = await res.json();
-
-  // brapi v1 error (e.g. invalid ticker)
-  if (data.error) {
-    console.error(`brapi ${symbol}:`, data.message ?? data.error);
-    return { symbol, error: data.message ?? String(data.error) };
-  }
-
-  const r = (data.results ?? [])[0];
-  if (!r) return { symbol, error: "no data" };
-
+function mapResult(r: Record<string, unknown>, symbol: string) {
   return {
-    symbol: r.symbol ?? symbol,
-    shortName: r.shortName ?? symbol,
-    longName: r.longName ?? null,
-    currency: r.currency ?? "BRL",
-    regularMarketPrice: r.regularMarketPrice ?? 0,
-    regularMarketChange: r.regularMarketChange ?? 0,
-    regularMarketChangePercent: r.regularMarketChangePercent ?? 0,
-    regularMarketOpen: r.regularMarketOpen ?? null,
-    regularMarketDayHigh: r.regularMarketDayHigh ?? null,
-    regularMarketDayLow: r.regularMarketDayLow ?? null,
-    regularMarketVolume: r.regularMarketVolume ?? null,
-    regularMarketPreviousClose: r.regularMarketPreviousClose ?? null,
-    fiftyTwoWeekHigh: r.fiftyTwoWeekHigh ?? null,
-    fiftyTwoWeekLow: r.fiftyTwoWeekLow ?? null,
-    marketCap: r.marketCap ?? null,
-    priceEarnings: r.priceEarnings ?? null,
-    earningsPerShare: r.earningsPerShare ?? null,
-    logourl: r.logourl ?? null,
+    symbol: (r.symbol as string) ?? symbol,
+    shortName: (r.shortName as string) ?? symbol,
+    longName: (r.longName as string) ?? null,
+    currency: (r.currency as string) ?? "BRL",
+    regularMarketPrice: (r.regularMarketPrice as number) ?? 0,
+    regularMarketChange: (r.regularMarketChange as number) ?? 0,
+    regularMarketChangePercent: (r.regularMarketChangePercent as number) ?? 0,
+    regularMarketOpen: (r.regularMarketOpen as number) ?? null,
+    regularMarketDayHigh: (r.regularMarketDayHigh as number) ?? null,
+    regularMarketDayLow: (r.regularMarketDayLow as number) ?? null,
+    regularMarketVolume: (r.regularMarketVolume as number) ?? null,
+    regularMarketPreviousClose: (r.regularMarketPreviousClose as number) ?? null,
+    fiftyTwoWeekHigh: (r.fiftyTwoWeekHigh as number) ?? null,
+    fiftyTwoWeekLow: (r.fiftyTwoWeekLow as number) ?? null,
+    marketCap: (r.marketCap as number) ?? null,
+    priceEarnings: (r.priceEarnings as number) ?? null,
+    earningsPerShare: (r.earningsPerShare as number) ?? null,
+    logourl: (r.logourl as string) ?? null,
   };
+}
+
+async function brapiQuote(symbol: string, token: string, fundamental: boolean) {
+  const url = `${BRAPI_BASE}/quote/${symbol}?token=${token}${fundamental ? "&fundamental=true" : ""}`;
+  const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data.error) return null;
+  const r = (data.results ?? [])[0];
+  return r ?? null;
+}
+
+// Fetches one ticker; retries without fundamental=true if first attempt fails
+async function fetchOne(symbol: string, token: string) {
+  const sym = symbol.trim().toUpperCase();
+  try {
+    // Try with fundamentals first
+    let r = await brapiQuote(sym, token, true);
+    // Retry without fundamentals (some tickers fail with fundamental=true)
+    if (!r) r = await brapiQuote(sym, token, false);
+    if (!r) {
+      console.error(`brapi ${sym}: no data`);
+      return { symbol: sym, error: "Sem dados" };
+    }
+    return mapResult(r as Record<string, unknown>, sym);
+  } catch (e) {
+    console.error(`brapi ${sym}:`, e);
+    return { symbol: sym, error: "Timeout" };
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -55,8 +64,8 @@ export async function GET(request: NextRequest) {
   if (!raw) return NextResponse.json({ error: "No symbols" }, { status: 400 });
 
   const symbols = raw
-    .replace(/[^A-Z0-9,.\-]/gi, "")
     .split(",")
+    .map(s => s.replace(/[^A-Z0-9]/gi, "").toUpperCase())
     .filter(Boolean);
 
   const token = process.env.BRAPI_TOKEN!;

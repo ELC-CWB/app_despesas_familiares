@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen, Target } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const EXPENSES_NAV = [
@@ -26,8 +26,14 @@ const INVESTMENTS_NAV = [
   { href: "/investments/settings", label: "Configurações", icon: Settings },
 ];
 
+const GOALS_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
+  { href: "/goals", label: "Metas", icon: Target, exact: true },
+];
+
 // Accent color per module
 const INVEST_COLOR = "#3b82f6";
+const GOALS_COLOR = "#8b5cf6";
 const EXPENSES_COLOR = "hsl(var(--primary))";
 
 interface SidebarProps {
@@ -39,8 +45,9 @@ export function Sidebar({ profile }: SidebarProps) {
   const router = useRouter();
 
   const isInvestments = pathname.startsWith("/investments");
-  const accentColor = isInvestments ? INVEST_COLOR : EXPENSES_COLOR;
-  const accentBg = isInvestments ? "rgba(59,130,246,0.15)" : "hsl(var(--primary))";
+  const isGoals = pathname.startsWith("/goals");
+  const accentColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : EXPENSES_COLOR;
+  const accentBg = isInvestments ? "rgba(59,130,246,0.15)" : isGoals ? "rgba(139,92,246,0.15)" : "hsl(var(--primary))";
 
   async function handleLogout() {
     const supabase = createClient();
@@ -65,7 +72,7 @@ export function Sidebar({ profile }: SidebarProps) {
               className="text-sidebar-fg font-semibold text-base leading-tight block transition-all duration-300"
               style={{ fontFamily: "Sora, sans-serif" }}
             >
-              {isInvestments ? "Investimentos" : "Despesas"}
+              {isInvestments ? "Investimentos" : isGoals ? "Metas" : "Despesas"}
             </span>
             <span
               className="text-xs font-medium transition-colors duration-300"
@@ -79,7 +86,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV)
+        {(isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV)
           .filter(item => item.href !== "/" || profile?.has_investments_access)
           .map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");

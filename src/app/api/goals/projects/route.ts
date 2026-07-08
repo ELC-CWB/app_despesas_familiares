@@ -22,7 +22,7 @@ export async function GET() {
 
   const { data: projects, error: pe } = await supabase
     .from("goals_projects")
-    .select("id, name, category")
+    .select("id, name, category, description")
     .order("created_at");
 
   if (pe) return NextResponse.json({ error: pe.message }, { status: 500 });
@@ -38,6 +38,7 @@ export async function GET() {
     id: p.id,
     name: p.name,
     category: p.category,
+    description: (p as Record<string, unknown>).description as string ?? "",
     tasks: (tasks ?? [])
       .filter((t) => t.project_id === p.id)
       .map(mapTask),
@@ -52,12 +53,12 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { name, category } = body;
+  const { name, category, description } = body;
 
   const { data, error } = await supabase
     .from("goals_projects")
-    .insert({ profile_id: user.id, name, category: category || "Geral" })
-    .select("id, name, category")
+    .insert({ profile_id: user.id, name, category: category || "Geral", description: description || "" })
+    .select("id, name, category, description")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

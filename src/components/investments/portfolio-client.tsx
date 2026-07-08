@@ -413,14 +413,6 @@ function PositionsTab({ positions, totals }: { positions: Position[]; totals: To
                 <div key={p.symbol} className="px-4 py-3 hover:bg-secondary/30 transition-colors">
                   {/* Row 1: symbol + current value */}
                   <div className="flex items-center gap-3 mb-2">
-                    {p.logourl ? (
-                      <img src={p.logourl} alt={p.symbol} className="w-8 h-8 rounded-lg object-contain bg-secondary flex-shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
-                        style={{ backgroundColor: color }}>
-                        {p.symbol.slice(0, 2)}
-                      </div>
-                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <div>

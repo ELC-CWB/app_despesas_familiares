@@ -391,16 +391,6 @@ export function AnalysesClient() {
 
                   <td className="px-1.5 py-1.5">
                     <div className="flex items-center gap-1.5">
-                      {row.logourl ? (
-                        <img src={row.logourl} alt={row.symbol}
-                          className="h-5 w-5 rounded object-contain bg-secondary flex-shrink-0"
-                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      ) : (
-                        <div className="h-5 w-5 rounded flex items-center justify-center text-white font-bold text-[8px] flex-shrink-0"
-                          style={{ backgroundColor: ACCENT }}>
-                          {row.symbol.slice(0, 2)}
-                        </div>
-                      )}
                       <div className="min-w-0">
                         <p className="font-semibold text-foreground text-xs leading-tight">{row.symbol}</p>
                         <p className="text-[10px] text-muted-foreground truncate">{row.shortName !== row.symbol ? row.shortName : row.sector}</p>

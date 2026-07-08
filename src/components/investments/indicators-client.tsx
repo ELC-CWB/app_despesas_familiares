@@ -304,13 +304,6 @@ export function IndicatorsClient({ symbols }: IndicatorsClientProps) {
           {/* Header */}
           <div className="bg-card border border-border rounded-xl p-3 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              {data?.logourl ? (
-                <img src={data.logourl} alt={b.ticker} className="h-9 w-9 rounded-lg object-contain bg-secondary flex-shrink-0" />
-              ) : (
-                <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: ACCENT }}>
-                  {b.ticker.slice(0, 2)}
-                </div>
-              )}
               <div>
                 <p className="font-bold text-foreground text-base leading-tight">{b.ticker}</p>
                 <p className="text-xs text-muted-foreground leading-tight">{data?.shortName ?? b.corporate_name}</p>

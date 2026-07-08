@@ -91,12 +91,6 @@ function ErrorQuoteCard({
   return (
     <div className="bg-card border border-destructive/20 rounded-xl overflow-hidden shadow-sm opacity-70">
       <div className="px-4 py-3 flex items-center gap-2">
-        <div
-          className="h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0 text-white font-bold text-[10px]"
-          style={{ backgroundColor: "#94a3b8" }}
-        >
-          {symbol.slice(0, 2)}
-        </div>
         <div className="min-w-0 flex-1">
           <p className="font-bold text-sm text-foreground leading-tight">{symbol}</p>
           <p className="text-[11px] text-destructive/70 leading-tight truncate">{error}</p>
@@ -154,22 +148,6 @@ function QuoteCard({
         className="px-4 pt-3 pb-2.5 flex items-center gap-2 cursor-pointer"
         onClick={onCardClick}
       >
-        {quote.logourl ? (
-          <img
-            src={quote.logourl}
-            alt={quote.symbol}
-            className="h-7 w-7 rounded-md object-contain flex-shrink-0 bg-secondary"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        ) : (
-          <div
-            className="h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0 text-white font-bold text-[10px]"
-            style={{ backgroundColor: "#3b82f6" }}
-          >
-            {quote.symbol.slice(0, 2)}
-          </div>
-        )}
-
         <div className="min-w-0 flex-1">
           <p className="font-bold text-sm text-foreground leading-tight">{quote.symbol}</p>
           <p className="text-[11px] text-muted-foreground truncate leading-tight">{quote.shortName}</p>

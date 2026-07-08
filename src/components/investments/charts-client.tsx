@@ -392,21 +392,6 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
         {data && !loading && (
           <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
             <div className="flex items-center gap-3">
-              {data.logourl ? (
-                <img
-                  src={data.logourl}
-                  alt={data.symbol}
-                  className="h-10 w-10 rounded-xl object-contain bg-secondary flex-shrink-0"
-                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-              ) : (
-                <div
-                  className="h-10 w-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                  style={{ backgroundColor: ACCENT }}
-                >
-                  {data.symbol.slice(0, 2)}
-                </div>
-              )}
               <div>
                 <p className="text-xs text-muted-foreground">{data.shortName}</p>
                 <p className="text-2xl font-bold text-foreground">{fmtBRL(data.regularMarketPrice)}</p>

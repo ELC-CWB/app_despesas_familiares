@@ -27,6 +27,7 @@ type Project = {
   id: string;
   name: string;
   category: string;
+  description: string;
   tasks: Task[];
 };
 
@@ -158,7 +159,7 @@ export function GoalsClient() {
     setTimeout(() => setToast(null), 5000);
   }, []);
 
-  const addProject = async (p: { name: string; category: string }) => {
+  const addProject = async (p: { name: string; category: string; description: string }) => {
     try {
       const res = await fetch("/api/goals/projects", {
         method: "POST",
@@ -289,6 +290,9 @@ function ProjectView({ project, onBack, onProjectUpdate, onDelete, knownCategori
   const [adding, setAdding] = useState(false);
   const [editingProject, setEditingProject] = useState(false);
   const [showBaselines, setShowBaselines] = useState(true);
+  const [showDesc, setShowDesc] = useState(!!project.description);
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState(project.description ?? "");
   const pr = projProgress(project);
   const lc = lateCount(project);
   const c = catColor(project.category || "Geral");
@@ -351,7 +355,7 @@ function ProjectView({ project, onBack, onProjectUpdate, onDelete, knownCategori
     } catch (e) { console.error(e); }
   };
 
-  const saveProject = async (patch: { name: string; category: string }) => {
+  const saveProject = async (patch: { name: string; category: string; description: string }) => {
     try {
       await fetch(`/api/goals/projects/${project.id}`, {
         method: "PATCH",
@@ -360,6 +364,18 @@ function ProjectView({ project, onBack, onProjectUpdate, onDelete, knownCategori
       });
       onProjectUpdate({ ...project, ...patch });
       setEditingProject(false);
+    } catch (e) { console.error(e); }
+  };
+
+  const saveDesc = async (desc: string) => {
+    try {
+      await fetch(`/api/goals/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: project.name, category: project.category, description: desc }),
+      });
+      onProjectUpdate({ ...project, description: desc });
+      setEditingDesc(false);
     } catch (e) { console.error(e); }
   };
 
@@ -375,8 +391,46 @@ function ProjectView({ project, onBack, onProjectUpdate, onDelete, knownCategori
           <span className="chip" style={{ background: c.bg, color: c.fg }}>{project.category || "Geral"}</span>
           <h2 className="dtitle">{project.name}</h2>
         </div>
-        <button className="ghost" onClick={() => setEditingProject(true)}><Pencil size={15} /> Editar</button>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          <button
+            className="ghost"
+            title="Descrição do projeto"
+            style={project.description ? { color: "var(--accent)" } : undefined}
+            onClick={() => { setShowDesc(!showDesc); if (!showDesc) setEditingDesc(false); }}
+          >
+            <AlignLeft size={15} />
+          </button>
+          <button className="ghost" onClick={() => setEditingProject(true)}><Pencil size={15} /> Editar</button>
+        </div>
       </div>
+
+      {showDesc && (
+        <div className="desc-panel">
+          {editingDesc ? (
+            <>
+              <textarea
+                className="in ta"
+                value={descDraft}
+                onChange={e => setDescDraft(e.target.value)}
+                placeholder="Descreva o objetivo, escopo ou contexto deste projeto..."
+                rows={3}
+                autoFocus
+              />
+              <div className="desc-actions">
+                <button className="btn" style={{ fontSize: 13, padding: "8px 14px" }} onClick={() => saveDesc(descDraft)}>Salvar</button>
+                <button className="ghost" onClick={() => { setEditingDesc(false); setDescDraft(project.description ?? ""); }}>Cancelar</button>
+              </div>
+            </>
+          ) : (
+            <div className="desc-view">
+              <p className="desc-text" style={!project.description ? { color: "#B7B5AD" } : undefined}>
+                {project.description || "Sem descrição. Clique em editar para adicionar."}
+              </p>
+              <button className="ghost" title="Editar descrição" onClick={() => setEditingDesc(true)}><Pencil size={13} /></button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="dmeta">
         <span>{pr}% concluído</span>
@@ -820,9 +874,9 @@ function TaskModal({ task, allTasks = [], onSave, onDelete, onClose }: TaskModal
 /*  ProjectModal                                                       */
 /* ================================================================== */
 interface ProjectModalProps {
-  initial?: { name: string; category: string };
+  initial?: { name: string; category: string; description?: string };
   onClose: () => void;
-  onSave: (p: { name: string; category: string }) => void;
+  onSave: (p: { name: string; category: string; description: string }) => void;
   knownCategories?: string[];
   isEdit?: boolean;
 }
@@ -830,10 +884,11 @@ interface ProjectModalProps {
 function ProjectModal({ initial, onClose, onSave, knownCategories = [], isEdit }: ProjectModalProps) {
   const [name, setName] = useState(initial?.name || "");
   const [cat, setCat] = useState(initial?.category || "");
+  const [desc, setDesc] = useState(initial?.description || "");
 
   const save = () => {
     if (!name.trim()) return;
-    onSave({ name: name.trim(), category: cat.trim() || "Geral" });
+    onSave({ name: name.trim(), category: cat.trim() || "Geral", description: desc.trim() });
   };
 
   return (
@@ -862,6 +917,8 @@ function ProjectModal({ initial, onClose, onSave, knownCategories = [], isEdit }
             })}
           </div>
         )}
+        <label className="lab">Descrição <span style={{ textTransform: "none", fontWeight: 400, fontSize: 11 }}>(opcional)</span></label>
+        <textarea className="in ta" placeholder="Objetivo, escopo ou contexto deste projeto…" value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} />
         <button className="btn full" onClick={save}>{isEdit ? "Salvar alterações" : "Criar projeto"}</button>
         {!isEdit && <p className="note">Depois de criar, abra o projeto para adicionar as tarefas ao cronograma.</p>}
       </div>
@@ -1011,6 +1068,11 @@ const CSS = `
 .catchip{ border:none; font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:20px; }
 .modal-actions{ display:flex; align-items:center; margin-top:22px; }
 .note{ font-size:12px; color:var(--mut); margin:14px 0 0; text-align:center; }
+
+.desc-panel{ background:#FAF9F6; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:8px 0 12px; }
+.desc-view{ display:flex; gap:10px; align-items:flex-start; }
+.desc-text{ flex:1; font-size:13.5px; color:var(--txt); margin:0; line-height:1.6; white-space:pre-wrap; }
+.desc-actions{ display:flex; align-items:center; gap:8px; margin-top:10px; }
 
 .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:80; background:#33363C; color:#fff; padding:12px 16px; border-radius:14px; display:flex; align-items:center; gap:11px; box-shadow:0 10px 30px rgba(0,0,0,.22); max-width:calc(100% - 32px); animation:up .3s cubic-bezier(.34,1.4,.4,1); }
 .toast-ic{ width:26px; height:26px; border-radius:8px; background:var(--done); display:grid; place-items:center; flex-shrink:0; }

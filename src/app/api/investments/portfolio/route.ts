@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchFundamentusIndicators, fetchFundamentusProventos } from "@/lib/investments/fundamentus";
-
-const BRAPI_BASE = "https://brapi.dev/api";
+import { getYahooAuth, yahooV7Fetch } from "@/lib/investments/yahoo-auth";
 
 type OperationRow = {
   id: string;
@@ -44,16 +43,29 @@ type PriceRecord = {
   divHistory: DivRecord[]; // all available historical dividends
 };
 
-async function fetchPrices(symbols: string[], token: string): Promise<Record<string, PriceRecord>> {
+async function fetchPrices(symbols: string[]): Promise<Record<string, PriceRecord>> {
   if (!symbols.length) return {};
 
   type FundData = { price: number; divHistory: DivRecord[] };
-  type BrapiData = { name: string; logourl: string | null; sector: string | null };
   const fundMap: Record<string, FundData> = {};
-  const brapiMap: Record<string, BrapiData> = {};
+  const yahooMap: Record<string, { name: string; sector: string | null }> = {};
 
-  // Fundamentus: price + 10y dividend history. BRAPI: name + logo.
-  // All requests run fully in parallel.
+  const yahooFetch = async () => {
+    try {
+      const auth = await getYahooAuth();
+      const res = await yahooV7Fetch(symbols, "shortName,longName,sector", auth, 8000);
+      if (!res.ok) return;
+      const data = await res.json();
+      const results: { symbol: string; shortName?: string; longName?: string; sector?: string }[] =
+        data?.quoteResponse?.result ?? [];
+      for (const r of results) {
+        const sym = r.symbol.replace(/\.SA$/i, "").toUpperCase();
+        yahooMap[sym] = { name: r.longName ?? r.shortName ?? sym, sector: r.sector ?? null };
+      }
+    } catch { /* skip */ }
+  };
+
+  // Fundamentus: price + 10y dividend history. Yahoo Finance: name + sector (single batch).
   await Promise.allSettled([
     ...symbols.map(async (sym) => {
       const [fundRes, proventosRes] = await Promise.allSettled([
@@ -67,33 +79,18 @@ async function fetchPrices(symbols: string[], token: string): Promise<Record<str
         divHistory: proventos.map(p => ({ exDate: p.exDate, rate: p.rate })),
       };
     }),
-    ...symbols.map(async (sym) => {
-      try {
-        const res = await fetch(`${BRAPI_BASE}/quote/${sym}?token=${token}`, {
-          signal: AbortSignal.timeout(8000),
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        const r = data.results?.[0];
-        if (!r) return;
-        brapiMap[sym] = {
-          name: r.longName ?? r.shortName ?? sym,
-          logourl: r.logourl ?? null,
-          sector: r.sector ?? null,
-        };
-      } catch { /* skip */ }
-    }),
+    yahooFetch(),
   ]);
 
   const results: Record<string, PriceRecord> = {};
   for (const sym of symbols) {
     const f = fundMap[sym] ?? { price: 0, divHistory: [] };
-    const b = brapiMap[sym];
+    const y = yahooMap[sym];
     results[sym] = {
       price: f.price,
-      name: b?.name ?? sym,
-      logourl: b?.logourl ?? null,
-      sector: b?.sector ?? null,
+      name: y?.name ?? sym,
+      logourl: null,
+      sector: y?.sector ?? null,
       divHistory: f.divHistory,
     };
   }
@@ -224,8 +221,7 @@ export async function GET() {
 
   const operations = (ops ?? []) as OperationRow[];
   const symbols = [...new Set(operations.map((o) => o.symbol))];
-  const token = process.env.BRAPI_TOKEN ?? "";
-  const prices = await fetchPrices(symbols, token);
+  const prices = await fetchPrices(symbols);
   const positions = computePositions(operations, prices);
 
   const totalInvested = positions.reduce((s, p) => s + p.totalInvested, 0);

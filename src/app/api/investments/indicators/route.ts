@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchFundamentusIndicators, fetchFundamentusProventos } from "@/lib/investments/fundamentus";
-
-const BRAPI_BASE = "https://brapi.dev/api";
+import { getYahooAuth, yahooV7Fetch } from "@/lib/investments/yahoo-auth";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -12,13 +11,12 @@ export async function GET(request: NextRequest) {
   const symbol = (request.nextUrl.searchParams.get("symbol") ?? "").replace(/[^A-Z0-9.\-]/gi, "");
   if (!symbol) return NextResponse.json({ error: "No symbol" }, { status: 400 });
 
-  const brapiToken = process.env.BRAPI_TOKEN!;
-
-  // Fundamentus: fundamentals + dividends. BRAPI: live price, logo, name.
-  const [fundRes, proventosRes, brapiRes] = await Promise.allSettled([
+  // Fundamentus: fundamentals + dividends. Yahoo Finance: live price, name.
+  const auth = await getYahooAuth();
+  const [fundRes, proventosRes, yahooRes] = await Promise.allSettled([
     fetchFundamentusIndicators(symbol),
     fetchFundamentusProventos(symbol, 5),
-    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${brapiToken}`, { cache: "no-store" }),
+    yahooV7Fetch([symbol], "regularMarketPrice,regularMarketChange,regularMarketChangePercent,shortName,longName", auth, 8000),
   ]);
 
   const fund = fundRes.status === "fulfilled" ? fundRes.value : null;
@@ -28,22 +26,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Sem dados do Fundamentus para esse ativo" }, { status: 502 });
   }
 
-  // BRAPI: live price, day change, logo, name
-  let price: number | null = null;
+  // Yahoo Finance: live price, day change, name (fallback to Fundamentus price if v7 fails)
+  let price: number | null = fund.price ?? null;
   let change: number | null = null;
   let changePct: number | null = null;
-  let logourl: string | null = null;
   let shortName: string | null = null;
 
-  if (brapiRes.status === "fulfilled" && brapiRes.value.ok) {
+  if (yahooRes.status === "fulfilled" && yahooRes.value.ok) {
     try {
-      const data = await brapiRes.value.json();
-      const r = (data.results ?? [])[0];
+      const data = await yahooRes.value.json();
+      const r = data?.quoteResponse?.result?.[0];
       if (r) {
-        price = r.regularMarketPrice ?? null;
+        price = r.regularMarketPrice ?? price;
         change = r.regularMarketChange ?? null;
         changePct = r.regularMarketChangePercent ?? null;
-        logourl = r.logourl ?? null;
         shortName = r.longName ?? r.shortName ?? null;
       }
     } catch { /* ignore */ }
@@ -112,5 +108,5 @@ export async function GET(request: NextRequest) {
     lastDatePrior: `${p.exDate}T00:00:00.000Z`,
   }));
 
-  return NextResponse.json({ bolsai, price, change, changePct, logourl, shortName, cashDividends });
+  return NextResponse.json({ bolsai, price, change, changePct, logourl: null, shortName, cashDividends });
 }

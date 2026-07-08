@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-const BRAPI_BASE = "https://brapi.dev/api";
+import { fetchFundamentusProventos } from "@/lib/investments/fundamentus";
 
 export type UpcomingDividend = {
   symbol: string;
@@ -37,29 +36,23 @@ export async function GET() {
   if (!symbols.length) return NextResponse.json({ upcoming: [] });
 
   const today = new Date().toISOString().slice(0, 10);
-  const token = process.env.BRAPI_TOKEN ?? "";
   const upcoming: UpcomingDividend[] = [];
 
+  // Fundamentus proventos includes future announced dividends.
+  // yearsBack=1 captures ex-dates from the last year (some already passed but payment is upcoming).
   await Promise.allSettled(
     symbols.map(async (symbol) => {
       try {
-        const res = await fetch(`${BRAPI_BASE}/quote/${symbol}?token=${token}&dividends=true`, {
-          signal: AbortSignal.timeout(8000),
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        const cashDividends: { type: string; paymentDate: string; value: number }[] =
-          data.results?.[0]?.dividendsData?.cashDividends ?? [];
-
-        for (const d of cashDividends) {
-          if (d.paymentDate && d.paymentDate >= today) {
+        const proventos = await fetchFundamentusProventos(symbol, 1);
+        for (const p of proventos) {
+          if (p.paymentDate && p.paymentDate >= today) {
             const qty = quantities[symbol] ?? null;
             upcoming.push({
               symbol,
-              type: d.type ?? "DIVIDENDO",
-              paymentDate: d.paymentDate,
-              value: d.value ?? 0,
-              estimatedTotal: qty ? (d.value ?? 0) * qty : null,
+              type: p.label ?? "DIVIDENDO",
+              paymentDate: p.paymentDate,
+              value: p.rate,
+              estimatedTotal: qty ? p.rate * qty : null,
               quantity: qty,
             });
           }

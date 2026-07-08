@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 const VALID_RANGES = ["1d", "5d", "1mo", "3mo", "1y", "2y", "5y", "10y"];
 const VALID_INTERVALS = ["30m", "1h", "1d", "1wk", "1mo", "3mo"];
 const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
-const BRAPI_BASE = "https://brapi.dev/api";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -18,27 +17,16 @@ export async function GET(request: NextRequest) {
 
   if (!symbol) return NextResponse.json({ error: "No symbol" }, { status: 400 });
 
-  const token = process.env.BRAPI_TOKEN!;
-
-  const [yahooRes, brapiRes] = await Promise.allSettled([
-    fetch(`${YAHOO_BASE}/${symbol}.SA?range=${range}&interval=${interval}`, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      signal: AbortSignal.timeout(10000),
-    }),
-    fetch(`${BRAPI_BASE}/quote/${symbol}?token=${token}`, {
-      signal: AbortSignal.timeout(5000),
-    }),
-  ]);
-
-  if (yahooRes.status === "rejected" || !yahooRes.value.ok) {
-    return NextResponse.json({ error: "Erro ao carregar dados históricos" }, { status: 502 });
-  }
-
   let yahooData: unknown;
   try {
-    yahooData = await yahooRes.value.json();
+    const res = await fetch(`${YAHOO_BASE}/${symbol}.SA?range=${range}&interval=${interval}`, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return NextResponse.json({ error: "Erro ao carregar dados históricos" }, { status: 502 });
+    yahooData = await res.json();
   } catch {
-    return NextResponse.json({ error: "Resposta inválida do Yahoo Finance" }, { status: 502 });
+    return NextResponse.json({ error: "Erro ao carregar dados históricos" }, { status: 502 });
   }
 
   const yahooResult = (yahooData as { chart?: { result?: unknown[] } })?.chart?.result?.[0] as {
@@ -86,18 +74,7 @@ export async function GET(request: NextRequest) {
     }))
     .filter((p) => p.close != null && (p.close as number) > 0);
 
-  let shortName = symbol;
-  let logourl: string | null = null;
-  if (brapiRes.status === "fulfilled" && brapiRes.value.ok) {
-    try {
-      const brapiData = await brapiRes.value.json();
-      const r = brapiData.results?.[0];
-      if (r) {
-        shortName = r.longName ?? r.shortName ?? symbol;
-        logourl = r.logourl ?? null;
-      }
-    } catch { /* fallback to symbol */ }
-  }
+  const shortName = (meta.longName as string) ?? (meta.shortName as string) ?? symbol;
 
   const regularMarketPrice = (meta.regularMarketPrice as number) ?? 0;
   const chartPreviousClose = (meta.chartPreviousClose as number) ?? (meta.previousClose as number) ?? 0;
@@ -111,7 +88,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     symbol,
     shortName,
-    logourl,
+    logourl: null,
     currency: (meta.currency as string) ?? "BRL",
     regularMarketPrice,
     regularMarketChange,

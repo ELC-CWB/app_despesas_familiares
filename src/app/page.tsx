@@ -112,7 +112,7 @@ export default async function Home() {
       </div>
 
       {/* ── Module cards ────────────────────────────────────────────────────── */}
-      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 w-full max-w-2xl px-0">
+      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full max-w-2xl px-0">
         <Link href="/dashboard"
           className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
           style={{ background: "linear-gradient(135deg, hsl(160,84%,39%) 0%, hsl(160,84%,28%) 100%)", boxShadow: "0 8px 40px rgba(16,185,129,0.28)" }}>
@@ -158,7 +158,7 @@ export default async function Home() {
         </Link>
 
         <Link href="/goals"
-          className="group col-span-2 sm:col-span-1 rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
+          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
           style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)", boxShadow: "0 8px 40px rgba(139,92,246,0.28)" }}>
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>

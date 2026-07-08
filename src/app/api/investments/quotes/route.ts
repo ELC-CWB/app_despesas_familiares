@@ -55,6 +55,8 @@ async function fetchOne(symbol: string, token: string) {
   }
 }
 
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -70,8 +72,11 @@ export async function GET(request: NextRequest) {
 
   const token = process.env.BRAPI_TOKEN!;
 
-  // Parallel individual requests — 1 ticker each to respect free plan limit
-  const results = await Promise.all(symbols.map((s) => fetchOne(s, token)));
+  // Sequential fetch to avoid BRAPI rate limiting (free plan: 1 req/s)
+  const results = [];
+  for (const sym of symbols) {
+    results.push(await fetchOne(sym, token));
+  }
 
   return NextResponse.json({ results });
 }

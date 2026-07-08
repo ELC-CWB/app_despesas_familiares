@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen, Target } from "lucide-react";
 
 const EXPENSES_NAV = [
   { href: "/", label: "Início", icon: House, exact: true },
@@ -23,16 +23,26 @@ const INVESTMENTS_NAV = [
   { href: "/investments/settings", label: "Config.", icon: Settings },
 ];
 
+const GOALS_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
+  { href: "/goals", label: "Metas", icon: Target, exact: true },
+];
+
 const INVEST_COLOR = "#3b82f6";
+const GOALS_COLOR = "#8b5cf6";
 
 export function MobileNav() {
   const pathname = usePathname();
   const isInvestments = pathname.startsWith("/investments");
+  const isGoals = pathname.startsWith("/goals");
+
+  const activeColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : undefined;
+  const nav = isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV;
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border shadow-lg">
       <div className="flex items-center justify-around px-2 py-2 safe-area-pb">
-        {(isInvestments ? INVESTMENTS_NAV : EXPENSES_NAV).map(({ href, label, icon: Icon, exact }) => {
+        {nav.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
@@ -40,11 +50,9 @@ export function MobileNav() {
               href={href}
               className={cn(
                 "flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-all min-w-0",
-                active
-                  ? isInvestments ? "" : "text-primary"
-                  : "text-muted-foreground"
+                active ? (activeColor ? "" : "text-primary") : "text-muted-foreground"
               )}
-              style={active && isInvestments ? { color: INVEST_COLOR } : undefined}
+              style={active && activeColor ? { color: activeColor } : undefined}
             >
               <Icon className={cn("h-5 w-5", active && "stroke-[2.5px]")} />
               <span className="text-[10px] font-medium">{label}</span>

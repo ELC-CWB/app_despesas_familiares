@@ -393,7 +393,8 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
           <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
             <div className="flex items-center gap-3">
               <div>
-                <p className="text-xs text-muted-foreground">{data.shortName}</p>
+                <p className="text-base font-semibold text-foreground leading-tight">{data.shortName}</p>
+                <p className="text-[11px] text-muted-foreground mb-1">{data.symbol}</p>
                 <p className="text-2xl font-bold text-foreground">{fmtBRL(data.regularMarketPrice)}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {isUp

@@ -164,9 +164,6 @@ const ACCENT = "#3b82f6";
 
 const BR_INDICES = [
   { symbol: "^BVSP", name: "Ibovespa" },
-  { symbol: "^SMLL", name: "Small Caps" },
-  { symbol: "^IDIV", name: "Ind. Dividendos" },
-  { symbol: "^IBXX", name: "IBX-100" },
 ] as const;
 
 export function ChartsClient({ symbols }: ChartsClientProps) {

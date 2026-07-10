@@ -178,7 +178,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
     return base;
   }, [symbols, urlSymbol, chartsSymbol]);
 
-  const selectedSymbol = chartsSymbol || urlSymbol || allSymbols[0] || "PETR4";
+  const selectedSymbol = chartsSymbol || urlSymbol || "^BVSP";
   const setSelectedSymbol = (s: string) => setChartsSymbol(s);
 
   const selectedPeriod = PERIODS.find(p => p.range === chartsPeriodRange) ?? PERIODS[2];
@@ -225,7 +225,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
   // Sync URL symbol to context on first load
   useEffect(() => {
     if (urlSymbol) setChartsSymbol(urlSymbol);
-    else if (!chartsSymbol) setChartsSymbol(allSymbols[0] || "PETR4");
+    else if (!chartsSymbol) setChartsSymbol("^BVSP");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

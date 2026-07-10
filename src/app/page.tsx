@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ReceiptText, TrendingUp, Target, ArrowRight, Mic } from "lucide-react";
+import { ReceiptText, TrendingUp, Target, Mic } from "lucide-react";
 import { HomeLogoutButton } from "@/components/home-logout-button";
 import { hasInvestmentsAccess } from "@/lib/investments-access";
 
@@ -112,93 +112,50 @@ export default async function Home() {
       </div>
 
       {/* ── Module cards ────────────────────────────────────────────────────── */}
-      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-4xl px-0">
-        <Link href="/dashboard"
-          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
-          style={{ background: "linear-gradient(135deg, hsl(160,84%,39%) 0%, hsl(160,84%,28%) 100%)", boxShadow: "0 8px 40px rgba(16,185,129,0.28)" }}>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-            <ReceiptText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Despesas</h2>
-            <p className="hidden sm:block text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Registre e analise os gastos da família por categoria, membro e período. Saiba exatamente para onde vai cada real.
-            </p>
-            <p className="sm:hidden text-xs mt-1 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Controle gastos da família por categoria e período.
-            </p>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
-            <span className="group-hover:text-white transition-colors">Acessar</span>
-            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
-          </div>
-        </Link>
+      <div className="relative z-10 flex flex-col gap-3 sm:gap-4 w-full max-w-lg">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <Link href="/dashboard"
+            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+            style={{ background: "linear-gradient(135deg, hsl(160,84%,39%) 0%, hsl(160,84%,28%) 100%)", boxShadow: "0 8px 40px rgba(16,185,129,0.28)" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+              <ReceiptText className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Despesas</h2>
+          </Link>
 
-        <Link href="/investments"
-          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
-          style={{ background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", boxShadow: "0 8px 40px rgba(59,130,246,0.28)" }}>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Investimentos</h2>
-            <p className="hidden sm:block text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Monitore sua carteira de ações, cotações em tempo real, indicadores fundamentalistas e histórico de dividendos.
-            </p>
-            <p className="sm:hidden text-xs mt-1 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Monitore carteira, cotações e indicadores em tempo real.
-            </p>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
-            <span className="group-hover:text-white transition-colors">Acessar</span>
-            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
-          </div>
-        </Link>
+          <Link href="/investments"
+            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+            style={{ background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", boxShadow: "0 8px 40px rgba(59,130,246,0.28)" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Investimentos</h2>
+          </Link>
+        </div>
 
-        <Link href="/goals"
-          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
-          style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)", boxShadow: "0 8px 40px rgba(139,92,246,0.28)" }}>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-            <Target className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Metas</h2>
-            <p className="hidden sm:block text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Planeje e acompanhe seus projetos com cronograma estilo Gantt, linha de base, dependências e progresso.
-            </p>
-            <p className="sm:hidden text-xs mt-1 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Cronograma de projetos com Gantt e linha de base.
-            </p>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
-            <span className="group-hover:text-white transition-colors">Acessar</span>
-            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
-          </div>
-        </Link>
-        <Link href="/talkie"
-          className="group rounded-2xl p-4 sm:p-7 flex flex-col gap-3 sm:gap-4 transition-all duration-300 hover:-translate-y-2"
-          style={{ background: "linear-gradient(135deg, #e8a33d 0%, #b8721a 100%)", boxShadow: "0 8px 40px rgba(232,163,61,0.28)" }}>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-            <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-xl font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Talkie</h2>
-            <p className="hidden sm:block text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Pratique inglês conversando por voz com uma IA. Correções automáticas e memória de conversas anteriores.
-            </p>
-            <p className="sm:hidden text-xs mt-1 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Pratique inglês por voz com IA e memória de conversas.
-            </p>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm mt-auto" style={{ color: "rgba(255,255,255,0.50)" }}>
-            <span className="group-hover:text-white transition-colors">Acessar</span>
-            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 group-hover:text-white transition-all" />
-          </div>
-        </Link>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <Link href="/goals"
+            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+            style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)", boxShadow: "0 8px 40px rgba(139,92,246,0.28)" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+              <Target className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Metas</h2>
+          </Link>
+
+          <Link href="/talkie"
+            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+            style={{ background: "linear-gradient(135deg, #e8a33d 0%, #b8721a 100%)", boxShadow: "0 8px 40px rgba(232,163,61,0.28)" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+              <Mic className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Talkie</h2>
+          </Link>
+        </div>
       </div>
     </main>
   );

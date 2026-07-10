@@ -107,7 +107,7 @@ export default async function Home() {
       <div className="relative z-10 text-center mb-6 sm:mb-12">
         <h1 className="text-white font-bold text-2xl sm:text-4xl tracking-tight"
           style={{ fontFamily: "Sora, sans-serif" }}>
-          Gestão Financeira Familiar
+          Aplicativos Pessoais
         </h1>
       </div>
 

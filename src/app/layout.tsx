@@ -3,8 +3,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "Despesas Familiares",
-  description: "Controle financeiro para grupos familiares",
+  title: "Aplicativos Pessoais",
+  description: "Aplicativos pessoais para gestão financeira e aprendizado",
 };
 
 export const viewport: Viewport = {

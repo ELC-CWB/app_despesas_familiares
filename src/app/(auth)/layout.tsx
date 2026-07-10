@@ -104,7 +104,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Copyright */}
         <div className="relative mt-8 text-xs" style={{ zIndex: 10, color: "rgba(255,255,255,0.25)" }}>
-          © {new Date().getFullYear()} Gestão Financeira Familiar
+          © {new Date().getFullYear()} Aplicativos Pessoais
         </div>
 
       </div>
@@ -121,7 +121,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="text-white font-bold text-sm">$</span>
             </div>
             <span className="font-semibold text-lg" style={{ fontFamily: "Sora, sans-serif" }}>
-              Gestão Financeira Familiar
+              Aplicativos Pessoais
             </span>
           </div>
           {children}

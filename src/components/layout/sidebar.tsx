@@ -78,7 +78,7 @@ export function Sidebar({ profile }: SidebarProps) {
               className="text-xs font-medium transition-colors duration-300"
               style={{ fontFamily: "Sora, sans-serif", color: accentColor }}
             >
-              Familiares
+              Aplicativos Pessoais
             </span>
           </div>
         </div>

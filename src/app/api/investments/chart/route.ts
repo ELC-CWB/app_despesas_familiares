@@ -11,15 +11,21 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const params = request.nextUrl.searchParams;
-  const symbol = (params.get("symbol") ?? "").replace(/[^A-Z0-9.\-]/gi, "");
+  const raw = (params.get("symbol") ?? "").toUpperCase();
+  const isIndex = raw.startsWith("^");
+  const symbol = isIndex
+    ? raw.replace(/[^A-Z0-9^]/g, "")
+    : raw.replace(/[^A-Z0-9.\-]/g, "");
   const range = VALID_RANGES.includes(params.get("range") ?? "") ? params.get("range")! : "1mo";
   const interval = VALID_INTERVALS.includes(params.get("interval") ?? "") ? params.get("interval")! : "1d";
 
   if (!symbol) return NextResponse.json({ error: "No symbol" }, { status: 400 });
 
+  const yahooSymbol = isIndex ? symbol : `${symbol}.SA`;
+
   let yahooData: unknown;
   try {
-    const res = await fetch(`${YAHOO_BASE}/${symbol}.SA?range=${range}&interval=${interval}`, {
+    const res = await fetch(`${YAHOO_BASE}/${yahooSymbol}?range=${range}&interval=${interval}`, {
       headers: { "User-Agent": "Mozilla/5.0" },
       signal: AbortSignal.timeout(10000),
     });

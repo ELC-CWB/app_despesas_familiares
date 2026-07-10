@@ -70,6 +70,12 @@ function fmtPct(n: number) {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2).replace(".", ",")}%`;
 }
 
+function fmtVal(n: number, sym: string) {
+  if (sym.startsWith("^"))
+    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + " pts";
+  return fmtBRL(n);
+}
+
 function fmtAxisDate(ts: number, fmt: PeriodFmt): string {
   const d = new Date(ts * 1000);
   if (fmt === "time")    return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -91,18 +97,20 @@ function fmtTooltipDate(ts: number, fmt: PeriodFmt): string {
 // ─── Custom Tooltip ──────────────────────────────────────────────────────────
 
 function CustomTooltip({
-  active, payload, fmt, buyMarks,
+  active, payload, fmt, buyMarks, symbol,
 }: {
   active?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any[];
   fmt: PeriodFmt;
   buyMarks: Array<OperationMark & { ts: number; nearestDate: number }>;
+  symbol: string;
 }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload as HistoricalPoint;
   const isUp = d.close >= d.open;
   const color = isUp ? "#22c55e" : "#ef4444";
+  const fmt$ = (n: number) => fmtVal(n, symbol);
 
   // Find buy operations whose nearest chart point is this one
   const buysHere = buyMarks.filter((op) => op.nearestDate === d.date);
@@ -112,19 +120,19 @@ function CustomTooltip({
       <p className="text-muted-foreground font-medium">{fmtTooltipDate(d.date, fmt)}</p>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">Fech.</span>
-        <span className="font-bold" style={{ color }}>{fmtBRL(d.close)}</span>
+        <span className="font-bold" style={{ color }}>{fmt$(d.close)}</span>
       </div>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">Abert.</span>
-        <span className="font-medium">{fmtBRL(d.open)}</span>
+        <span className="font-medium">{fmt$(d.open)}</span>
       </div>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">Máx.</span>
-        <span className="font-medium text-green-600">{fmtBRL(d.high)}</span>
+        <span className="font-medium text-green-600">{fmt$(d.high)}</span>
       </div>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">Mín.</span>
-        <span className="font-medium text-red-500">{fmtBRL(d.low)}</span>
+        <span className="font-medium text-red-500">{fmt$(d.low)}</span>
       </div>
       {d.volume > 0 && (
         <div className="flex justify-between gap-4 border-t border-border pt-1 mt-1">
@@ -153,6 +161,13 @@ function CustomTooltip({
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 const ACCENT = "#3b82f6";
+
+const BR_INDICES = [
+  { symbol: "^BVSP", name: "Ibovespa" },
+  { symbol: "^SMLL", name: "Small Caps" },
+  { symbol: "^IDIV", name: "Ind. Dividendos" },
+  { symbol: "^IBXX", name: "IBX-100" },
+] as const;
 
 export function ChartsClient({ symbols }: ChartsClientProps) {
   const searchParams = useSearchParams();
@@ -240,11 +255,20 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
     );
   }, [allSymbols, queryUpper, nameCache]);
 
-  // true when query looks like a valid ticker and is not already in the list
+  const filteredIndices = useMemo(() => {
+    const q = queryUpper.replace("^", "");
+    if (!q) return BR_INDICES;
+    return BR_INDICES.filter(i =>
+      i.symbol.replace("^", "").includes(q) || i.name.toUpperCase().includes(q)
+    );
+  }, [queryUpper]);
+
+  // true when query looks like a valid ticker/index not already listed
   const showSearchOption =
     queryUpper.length >= 4 &&
     /^[A-Z]{3,4}[0-9]{1,2}$/.test(queryUpper) &&
-    !allSymbols.includes(queryUpper);
+    !allSymbols.includes(queryUpper) &&
+    !BR_INDICES.some(i => i.symbol === queryUpper);
 
   const selectSymbol = (s: string) => {
     setSelectedSymbol(s);
@@ -327,10 +351,10 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
           {showDropdown && (() => {
             const isSearching = queryUpper.length > 0;
             const listToShow = isSearching ? filteredSymbols : recentChartSymbols;
-            const hasItems = listToShow.length > 0 || showSearchOption;
+            const hasItems = listToShow.length > 0 || filteredIndices.length > 0 || showSearchOption;
             if (!hasItems) return null;
             return (
-              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-64 overflow-y-auto">
                 {!isSearching && recentChartSymbols.length > 0 && (
                   <div className="px-3 py-1.5 border-b border-border">
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Recentes</span>
@@ -352,6 +376,27 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                     )}
                   </button>
                 ))}
+                {filteredIndices.length > 0 && (
+                  <>
+                    <div className="px-3 py-1.5 border-t border-border bg-secondary/20">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Índices de Mercado</span>
+                    </div>
+                    {filteredIndices.map(idx => (
+                      <button
+                        key={idx.symbol}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 transition-colors"
+                        style={selectedSymbol === idx.symbol ? { backgroundColor: "rgba(59,130,246,0.07)" } : {}}
+                        onMouseDown={() => selectSymbol(idx.symbol)}
+                      >
+                        <span className="text-sm font-semibold text-foreground">{idx.symbol}</span>
+                        <span className="text-xs text-muted-foreground truncate">{idx.name}</span>
+                        {selectedSymbol === idx.symbol && (
+                          <span className="ml-auto text-[10px] font-semibold flex-shrink-0" style={{ color: ACCENT }}>✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </>
+                )}
                 {showSearchOption && (
                   <button
                     className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60 transition-colors border-t border-border"
@@ -395,13 +440,13 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
               <div>
                 <p className="text-base font-semibold text-foreground leading-tight">{data.shortName}</p>
                 <p className="text-[11px] text-muted-foreground mb-1">{data.symbol}</p>
-                <p className="text-2xl font-bold text-foreground">{fmtBRL(data.regularMarketPrice)}</p>
+                <p className="text-2xl font-bold text-foreground">{fmtVal(data.regularMarketPrice, data.symbol)}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {isUp
                     ? <TrendingUp className="h-3.5 w-3.5" style={{ color: lineColor }} />
                     : <TrendingDown className="h-3.5 w-3.5" style={{ color: lineColor }} />}
                   <span className="text-sm font-semibold" style={{ color: lineColor }}>
-                    {fmtBRL(Math.abs(periodChange))} ({fmtPct(periodChangePct)}) no período
+                    {fmtVal(Math.abs(periodChange), data.symbol)} ({fmtPct(periodChangePct)}) no período
                   </span>
                 </div>
               </div>
@@ -409,11 +454,11 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
             <div className="flex gap-6 text-right items-start">
               <div>
                 <p className="text-[10px] text-muted-foreground mb-0.5">Máx. período</p>
-                <p className="text-sm font-semibold text-green-600">{fmtBRL(periodHigh)}</p>
+                <p className="text-sm font-semibold text-green-600">{fmtVal(periodHigh, data.symbol)}</p>
               </div>
               <div>
                 <p className="text-[10px] text-muted-foreground mb-0.5">Mín. período</p>
-                <p className="text-sm font-semibold text-red-500">{fmtBRL(periodLow)}</p>
+                <p className="text-sm font-semibold text-red-500">{fmtVal(periodLow, data.symbol)}</p>
               </div>
               {buyMarks.length > 0 && (
                 <div className="flex flex-col items-center">
@@ -496,7 +541,7 @@ export function ChartsClient({ symbols }: ChartsClientProps) {
                   width={62}
                 />
                 <Tooltip
-                  content={<CustomTooltip fmt={selectedPeriod.fmt} buyMarks={buyMarks} />}
+                  content={<CustomTooltip fmt={selectedPeriod.fmt} buyMarks={buyMarks} symbol={selectedSymbol} />}
                   cursor={{ stroke: "rgba(128,128,128,0.3)", strokeWidth: 1 }}
                 />
                 <Area

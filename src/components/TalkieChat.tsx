@@ -211,6 +211,7 @@ export default function TalkieChat() {
         const en = allVoices.filter(v => v.lang.startsWith('en'));
         const pool = en.length ? en : voices;
         const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US'; // force English pronunciation regardless of device language
         const chosen = pickVoice(pool, voiceName);
         if (chosen) u.voice = chosen;
         u.rate = rate; u.pitch = 1.05;
@@ -432,9 +433,10 @@ export default function TalkieChat() {
           <p className="tk-hint">★ = voz premium · No Android, selecione uma voz Google ★ para melhor qualidade</p>
           {noCloudVoice && (
             <div className="tk-voice-warn">
-              <strong>Voz robótica detectada.</strong> No Android, instale o Google TTS:<br/>
+              <strong>Voz em PT-BR detectada.</strong> Para corrigir no Android:<br/>
               Configurações → Gerenciamento Geral → Idioma e Entrada →
-              Saída de Voz → Engine → <em>Google</em> → baixe English (US).
+              Leitura de Texto → <em>Idioma</em> → selecione <em>English (United States)</em>.
+              Depois reinicie o app.
             </div>
           )}
         </div>

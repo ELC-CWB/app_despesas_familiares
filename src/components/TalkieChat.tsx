@@ -18,54 +18,22 @@ function pickVoice(voices: SpeechSynthesisVoice[], preferred: string): SpeechSyn
   return voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
 }
 
-// ─── Animated Orb ────────────────────────────────────────────────────────────
-function JaneOrb({ mode }: { mode: StatusMode }) {
+// ─── Photo Avatar ────────────────────────────────────────────────────────────
+function JanePhoto({ mode }: { mode: StatusMode }) {
   return (
     <div className={`jane-wrap jane-${mode}`}>
-      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="jane-svg">
-        <defs>
-          <radialGradient id="jg1" cx="38%" cy="32%" r="70%">
-            <stop offset="0%" stopColor="#c4b5fd"/>
-            <stop offset="55%" stopColor="#818cf8"/>
-            <stop offset="100%" stopColor="#3b82f6"/>
-          </radialGradient>
-          <radialGradient id="jghi" cx="30%" cy="28%" r="55%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.30)"/>
-            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-          </radialGradient>
-        </defs>
-
-        {/* Ambient rings — pulse when listening */}
-        <circle cx="100" cy="100" r="90" fill="none"
-          stroke="rgba(129,140,248,0.15)" strokeWidth="1.5" className="jane-ring-outer"/>
-        <circle cx="100" cy="100" r="74" fill="none"
-          stroke="rgba(129,140,248,0.22)" strokeWidth="1" className="jane-ring-mid"/>
-
-        {/* Orb body */}
-        <circle cx="100" cy="100" r="60" fill="url(#jg1)" className="jane-orb"/>
-        {/* Glass highlight */}
-        <circle cx="100" cy="100" r="60" fill="url(#jghi)"/>
-        <ellipse cx="82" cy="80" rx="16" ry="10" fill="rgba(255,255,255,0.18)"/>
-
-        {/* Wave bars — 5 bars centred at (100,100), grow from centre when speaking */}
-        <g className="jane-waves" transform="translate(100,100)">
-          <rect x="-32" y="-24" width="9" height="48" rx="4.5"
-            fill="rgba(255,255,255,0.78)" className="jane-bar jane-bar-1"/>
-          <rect x="-17" y="-24" width="9" height="48" rx="4.5"
-            fill="rgba(255,255,255,0.88)" className="jane-bar jane-bar-2"/>
-          <rect x="-4.5" y="-24" width="9" height="48" rx="4.5"
-            fill="white" className="jane-bar jane-bar-3"/>
-          <rect x="11" y="-24" width="9" height="48" rx="4.5"
-            fill="rgba(255,255,255,0.88)" className="jane-bar jane-bar-4"/>
-          <rect x="26" y="-24" width="9" height="48" rx="4.5"
-            fill="rgba(255,255,255,0.78)" className="jane-bar jane-bar-5"/>
-        </g>
-
-        {/* "J" initial — hidden when speaking */}
-        <text x="100" y="118" textAnchor="middle" fill="white"
-          fontSize="60" fontWeight="200" fontFamily="Georgia,'Times New Roman',serif"
-          className="jane-initial">J</text>
-      </svg>
+      <div className="jane-outer-ring"/>
+      <div className="jane-frame">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/jane.jpg" alt="Jane" className="jane-img"/>
+        <div className="jane-waves">
+          <div className="jane-bar jane-bar-1"/>
+          <div className="jane-bar jane-bar-2"/>
+          <div className="jane-bar jane-bar-3"/>
+          <div className="jane-bar jane-bar-4"/>
+          <div className="jane-bar jane-bar-5"/>
+        </div>
+      </div>
     </div>
   );
 }
@@ -354,7 +322,7 @@ export default function TalkieChat() {
 
       {/* ── Orb ── */}
       <div className="tk-avatar-section">
-        <JaneOrb mode={statusMode} />
+        <JanePhoto mode={statusMode} />
         <div className="tk-status-bar">
           <span className={`tk-dot tk-dot-${statusMode}`}/>
           <span className="tk-status-text">{statusMsg}</span>
@@ -440,38 +408,93 @@ export default function TalkieChat() {
         </div>
       </div>
 
-      {/* Global styles needed for SVG child elements and tooltip */}
+      {/* Global styles — needed for child components and tooltip */}
       <style jsx global>{`
-        @keyframes jbreathe { 0%,100%{transform:scale(1);} 50%{transform:scale(1.025);} }
-        @keyframes jring    { 0%{transform:scale(1);opacity:0.22;} 80%{transform:scale(1.2);opacity:0;} 100%{transform:scale(1.2);opacity:0;} }
-        @keyframes jbar     { 0%,100%{transform:scaleY(0.12);} 50%{transform:scaleY(1);} }
+        /* ── Keyframes ── */
+        @keyframes jbreathe   { 0%,100%{transform:scale(1);}    50%{transform:scale(1.018);} }
+        @keyframes jbar       { 0%,100%{transform:scaleY(0.12);} 50%{transform:scaleY(1);} }
+        @keyframes jpulse-out { 0%{box-shadow:0 0 0 0 rgba(232,163,61,0.65);} 70%{box-shadow:0 0 0 10px rgba(232,163,61,0);} 100%{box-shadow:0 0 0 0 rgba(232,163,61,0);} }
+        @keyframes jthink-glow{ 0%,100%{box-shadow:0 0 6px rgba(139,127,209,0.22);} 50%{box-shadow:0 0 24px rgba(139,127,209,0.58);} }
+        @keyframes jring-fade { 0%{transform:scale(1);opacity:0.35;} 80%{transform:scale(1.22);opacity:0;} 100%{transform:scale(1.22);opacity:0;} }
 
-        .jane-wrap { width:110px; height:110px; }
-        .jane-svg  { width:100%; height:100%; animation:jbreathe 3.8s ease-in-out infinite; }
+        /* ── Base photo frame ── */
+        .jane-wrap {
+          position:relative;
+          width:130px; height:130px;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .jane-outer-ring {
+          position:absolute;
+          inset:-13px;
+          border-radius:50%;
+          border:1.5px solid transparent;
+          pointer-events:none;
+          transition:border-color 0.3s;
+        }
+        .jane-frame {
+          width:130px; height:130px;
+          border-radius:50%;
+          overflow:hidden;
+          position:relative;
+          border:3px solid rgba(129,140,248,0.20);
+          transition:border-color 0.3s, box-shadow 0.35s;
+        }
+        .jane-img {
+          width:100%; height:100%;
+          object-fit:cover;
+          object-position:center 15%;
+          display:block;
+        }
 
-        .jane-waves   { opacity:0; transition:opacity 0.2s ease; }
-        .jane-initial { transition:opacity 0.2s ease; }
+        /* ── Wave bars at bottom of photo ── */
+        .jane-waves {
+          position:absolute; bottom:0; left:0; right:0; height:42%;
+          display:flex; align-items:flex-end; justify-content:center; gap:4px;
+          padding-bottom:12px;
+          background:linear-gradient(to top, rgba(8,11,18,0.68) 0%, transparent 100%);
+          border-radius:0 0 9999px 9999px;
+          opacity:0;
+          transition:opacity 0.22s ease;
+        }
         .jane-bar {
-          transform-box:fill-box;
-          transform-origin:50% 50%;
+          width:4px; height:18px;
+          background:white; border-radius:2px;
+          transform-origin:bottom center;
           transform:scaleY(0.12);
         }
 
-        /* Speaking */
-        .jane-speaking .jane-waves   { opacity:1; }
-        .jane-speaking .jane-initial { opacity:0; }
+        /* ── Idle ── */
+        .jane-idle .jane-frame { animation:jbreathe 4s ease-in-out infinite; }
+
+        /* ── Listening ── */
+        .jane-listening .jane-frame {
+          border-color:#E8A33D;
+          animation:jbreathe 4s ease-in-out infinite, jpulse-out 1.3s ease-out infinite;
+        }
+        .jane-listening .jane-outer-ring {
+          border-color:rgba(232,163,61,0.28);
+          animation:jring-fade 1.6s ease-out infinite;
+        }
+
+        /* ── Speaking ── */
+        .jane-speaking .jane-frame {
+          border-color:#818cf8;
+          box-shadow:0 0 20px rgba(129,140,248,0.55), 0 0 42px rgba(129,140,248,0.22);
+          animation:none;
+        }
+        .jane-speaking .jane-outer-ring { border-color:rgba(129,140,248,0.18); }
+        .jane-speaking .jane-waves      { opacity:1; }
         .jane-speaking .jane-bar-1 { animation:jbar 0.60s ease-in-out -0.12s infinite; }
         .jane-speaking .jane-bar-2 { animation:jbar 0.50s ease-in-out -0.26s infinite; }
-        .jane-speaking .jane-bar-3 { animation:jbar 0.44s ease-in-out 0s   infinite; }
+        .jane-speaking .jane-bar-3 { animation:jbar 0.44s ease-in-out 0s    infinite; }
         .jane-speaking .jane-bar-4 { animation:jbar 0.54s ease-in-out -0.18s infinite; }
         .jane-speaking .jane-bar-5 { animation:jbar 0.48s ease-in-out -0.07s infinite; }
 
-        /* Listening: rings pulse outward */
-        .jane-listening .jane-ring-outer { animation:jring 1.6s ease-out        infinite; }
-        .jane-listening .jane-ring-mid   { animation:jring 1.6s ease-out 0.4s  infinite; }
-
-        /* Thinking: faster breathe */
-        .jane-thinking .jane-svg { animation:jbreathe 0.9s ease-in-out infinite; }
+        /* ── Thinking ── */
+        .jane-thinking .jane-frame {
+          border-color:rgba(139,127,209,0.45);
+          animation:jbreathe 1.0s ease-in-out infinite, jthink-glow 1.0s ease-in-out infinite;
+        }
       `}</style>
 
       <style jsx>{`

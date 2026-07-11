@@ -10,12 +10,32 @@ interface ChatResult { corrections?: Correction[]; reply: string; level: string;
 interface SettingsRow { level: string; topic: string; memory: string; error?: string; }
 interface Tooltip { word: string; context: string; x: number; y: number; text: string; loading: boolean; }
 
-// Prefer cloud (non-local) voices — much better quality on Android
+// Known high-quality Google TTS voice names (Android Chrome)
+const GOOGLE_VOICE_NAMES = [
+  'Google US English', 'Google UK English Female', 'Google UK English Male',
+];
+
 function pickVoice(voices: SpeechSynthesisVoice[], preferred: string): SpeechSynthesisVoice | undefined {
   if (preferred) { const e = voices.find(v => v.name === preferred); if (e) return e; }
+  // Try known Google TTS names first (most reliable on Android)
+  for (const name of GOOGLE_VOICE_NAMES) {
+    const v = voices.find(v => v.name === name); if (v) return v;
+  }
+  // Fall back to any cloud voice
   const cloud = voices.filter(v => !v.localService && v.lang.startsWith('en'));
   if (cloud.length) return cloud[0];
   return voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
+}
+
+// Waits for voices to load if list is empty (common on Android first call)
+function waitForVoices(): Promise<SpeechSynthesisVoice[]> {
+  const v = speechSynthesis.getVoices();
+  if (v.length) return Promise.resolve(v);
+  return new Promise(resolve => {
+    const handler = () => resolve(speechSynthesis.getVoices());
+    speechSynthesis.addEventListener('voiceschanged', handler, { once: true });
+    setTimeout(() => resolve(speechSynthesis.getVoices()), 3000);
+  });
 }
 
 // ─── Photo Avatar ────────────────────────────────────────────────────────────
@@ -25,7 +45,7 @@ function JanePhoto({ mode }: { mode: StatusMode }) {
       <div className="jane-outer-ring"/>
       <div className="jane-frame">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/jane2.jpg" alt="Jane" className="jane-img"/>
+        <img src="/jane3.jpg" alt="Jane" className="jane-img"/>
         <div className="jane-waves">
           <div className="jane-bar jane-bar-1"/>
           <div className="jane-bar jane-bar-2"/>
@@ -91,6 +111,7 @@ export default function TalkieChat() {
   const [statusMsg, setStatusMsg] = useState('Toque em Iniciar pra começar');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [recognitionSupported, setRecognitionSupported] = useState(true);
+  const [noCloudVoice, setNoCloudVoice] = useState(false);
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,8 +129,14 @@ export default function TalkieChat() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setRecognitionSupported(!!SR);
     const loadVoices = () => {
-      const v = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-      if (v.length) setVoices(v);
+      const all = speechSynthesis.getVoices();
+      const en = all.filter(v => v.lang.startsWith('en'));
+      if (en.length) {
+        setVoices(en);
+        const hasCloud = en.some(v => !v.localService) ||
+          GOOGLE_VOICE_NAMES.some(n => all.find(v => v.name === n));
+        setNoCloudVoice(!hasCloud);
+      }
     };
     loadVoices();
     speechSynthesis.onvoiceschanged = loadVoices;
@@ -175,21 +202,24 @@ export default function TalkieChat() {
     setTooltip(null);
   }, []);
 
-  // Always fetch the freshest voice list at speak time (fixes Android stale-state issue)
+  // Wait for voices to load (Android can take a moment), then pick best available
   const speak = useCallback((text: string, rate = 1.0): Promise<void> => {
     return new Promise(resolve => {
       if (!text) { resolve(); return; }
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      const live = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-      const chosen = pickVoice(live.length ? live : voices, voiceName);
-      if (chosen) u.voice = chosen;
-      u.rate = rate; u.pitch = 1.05;
-      setStatusMode('speaking');
-      setStatusMsg(rate < 1 ? 'Reproduzindo devagar...' : 'Jane está falando...');
-      u.onend = () => resolve();
-      u.onerror = () => resolve();
-      speechSynthesis.speak(u);
+      waitForVoices().then(allVoices => {
+        const en = allVoices.filter(v => v.lang.startsWith('en'));
+        const pool = en.length ? en : voices;
+        const u = new SpeechSynthesisUtterance(text);
+        const chosen = pickVoice(pool, voiceName);
+        if (chosen) u.voice = chosen;
+        u.rate = rate; u.pitch = 1.05;
+        setStatusMode('speaking');
+        setStatusMsg(rate < 1 ? 'Reproduzindo devagar...' : 'Jane está falando...');
+        u.onend = () => resolve();
+        u.onerror = () => resolve();
+        speechSynthesis.speak(u);
+      });
     });
   }, [voices, voiceName]);
 
@@ -400,6 +430,13 @@ export default function TalkieChat() {
             {voices.map(v => <option key={v.name} value={v.name}>{v.name} ({v.lang}){!v.localService ? ' ★' : ''}</option>)}
           </select>
           <p className="tk-hint">★ = voz premium · No Android, selecione uma voz Google ★ para melhor qualidade</p>
+          {noCloudVoice && (
+            <div className="tk-voice-warn">
+              <strong>Voz robótica detectada.</strong> No Android, instale o Google TTS:<br/>
+              Configurações → Gerenciamento Geral → Idioma e Entrada →
+              Saída de Voz → Engine → <em>Google</em> → baixe English (US).
+            </div>
+          )}
         </div>
         <div className="tk-field">
           <label>Memória de conversas</label>
@@ -556,6 +593,7 @@ export default function TalkieChat() {
         .tk-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--tk-dim); font-size:20px; cursor:pointer; }
         .tk-membox { background:var(--tk-panel2); border-radius:10px; padding:10px 12px; font-size:12px; color:var(--tk-dim); max-height:110px; overflow-y:auto; line-height:1.5; }
         .tk-reset { background:none; border:1px solid var(--tk-err); color:var(--tk-err); border-radius:10px; padding:7px 12px; font-size:12px; cursor:pointer; margin-top:8px; }
+        .tk-voice-warn { background:rgba(232,163,61,0.12); border:1px solid rgba(232,163,61,0.35); border-radius:8px; padding:9px 11px; font-size:11px; color:rgba(232,163,61,0.95); margin-top:8px; line-height:1.55; }
         .tk-tooltip {
           position:fixed;
           z-index:200;

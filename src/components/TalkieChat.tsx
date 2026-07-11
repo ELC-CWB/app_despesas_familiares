@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 const LS_VOICE = 'talkie_voice';
 type StatusMode = 'idle' | 'listening' | 'thinking' | 'speaking';
@@ -119,6 +120,7 @@ export default function TalkieChat() {
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const accumulatedRef = useRef('');
+  const finalizedIndexRef = useRef(-1); // tracks highest result index already added to accumulated
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -235,6 +237,7 @@ export default function TalkieChat() {
   const restartListening = useCallback(() => {
     if (!recognitionRef.current) return;
     accumulatedRef.current = '';
+    finalizedIndexRef.current = -1;
     if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
     try { recognitionRef.current.start(); setStatusMode('listening'); setStatusMsg('Ouvindo...'); } catch {}
   }, []);
@@ -288,9 +291,18 @@ export default function TalkieChat() {
     rec.onresult = (e: any) => {
       let newFinal = '';
       let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) newFinal += e.results[i][0].transcript + ' ';
-        else interim += e.results[i][0].transcript;
+      // Iterate ALL results but only add finals we haven't seen yet.
+      // Android Chrome sometimes resets resultIndex to 0, causing duplicates
+      // if we naively start from e.resultIndex.
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          if (i > finalizedIndexRef.current) {
+            newFinal += e.results[i][0].transcript + ' ';
+            finalizedIndexRef.current = i;
+          }
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
       if (newFinal.trim()) accumulatedRef.current += newFinal;
 
@@ -393,7 +405,10 @@ export default function TalkieChat() {
 
       {/* ── Header ── */}
       <header className="tk-header">
-        <div className="tk-brand"><h1>Talkie</h1><span>English on the go</span></div>
+        <div className="tk-header-left">
+          <Link href="/" className="tk-home-btn" title="Início">←</Link>
+          <div className="tk-brand"><h1>Talkie</h1><span>English on the go</span></div>
+        </div>
         <div className="tk-header-actions">
           {!active
             ? <button className="tk-btn tk-btn-start" onClick={startSession} disabled={!settingsLoaded || !recognitionSupported}>▶ Iniciar</button>
@@ -600,6 +615,9 @@ export default function TalkieChat() {
           display:flex; flex-direction:column; height:100vh; overflow:hidden; position:relative;
         }
         .tk-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--tk-line); flex-shrink:0; }
+        .tk-header-left { display:flex; align-items:center; gap:10px; }
+        .tk-home-btn { color:var(--tk-dim); font-size:20px; text-decoration:none; padding:4px 6px; border-radius:8px; transition:color .15s; line-height:1; }
+        .tk-home-btn:hover { color:var(--tk-text); background:var(--tk-panel2); }
         .tk-brand { display:flex; align-items:baseline; gap:8px; }
         .tk-brand h1 { font-weight:800; font-size:18px; margin:0; }
         .tk-brand span { font-size:11px; color:var(--tk-dim); }

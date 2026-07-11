@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ReceiptText, TrendingUp, Target, Mic } from "lucide-react";
 import { HomeLogoutButton } from "@/components/home-logout-button";
 import { hasInvestmentsAccess } from "@/lib/investments-access";
+import { hasTalkieAccess } from "@/lib/talkie-access";
 
 const CANDLES = [
   { x: 60,   o: 730, c: 700, h: 740, l: 695 },
@@ -37,6 +38,8 @@ export default async function Home() {
   if (!user) redirect("/login");
 
   if (!await hasInvestmentsAccess(supabase, user.id)) redirect("/dashboard");
+
+  const talkieOk = await hasTalkieAccess(supabase, user.id);
 
   return (
     <main
@@ -146,15 +149,17 @@ export default async function Home() {
             <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Metas</h2>
           </Link>
 
-          <Link href="/talkie"
-            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
-            style={{ background: "linear-gradient(135deg, #e8a33d 0%, #b8721a 100%)", boxShadow: "0 8px 40px rgba(232,163,61,0.28)" }}>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-              <Mic className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Talkie</h2>
-          </Link>
+          {talkieOk && (
+            <Link href="/talkie"
+              className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+              style={{ background: "linear-gradient(135deg, #e8a33d 0%, #b8721a 100%)", boxShadow: "0 8px 40px rgba(232,163,61,0.28)" }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+                <Mic className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Talkie</h2>
+            </Link>
+          )}
         </div>
       </div>
     </main>

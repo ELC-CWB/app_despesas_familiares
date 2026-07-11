@@ -8,10 +8,7 @@ interface Correction { said: string; better: string; why?: string; }
 interface Turn { role: 'user' | 'assistant'; text: string; corrections?: Correction[]; }
 interface ChatResult { corrections?: Correction[]; reply: string; level: string; topic: string; memory: string; error?: string; }
 interface SettingsRow { level: string; topic: string; memory: string; error?: string; }
-
-function escapeHtml(s: string) {
-  return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m] as string));
-}
+interface Tooltip { word: string; context: string; x: number; y: number; text: string; loading: boolean; }
 
 // Prefer cloud (non-local) voices — much better quality on Android
 function pickVoice(voices: SpeechSynthesisVoice[], preferred: string): SpeechSynthesisVoice | undefined {
@@ -21,73 +18,93 @@ function pickVoice(voices: SpeechSynthesisVoice[], preferred: string): SpeechSyn
   return voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
 }
 
-// ─── Jane Avatar ─────────────────────────────────────────────────────────────
-function JaneAvatar({ mode }: { mode: StatusMode }) {
+// ─── Animated Orb ────────────────────────────────────────────────────────────
+function JaneOrb({ mode }: { mode: StatusMode }) {
   return (
     <div className={`jane-wrap jane-${mode}`}>
-      <svg viewBox="0 0 200 235" xmlns="http://www.w3.org/2000/svg" className="jane-svg">
-        {/* Hair back */}
-        <ellipse cx="100" cy="82" rx="58" ry="63" fill="#D4A820"/>
-        <path d="M44 78 Q22 132 28 202 Q42 228 62 238 L66 210 Q46 184 46 148 Q44 112 54 82 Z" fill="#C89A18"/>
-        <path d="M156 78 Q178 132 172 202 Q158 228 138 238 L134 210 Q154 184 154 148 Q156 112 146 82 Z" fill="#C89A18"/>
-        {/* Face */}
-        <ellipse cx="100" cy="96" rx="52" ry="60" fill="#FDCF96"/>
-        {/* Ears */}
-        <ellipse cx="48" cy="96" rx="7" ry="9" fill="#FDCF96"/>
-        <ellipse cx="152" cy="96" rx="7" ry="9" fill="#FDCF96"/>
-        {/* Front hair / fringe */}
-        <path d="M48 65 Q60 18 100 14 Q140 18 152 65 Q132 44 118 46 Q105 42 100 44 Q95 42 82 46 Q68 44 48 65 Z" fill="#E8BE30"/>
-        <path d="M72 22 Q100 13 128 22 Q112 16 100 15 Q88 16 72 22 Z" fill="rgba(255,240,160,0.5)"/>
-        {/* Eyebrows */}
-        <path d="M63 78 Q74 72 87 75" stroke="#7A5010" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-        <path d="M113 75 Q126 72 137 78" stroke="#7A5010" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-        {/* Eye whites */}
-        <ellipse cx="76" cy="89" rx="13" ry="11" fill="white"/>
-        <ellipse cx="124" cy="89" rx="13" ry="11" fill="white"/>
-        {/* Iris */}
-        <ellipse cx="76" cy="90" rx="8" ry="8.5" fill="#5590D8"/>
-        <ellipse cx="124" cy="90" rx="8" ry="8.5" fill="#5590D8"/>
-        <ellipse cx="76" cy="90" rx="5.5" ry="6" fill="#3B6CB0"/>
-        <ellipse cx="124" cy="90" rx="5.5" ry="6" fill="#3B6CB0"/>
-        {/* Pupils */}
-        <circle cx="77" cy="90" r="3.8" fill="#180E28"/>
-        <circle cx="125" cy="90" r="3.8" fill="#180E28"/>
-        {/* Sparkles */}
-        <circle cx="80" cy="87" r="2" fill="white"/>
-        <circle cx="128" cy="87" r="2" fill="white"/>
-        <circle cx="74" cy="93" r="1" fill="rgba(255,255,255,0.5)"/>
-        <circle cx="122" cy="93" r="1" fill="rgba(255,255,255,0.5)"/>
-        {/* Eyelashes */}
-        <path d="M63 82 Q70 76 80 79 Q88 76 89 83" stroke="#3A2505" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-        <path d="M111 83 Q112 76 120 79 Q130 76 137 82" stroke="#3A2505" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-        {/* Eyelids (blink via CSS) */}
-        <ellipse cx="76" cy="89" rx="13" ry="11" fill="#FDCF96" className="jane-lid-L"/>
-        <ellipse cx="124" cy="89" rx="13" ry="11" fill="#FDCF96" className="jane-lid-R"/>
-        {/* Lower lash lines */}
-        <path d="M63 95 Q76 100 89 95" stroke="#C8956A" strokeWidth="0.8" fill="none"/>
-        <path d="M111 95 Q124 100 137 95" stroke="#C8956A" strokeWidth="0.8" fill="none"/>
-        {/* Nose */}
-        <path d="M95 113 Q91 122 94 126 Q97 129 100 129 Q103 129 106 126 Q109 122 105 113" stroke="#C08060" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-        <path d="M94 126 Q100 128 106 126" stroke="#C08060" strokeWidth="1.5" fill="none"/>
-        {/* Cheeks */}
-        <ellipse cx="60" cy="112" rx="17" ry="9" fill="rgba(240,100,90,0.13)"/>
-        <ellipse cx="140" cy="112" rx="17" ry="9" fill="rgba(240,100,90,0.13)"/>
-        {/* Mouth */}
-        <ellipse cx="100" cy="141" rx="13" ry="5" fill="#7A1C1C" className="jane-mouth-bg"/>
-        <ellipse cx="100" cy="137" rx="11" ry="5" fill="#F0EEE8" className="jane-teeth"/>
-        {/* Upper lip */}
-        <path d="M84 134 Q92 129 100 131 Q108 129 116 134 Q108 136 100 135 Q92 136 84 134 Z" fill="#C04858"/>
-        {/* Lower lip */}
-        <path d="M84 134 Q100 148 116 134 Q108 142 100 144 Q92 142 84 134 Z" fill="#D86070" className="jane-lower-lip"/>
-        {/* Neck */}
-        <rect x="89" y="154" width="22" height="28" fill="#FDCF96" rx="2"/>
-        <path d="M89 154 Q94 162 100 162 Q106 162 111 154" fill="rgba(0,0,0,0.04)"/>
-        {/* Body */}
-        <path d="M10 235 Q38 194 89 178 L111 178 Q162 194 190 235 Z" fill="#1D4ED8"/>
-        <path d="M89 178 Q94 188 100 188 Q106 188 111 178 L108 182 Q100 192 92 182 Z" fill="#1E40AF"/>
-        <path d="M12 235 Q45 204 89 185" stroke="rgba(255,255,255,0.12)" strokeWidth="10" fill="none" strokeLinecap="round"/>
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="jane-svg">
+        <defs>
+          <radialGradient id="jg1" cx="38%" cy="32%" r="70%">
+            <stop offset="0%" stopColor="#c4b5fd"/>
+            <stop offset="55%" stopColor="#818cf8"/>
+            <stop offset="100%" stopColor="#3b82f6"/>
+          </radialGradient>
+          <radialGradient id="jghi" cx="30%" cy="28%" r="55%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.30)"/>
+            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+          </radialGradient>
+        </defs>
+
+        {/* Ambient rings — pulse when listening */}
+        <circle cx="100" cy="100" r="90" fill="none"
+          stroke="rgba(129,140,248,0.15)" strokeWidth="1.5" className="jane-ring-outer"/>
+        <circle cx="100" cy="100" r="74" fill="none"
+          stroke="rgba(129,140,248,0.22)" strokeWidth="1" className="jane-ring-mid"/>
+
+        {/* Orb body */}
+        <circle cx="100" cy="100" r="60" fill="url(#jg1)" className="jane-orb"/>
+        {/* Glass highlight */}
+        <circle cx="100" cy="100" r="60" fill="url(#jghi)"/>
+        <ellipse cx="82" cy="80" rx="16" ry="10" fill="rgba(255,255,255,0.18)"/>
+
+        {/* Wave bars — 5 bars centred at (100,100), grow from centre when speaking */}
+        <g className="jane-waves" transform="translate(100,100)">
+          <rect x="-32" y="-24" width="9" height="48" rx="4.5"
+            fill="rgba(255,255,255,0.78)" className="jane-bar jane-bar-1"/>
+          <rect x="-17" y="-24" width="9" height="48" rx="4.5"
+            fill="rgba(255,255,255,0.88)" className="jane-bar jane-bar-2"/>
+          <rect x="-4.5" y="-24" width="9" height="48" rx="4.5"
+            fill="white" className="jane-bar jane-bar-3"/>
+          <rect x="11" y="-24" width="9" height="48" rx="4.5"
+            fill="rgba(255,255,255,0.88)" className="jane-bar jane-bar-4"/>
+          <rect x="26" y="-24" width="9" height="48" rx="4.5"
+            fill="rgba(255,255,255,0.78)" className="jane-bar jane-bar-5"/>
+        </g>
+
+        {/* "J" initial — hidden when speaking */}
+        <text x="100" y="118" textAnchor="middle" fill="white"
+          fontSize="60" fontWeight="200" fontFamily="Georgia,'Times New Roman',serif"
+          className="jane-initial">J</text>
       </svg>
     </div>
+  );
+}
+
+// ─── Bubble text with per-word hover translation ──────────────────────────────
+function BubbleText({
+  text,
+  onHover,
+  onLeave,
+}: {
+  text: string;
+  onHover: (word: string, context: string, x: number, y: number) => void;
+  onLeave: () => void;
+}) {
+  const tokens = text.split(/(\s+)/);
+  return (
+    <>
+      {tokens.map((token, i) => {
+        if (/^\s+$/.test(token)) return <span key={i}>{token}</span>;
+        const clean = token.replace(/^[^a-zA-Z'']+|[^a-zA-Z'']+$/g, '');
+        if (!clean) return <span key={i}>{token}</span>;
+        return (
+          <span
+            key={i}
+            className="tk-word"
+            onMouseEnter={e => {
+              const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+              onHover(clean, text, r.left + r.width / 2, r.top);
+            }}
+            onMouseLeave={onLeave}
+            onClick={e => {
+              e.stopPropagation();
+              const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+              onHover(clean, text, r.left + r.width / 2, r.top);
+            }}
+          >{token}</span>
+        );
+      })}
+    </>
   );
 }
 
@@ -106,6 +123,7 @@ export default function TalkieChat() {
   const [statusMsg, setStatusMsg] = useState('Toque em Iniciar pra começar');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [recognitionSupported, setRecognitionSupported] = useState(true);
+  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
@@ -113,6 +131,8 @@ export default function TalkieChat() {
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const translationCacheRef = useRef(new Map<string, string>());
 
   useEffect(() => {
     setVoiceName(localStorage.getItem(LS_VOICE) || '');
@@ -141,6 +161,7 @@ export default function TalkieChat() {
   }, [turns]);
 
   const persistVoice = (v: string) => { setVoiceName(v); localStorage.setItem(LS_VOICE, v); };
+
   const saveSettings = useCallback(async (patch: { level?: string; topic?: string; memory?: string }) => {
     try {
       const r = await fetch('/api/talkie-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
@@ -148,16 +169,52 @@ export default function TalkieChat() {
       if (r.ok && !d.error) { setLevel(d.level); setTopic(d.topic); setMemory(d.memory); }
     } catch {}
   }, []);
+
   const persistLevel = (v: string) => { setLevel(v); saveSettings({ level: v }); };
   const persistTopic = (v: string) => { setTopic(v); saveSettings({ topic: v }); };
-  const resetMemory = () => { setMemory(''); saveSettings({ memory: '' }); };
+  const resetMemory  = () => { setMemory(''); saveSettings({ memory: '' }); };
 
+  // Translation tooltip with debounce + cache
+  const handleWordHover = useCallback((word: string, context: string, x: number, y: number) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    if (!word) { setTooltip(null); return; }
+    const cached = translationCacheRef.current.get(word.toLowerCase());
+    if (cached !== undefined) {
+      setTooltip({ word, context, x, y, text: cached, loading: false });
+      return;
+    }
+    setTooltip({ word, context, x, y, text: '', loading: true });
+    hoverTimerRef.current = setTimeout(async () => {
+      try {
+        const resp = await fetch('/api/talkie-translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ word, context }),
+        });
+        const data = await resp.json();
+        if (data.translation) {
+          translationCacheRef.current.set(word.toLowerCase(), data.translation);
+          setTooltip(t => t?.word === word ? { ...t, text: data.translation, loading: false } : t);
+        }
+      } catch {
+        setTooltip(t => t?.word === word ? { ...t, text: '—', loading: false } : t);
+      }
+    }, 450);
+  }, []);
+
+  const handleWordLeave = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setTooltip(null);
+  }, []);
+
+  // Always fetch the freshest voice list at speak time (fixes Android stale-state issue)
   const speak = useCallback((text: string, rate = 1.0): Promise<void> => {
     return new Promise(resolve => {
       if (!text) { resolve(); return; }
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      const chosen = pickVoice(voices, voiceName);
+      const live = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+      const chosen = pickVoice(live.length ? live : voices, voiceName);
       if (chosen) u.voice = chosen;
       u.rate = rate; u.pitch = 1.05;
       setStatusMode('speaking');
@@ -233,7 +290,7 @@ export default function TalkieChat() {
 
   const startSession = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      setStatusMsg('Microfone não suportado neste navegador ou contexto (requer HTTPS).');
+      setStatusMsg('Microfone não suportado neste navegador (requer HTTPS).');
       return;
     }
     try {
@@ -295,9 +352,9 @@ export default function TalkieChat() {
         </div>
       </header>
 
-      {/* ── Avatar ── */}
+      {/* ── Orb ── */}
       <div className="tk-avatar-section">
-        <JaneAvatar mode={statusMode} />
+        <JaneOrb mode={statusMode} />
         <div className="tk-status-bar">
           <span className={`tk-dot tk-dot-${statusMode}`}/>
           <span className="tk-status-text">{statusMsg}</span>
@@ -310,7 +367,7 @@ export default function TalkieChat() {
       )}
 
       {/* ── Transcript ── */}
-      <div className="tk-transcript" ref={transcriptRef}>
+      <div className="tk-transcript" ref={transcriptRef} onClick={() => setTooltip(null)}>
         {turns.length === 0 && (
           <div className="tk-empty">
             {settingsLoaded ? 'Toque em Iniciar e comece a conversar com Jane em inglês.' : 'Carregando...'}
@@ -320,7 +377,10 @@ export default function TalkieChat() {
           <div key={i} className={`tk-bubble tk-bubble-${t.role}`}>
             <div className="tk-bubble-inner">
               <div className="tk-label">{t.role === 'user' ? 'Você' : 'Jane'}</div>
-              <div dangerouslySetInnerHTML={{ __html: escapeHtml(t.text) }}/>
+              {t.role === 'assistant'
+                ? <div><BubbleText text={t.text} onHover={handleWordHover} onLeave={handleWordLeave}/></div>
+                : <div>{t.text}</div>
+              }
               {t.role === 'user' && t.corrections?.map((c, j) => (
                 <div className="tk-correction" key={j}>
                   <span className="tk-said">{c.said}</span>
@@ -339,6 +399,14 @@ export default function TalkieChat() {
           </div>
         ))}
       </div>
+
+      {/* ── Translation tooltip ── */}
+      {tooltip && (
+        <div className="tk-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
+          <span className="tk-tooltip-word">{tooltip.word}</span>
+          <span className="tk-tooltip-text">{tooltip.loading ? '···' : (tooltip.text || '—')}</span>
+        </div>
+      )}
 
       {/* ── Settings panel ── */}
       {panelOpen && <div className="tk-overlay" onClick={() => setPanelOpen(false)}/>}
@@ -363,7 +431,7 @@ export default function TalkieChat() {
             <option value="">Automática (melhor disponível)</option>
             {voices.map(v => <option key={v.name} value={v.name}>{v.name} ({v.lang}){!v.localService ? ' ★' : ''}</option>)}
           </select>
-          <p className="tk-hint">★ = voz premium (recomendada no celular)</p>
+          <p className="tk-hint">★ = voz premium · No Android, selecione uma voz Google ★ para melhor qualidade</p>
         </div>
         <div className="tk-field">
           <label>Memória de conversas</label>
@@ -372,28 +440,38 @@ export default function TalkieChat() {
         </div>
       </div>
 
-      {/* SVG animations need global scope */}
+      {/* Global styles needed for SVG child elements and tooltip */}
       <style jsx global>{`
-        @keyframes jblink {
-          0%, 92%, 100% { transform: scaleY(0); }
-          96%            { transform: scaleY(1.1); }
+        @keyframes jbreathe { 0%,100%{transform:scale(1);} 50%{transform:scale(1.025);} }
+        @keyframes jring    { 0%{transform:scale(1);opacity:0.22;} 80%{transform:scale(1.2);opacity:0;} 100%{transform:scale(1.2);opacity:0;} }
+        @keyframes jbar     { 0%,100%{transform:scaleY(0.12);} 50%{transform:scaleY(1);} }
+
+        .jane-wrap { width:110px; height:110px; }
+        .jane-svg  { width:100%; height:100%; animation:jbreathe 3.8s ease-in-out infinite; }
+
+        .jane-waves   { opacity:0; transition:opacity 0.2s ease; }
+        .jane-initial { transition:opacity 0.2s ease; }
+        .jane-bar {
+          transform-box:fill-box;
+          transform-origin:50% 50%;
+          transform:scaleY(0.12);
         }
-        .jane-lid-L { transform-origin: 76px 78px; animation: jblink 4.2s ease-in-out infinite; }
-        .jane-lid-R { transform-origin: 124px 78px; animation: jblink 4.2s ease-in-out 0.08s infinite; }
 
-        @keyframes jmouth  { 0%,100%{transform:scaleY(0.1);}  50%{transform:scaleY(1);} }
-        @keyframes jteeth  { 0%,100%{transform:scaleY(0);opacity:0;} 40%,60%{transform:scaleY(1);opacity:1;} }
-        @keyframes jlip    { 0%,100%{transform:translateY(0);} 50%{transform:translateY(5px);} }
-        @keyframes jbreathe{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(1.5px);} }
+        /* Speaking */
+        .jane-speaking .jane-waves   { opacity:1; }
+        .jane-speaking .jane-initial { opacity:0; }
+        .jane-speaking .jane-bar-1 { animation:jbar 0.60s ease-in-out -0.12s infinite; }
+        .jane-speaking .jane-bar-2 { animation:jbar 0.50s ease-in-out -0.26s infinite; }
+        .jane-speaking .jane-bar-3 { animation:jbar 0.44s ease-in-out 0s   infinite; }
+        .jane-speaking .jane-bar-4 { animation:jbar 0.54s ease-in-out -0.18s infinite; }
+        .jane-speaking .jane-bar-5 { animation:jbar 0.48s ease-in-out -0.07s infinite; }
 
-        .jane-svg { animation: jbreathe 3.5s ease-in-out infinite; }
-        .jane-mouth-bg  { transform-origin: 100px 141px; transform: scaleY(0.1); }
-        .jane-teeth     { transform-origin: 100px 137px; transform: scaleY(0); opacity: 0; }
-        .jane-lower-lip { transform-origin: 100px 134px; }
+        /* Listening: rings pulse outward */
+        .jane-listening .jane-ring-outer { animation:jring 1.6s ease-out        infinite; }
+        .jane-listening .jane-ring-mid   { animation:jring 1.6s ease-out 0.4s  infinite; }
 
-        .jane-speaking .jane-mouth-bg  { animation: jmouth 0.28s ease-in-out infinite; }
-        .jane-speaking .jane-teeth     { animation: jteeth 0.28s ease-in-out infinite; }
-        .jane-speaking .jane-lower-lip { animation: jlip   0.28s ease-in-out infinite; }
+        /* Thinking: faster breathe */
+        .jane-thinking .jane-svg { animation:jbreathe 0.9s ease-in-out infinite; }
       `}</style>
 
       <style jsx>{`
@@ -413,8 +491,6 @@ export default function TalkieChat() {
         .tk-gear { background:none; border:none; color:var(--tk-dim); font-size:20px; padding:6px 8px; cursor:pointer; border-radius:8px; transition:color .15s; }
         .tk-gear:hover { color:var(--tk-text); }
         .tk-avatar-section { flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:8px 0 6px; border-bottom:1px solid var(--tk-line); }
-        .jane-wrap { width:110px; height:110px; }
-        .jane-svg  { width:100%; height:100%; }
         .tk-status-bar { display:flex; align-items:center; gap:6px; margin-top:5px; font-size:12px; color:var(--tk-dim); }
         .tk-dot { width:6px; height:6px; border-radius:50%; background:var(--tk-dim); flex-shrink:0; }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
@@ -428,10 +504,12 @@ export default function TalkieChat() {
         .tk-empty { color:var(--tk-dim); text-align:center; margin-top:30px; font-size:13px; padding:0 20px; line-height:1.6; }
         .tk-bubble { display:flex; gap:8px; align-items:flex-start; }
         .tk-bubble-user { flex-direction:row-reverse; }
-        .tk-bubble-inner { max-width:82%; padding:10px 13px; font-size:14px; line-height:1.5; border-radius:16px; }
+        .tk-bubble-inner { max-width:82%; padding:10px 13px; font-size:14px; line-height:1.6; border-radius:16px; }
         .tk-bubble-assistant .tk-bubble-inner { background:var(--tk-panel); border-bottom-left-radius:4px; }
         .tk-bubble-user .tk-bubble-inner { background:var(--tk-panel2); border-radius:16px 16px 4px 16px; }
         .tk-label { font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--tk-dim); margin-bottom:3px; }
+        .tk-word { cursor:pointer; border-radius:3px; padding:0 1px; transition:background 0.12s; }
+        .tk-word:hover { background:rgba(129,140,248,0.22); }
         .tk-correction { margin-top:7px; padding-top:7px; border-top:1px dashed var(--tk-line); font-size:12px; }
         .tk-said   { color:var(--tk-err); text-decoration:line-through; opacity:.9; }
         .tk-arrow  { color:var(--tk-dim); }
@@ -455,6 +533,27 @@ export default function TalkieChat() {
         .tk-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--tk-dim); font-size:20px; cursor:pointer; }
         .tk-membox { background:var(--tk-panel2); border-radius:10px; padding:10px 12px; font-size:12px; color:var(--tk-dim); max-height:110px; overflow-y:auto; line-height:1.5; }
         .tk-reset { background:none; border:1px solid var(--tk-err); color:var(--tk-err); border-radius:10px; padding:7px 12px; font-size:12px; cursor:pointer; margin-top:8px; }
+        .tk-tooltip {
+          position:fixed;
+          z-index:200;
+          pointer-events:none;
+          transform:translateX(-50%) translateY(calc(-100% - 10px));
+          background:rgba(20,24,34,0.97);
+          border:1px solid var(--tk-line);
+          border-radius:9px;
+          padding:6px 12px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          gap:2px;
+          min-width:80px;
+          max-width:220px;
+          text-align:center;
+          box-shadow:0 4px 18px rgba(0,0,0,0.55);
+          backdrop-filter:blur(10px);
+        }
+        .tk-tooltip-word { font-size:11px; color:var(--tk-dim); }
+        .tk-tooltip-text { font-size:13px; color:var(--tk-text); font-weight:500; white-space:nowrap; }
       `}</style>
     </div>
   );

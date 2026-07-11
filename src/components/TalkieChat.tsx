@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 const LS_VOICE = 'talkie_voice';
 type StatusMode = 'idle' | 'listening' | 'thinking' | 'speaking';
-interface Correction { said: string; better: string; why?: string; }
+interface Correction { said: string; better: string; why?: string; pronunciation?: string; }
 interface Turn { role: 'user' | 'assistant'; text: string; corrections?: Correction[]; }
 interface ChatResult { corrections?: Correction[]; reply: string; level: string; topic: string; memory: string; error?: string; }
 interface SettingsRow { level: string; topic: string; memory: string; error?: string; }
@@ -117,6 +117,8 @@ export default function TalkieChat() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const accumulatedRef = useRef('');
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -232,12 +234,14 @@ export default function TalkieChat() {
 
   const restartListening = useCallback(() => {
     if (!recognitionRef.current) return;
+    accumulatedRef.current = '';
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
     try { recognitionRef.current.start(); setStatusMode('listening'); setStatusMsg('Ouvindo...'); } catch {}
   }, []);
 
   const handleUserSpeech = useCallback(async (text: string) => {
     awaitingApiRef.current = true;
-    setStatusMode('thinking'); setStatusMsg('Pensando...');
+    setStatusMode('thinking'); setStatusMsg('Entendido. Analisando...');
     try {
       const resp = await fetch('/api/talkie-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
       const data: ChatResult = await resp.json();
@@ -247,11 +251,23 @@ export default function TalkieChat() {
         if (activeRef.current) restartListening();
         return;
       }
+
+      // 1. Show user's full transcription with corrections
       setTurns(p => [...p, { role: 'user', text, corrections: data.corrections || [] }]);
       setTopic(data.topic); setMemory(data.memory);
+
+      // 2. Speak pronunciation drills slowly before the main reply
+      const pronunciations = (data.corrections || []).filter(c => c.pronunciation?.trim());
+      for (const c of pronunciations) {
+        setStatusMsg('Pronúncia: "' + c.pronunciation + '"');
+        await speak(c.pronunciation!, 0.72);
+        await new Promise(r => setTimeout(r, 600));
+      }
+
+      // 3. Speak and show Jane's conversational reply
       setTurns(p => [...p, { role: 'assistant', text: data.reply }]);
-      awaitingApiRef.current = false;
       await speak(data.reply);
+      awaitingApiRef.current = false;
       if (activeRef.current) restartListening();
       else { setStatusMode('idle'); setStatusMsg('Toque em Iniciar pra começar'); }
     } catch {
@@ -267,16 +283,50 @@ export default function TalkieChat() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec = new SR();
     rec.lang = 'en-US'; rec.continuous = true; rec.interimResults = true;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onresult = (e: any) => {
-      let final = '';
-      for (let i = e.resultIndex; i < e.results.length; i++)
-        if (e.results[i].isFinal) final += e.results[i][0].transcript;
-      if (final.trim()) { rec.stop(); handleUserSpeech(final.trim()); }
+      let newFinal = '';
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) newFinal += e.results[i][0].transcript + ' ';
+        else interim += e.results[i][0].transcript;
+      }
+      if (newFinal.trim()) accumulatedRef.current += newFinal;
+
+      // Show live transcript in status bar
+      const preview = (accumulatedRef.current + interim).trim();
+      if (preview) {
+        const display = preview.length > 80 ? preview.slice(0, 80) + '…' : preview;
+        setStatusMsg('“' + display + '”');
+      }
+
+      // Reset silence timer — only starts after first final word
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if (accumulatedRef.current.trim()) {
+        silenceTimerRef.current = setTimeout(() => {
+          const text = accumulatedRef.current.trim();
+          accumulatedRef.current = '';
+          silenceTimerRef.current = null;
+          rec.stop();
+          handleUserSpeech(text);
+        }, 2000); // 2 seconds of silence before processing
+      }
     };
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onerror = (e: any) => { if (e.error !== 'no-speech' && e.error !== 'aborted') console.warn('rec error', e.error); };
+
     rec.onend = () => {
+      // Recognition ended naturally — if there's accumulated text, process it
+      if (accumulatedRef.current.trim() && !awaitingApiRef.current) {
+        if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+        const text = accumulatedRef.current.trim();
+        accumulatedRef.current = '';
+        handleUserSpeech(text);
+        return;
+      }
+      // Otherwise restart if still in active session
       if (activeRef.current && !awaitingApiRef.current) {
         if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
         restartTimerRef.current = setTimeout(() => {
@@ -284,6 +334,7 @@ export default function TalkieChat() {
         }, 300);
       }
     };
+
     recognitionRef.current = rec;
   }, [handleUserSpeech]);
 
@@ -386,6 +437,9 @@ export default function TalkieChat() {
                   <span className="tk-arrow"> → </span>
                   <span className="tk-better">{c.better}</span>
                   {c.why && <div className="tk-why">{c.why}</div>}
+                  {c.pronunciation && (
+                    <div className="tk-pronunciation">🎤 <em>{c.pronunciation}</em></div>
+                  )}
                 </div>
               ))}
             </div>
@@ -577,6 +631,8 @@ export default function TalkieChat() {
         .tk-arrow  { color:var(--tk-dim); }
         .tk-better { color:var(--tk-good); font-weight:600; }
         .tk-why    { color:var(--tk-dim); font-size:11px; margin-top:2px; }
+        .tk-pronunciation { color:var(--tk-teal); font-size:11px; margin-top:3px; }
+        .tk-pronunciation em { font-style:normal; font-weight:600; }
         .tk-replay { display:flex; flex-direction:column; gap:4px; flex-shrink:0; padding-top:6px; }
         .tk-replay-btn { background:none; border:none; cursor:pointer; font-size:17px; padding:3px 5px; border-radius:6px; opacity:.5; transition:opacity .15s; line-height:1; }
         .tk-replay-btn:hover { opacity:1; background:var(--tk-panel2); }

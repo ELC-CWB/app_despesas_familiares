@@ -25,7 +25,7 @@ function JanePhoto({ mode }: { mode: StatusMode }) {
       <div className="jane-outer-ring"/>
       <div className="jane-frame">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/jane.jpg" alt="Jane" className="jane-img"/>
+        <img src="/jane2.jpg" alt="Jane" className="jane-img"/>
         <div className="jane-waves">
           <div className="jane-bar jane-bar-1"/>
           <div className="jane-bar jane-bar-2"/>

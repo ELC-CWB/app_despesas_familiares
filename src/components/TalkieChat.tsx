@@ -232,10 +232,21 @@ export default function TalkieChat() {
   }, [handleUserSpeech]);
 
   const startSession = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setStatusMsg('Microfone não suportado neste navegador ou contexto (requer HTTPS).');
+      return;
+    }
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setStatusMsg('Permissão de microfone negada. Ative o acesso nas configurações do navegador.');
+    } catch (err: unknown) {
+      const name = err instanceof Error ? err.name : '';
+      if (name === 'NotFoundError') {
+        setStatusMsg('Nenhum microfone encontrado. Conecte um microfone e tente novamente.');
+      } else if (name === 'NotReadableError') {
+        setStatusMsg('Microfone em uso por outro app. Feche os outros apps e tente novamente.');
+      } else {
+        setStatusMsg('Permissão de microfone negada. Ative o acesso nas configurações do navegador.');
+      }
       return;
     }
     setActive(true); activeRef.current = true;

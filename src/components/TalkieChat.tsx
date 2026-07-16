@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, type PointerEvent } from 'react';
 import Link from 'next/link';
 
 const LS_VOICE = 'talkie_voice';
 type StatusMode = 'idle' | 'listening' | 'thinking' | 'speaking';
 interface Correction { said: string; better: string; why?: string; pronunciation?: string; }
-interface Turn { role: 'user' | 'assistant'; text: string; corrections?: Correction[]; }
-interface ChatResult { corrections?: Correction[]; reply: string; level: string; topic: string; memory: string; error?: string; }
+interface Turn { role: 'user' | 'assistant'; text: string; corrections?: Correction[]; native_said?: string; }
+interface ChatResult { native_said?: string; corrections?: Correction[]; reply: string; level: string; topic: string; memory: string; error?: string; }
 interface SettingsRow { level: string; topic: string; memory: string; error?: string; }
 interface Tooltip { word: string; context: string; x: number; y: number; text: string; loading: boolean; }
 
@@ -117,15 +117,51 @@ export default function TalkieChat() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
-  const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const accumulatedRef = useRef('');
-  const finalizedIndexRef = useRef(-1); // tracks highest result index already added to accumulated
+  // Android Chrome produces cumulative results: results[0]="the", results[1]="the communication", ...
+  // We track the current growing segment and only replace (not append) while it grows.
+  // When a genuinely new phrase starts (doesn't begin with current segment), we save the old one.
+  const curSegmentRef = useRef('');   // current growing segment (replaced in-place)
+  const baseAccumRef = useRef('');    // completed segments from earlier in this turn
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
+  const listeningRef = useRef(false); // true while user's mic is on for a Falar turn
   const transcriptRef = useRef<HTMLDivElement>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const translationCacheRef = useRef(new Map<string, string>());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wakeLockRef = useRef<any>(null);
+
+  // Keep the screen on for the whole session — released automatically by the
+  // browser whenever the tab loses visibility, so we re-acquire it on return.
+  const acquireWakeLock = useCallback(async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nav = navigator as any;
+    if (!nav.wakeLock) return;
+    try {
+      wakeLockRef.current = await nav.wakeLock.request('screen');
+    } catch {
+      wakeLockRef.current = null;
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      try { wakeLockRef.current.release(); } catch {}
+      wakeLockRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && activeRef.current) acquireWakeLock();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      releaseWakeLock();
+    };
+  }, [acquireWakeLock, releaseWakeLock]);
 
   useEffect(() => {
     setVoiceName(localStorage.getItem(LS_VOICE) || '');
@@ -230,20 +266,47 @@ export default function TalkieChat() {
 
   const replayTurn = useCallback(async (text: string, rate = 1.0) => {
     await speak(text, rate);
-    if (activeRef.current) { setStatusMode('listening'); setStatusMsg('Ouvindo...'); }
+    if (activeRef.current) { setStatusMode('idle'); setStatusMsg('Toque em Falar para responder'); }
     else { setStatusMode('idle'); setStatusMsg('Toque em Iniciar pra começar'); }
   }, [speak]);
 
-  const restartListening = useCallback(() => {
-    if (!recognitionRef.current) return;
+  // Stable ref to handleUserSpeech — lets recognition handlers call it without stale-closure issues
+  const handleUserSpeechRef = useRef<(text: string) => void>(() => {});
+
+  // Activate mic while the push-to-talk button is held down
+  const startListening = useCallback(() => {
+    if (!recognitionRef.current || awaitingApiRef.current || listeningRef.current) return;
     accumulatedRef.current = '';
-    finalizedIndexRef.current = -1;
-    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
-    try { recognitionRef.current.start(); setStatusMode('listening'); setStatusMsg('Ouvindo...'); } catch {}
+    baseAccumRef.current = '';
+    curSegmentRef.current = '';
+    listeningRef.current = true;
+    try {
+      recognitionRef.current.start();
+      setStatusMode('listening'); setStatusMsg('Ouvindo... solte para enviar');
+    } catch {
+      listeningRef.current = false;
+    }
+  }, []);
+
+  // Button released — stop listening and only now interpret what was said
+  const stopListening = useCallback(() => {
+    if (!listeningRef.current) return;
+    listeningRef.current = false;
+    const text = accumulatedRef.current.trim();
+    accumulatedRef.current = '';
+    baseAccumRef.current = '';
+    curSegmentRef.current = '';
+    try { recognitionRef.current?.stop(); } catch {}
+    if (text) {
+      awaitingApiRef.current = true;
+      handleUserSpeechRef.current(text);
+    } else {
+      setStatusMode('idle'); setStatusMsg('Segure o botão para falar');
+    }
   }, []);
 
   const handleUserSpeech = useCallback(async (text: string) => {
-    awaitingApiRef.current = true;
+    // awaitingApiRef.current = true is set by the caller before invoking this
     setStatusMode('thinking'); setStatusMsg('Entendido. Analisando...');
     try {
       const resp = await fetch('/api/talkie-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
@@ -251,15 +314,21 @@ export default function TalkieChat() {
       if (!resp.ok || data.error) {
         setStatusMode('idle'); setStatusMsg('Erro: ' + (data.error || resp.status));
         awaitingApiRef.current = false;
-        if (activeRef.current) restartListening();
         return;
       }
 
-      // 1. Show user's full transcription with corrections
-      setTurns(p => [...p, { role: 'user', text, corrections: data.corrections || [] }]);
+      // 1. Show user's full transcription with corrections and native phrasing
+      setTurns(p => [...p, { role: 'user', text, corrections: data.corrections || [], native_said: data.native_said }]);
       setTopic(data.topic); setMemory(data.memory);
 
-      // 2. Speak pronunciation drills slowly before the main reply
+      // 2. Speak the native phrasing (how a native speaker would say it)
+      if (data.native_said?.trim()) {
+        setStatusMsg('Como um nativo diria: "' + data.native_said + '"');
+        await speak(data.native_said, 0.85);
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      // 3. Speak pronunciation drills for specific problem words
       const pronunciations = (data.corrections || []).filter(c => c.pronunciation?.trim());
       for (const c of pronunciations) {
         setStatusMsg('Pronúncia: "' + c.pronunciation + '"');
@@ -267,17 +336,21 @@ export default function TalkieChat() {
         await new Promise(r => setTimeout(r, 600));
       }
 
-      // 3. Speak and show Jane's conversational reply
+      // 4. Speak and show Jane's conversational reply
       setTurns(p => [...p, { role: 'assistant', text: data.reply }]);
       await speak(data.reply);
       awaitingApiRef.current = false;
-      if (activeRef.current) restartListening();
-      else { setStatusMode('idle'); setStatusMsg('Toque em Iniciar pra começar'); }
+      // Show "Falar" button — user decides when to speak next (no auto-restart = no beeping)
+      setStatusMode('idle');
+      setStatusMsg(activeRef.current ? 'Toque em Falar para responder' : 'Toque em Iniciar pra começar');
     } catch {
       setStatusMode('idle'); setStatusMsg('Erro de conexão');
       awaitingApiRef.current = false;
     }
-  }, [speak, restartListening]);
+  }, [speak]);
+
+  // Keep the ref in sync so recognition handlers always call the latest version
+  useEffect(() => { handleUserSpeechRef.current = handleUserSpeech; }, [handleUserSpeech]);
 
   const initRecognition = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,70 +358,80 @@ export default function TalkieChat() {
     if (!SR) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec = new SR();
+    // Push-to-talk: mic only activates on user tap — no auto-restart loop, no beeping.
+    // continuous=true: keeps listening across natural intra-sentence pauses.
+    // interimResults=true: live status-bar feedback while speaking.
     rec.lang = 'en-US'; rec.continuous = true; rec.interimResults = true;
+
+    const clearSegments = () => {
+      accumulatedRef.current = '';
+      baseAccumRef.current = '';
+      curSegmentRef.current = '';
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onresult = (e: any) => {
-      let newFinal = '';
-      let interim = '';
-      // Iterate ALL results but only add finals we haven't seen yet.
-      // Android Chrome sometimes resets resultIndex to 0, causing duplicates
-      // if we naively start from e.resultIndex.
-      for (let i = 0; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          if (i > finalizedIndexRef.current) {
-            newFinal += e.results[i][0].transcript + ' ';
-            finalizedIndexRef.current = i;
-          }
-        } else {
-          interim += e.results[i][0].transcript;
+      // Android Chrome produces cumulative results at growing indices:
+      //   results[0]=”the”, results[1]=”the communication”, results[2]=”the communication is not working”
+      // Each new result at the latest index contains the FULL accumulated text for that segment.
+      // Strategy: find the latest final result; if it starts with (extends) curSegment → replace.
+      //           If it's a genuinely new phrase → commit curSegment to base, start fresh segment.
+      let latestFinalT = '';
+      let interimT = '';
+      for (let i = e.results.length - 1; i >= 0; i--) {
+        if (e.results[i].isFinal && !latestFinalT) {
+          latestFinalT = e.results[i][0].transcript.trim();
+        } else if (!e.results[i].isFinal && !interimT) {
+          interimT = e.results[i][0].transcript;
         }
-      }
-      if (newFinal.trim()) accumulatedRef.current += newFinal;
-
-      // Show live transcript in status bar
-      const preview = (accumulatedRef.current + interim).trim();
-      if (preview) {
-        const display = preview.length > 80 ? preview.slice(0, 80) + '…' : preview;
-        setStatusMsg('“' + display + '”');
+        if (latestFinalT && interimT) break;
       }
 
-      // Reset silence timer — only starts after first final word
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      if (accumulatedRef.current.trim()) {
-        silenceTimerRef.current = setTimeout(() => {
-          const text = accumulatedRef.current.trim();
-          accumulatedRef.current = '';
-          silenceTimerRef.current = null;
-          rec.stop();
-          handleUserSpeech(text);
-        }, 2000); // 2 seconds of silence before processing
+      if (latestFinalT) {
+        const cur = curSegmentRef.current;
+        // “Cumulative” if new transcript begins with the first word(s) of current segment
+        const firstWords = cur.split(' ').slice(0, 3).join(' ').toLowerCase();
+        const isCumulative = cur === '' || latestFinalT.toLowerCase().startsWith(firstWords);
+
+        if (isCumulative) {
+          curSegmentRef.current = latestFinalT; // extend current segment in-place
+        } else {
+          // New independent phrase — save the old segment and start fresh
+          baseAccumRef.current = (baseAccumRef.current + ' ' + cur).trim();
+          curSegmentRef.current = latestFinalT;
+        }
+        accumulatedRef.current = (baseAccumRef.current + ' ' + curSegmentRef.current).trim();
       }
+
+      // Show live transcript in status bar — button hold is what decides when to stop, not silence
+      const display = (accumulatedRef.current + (interimT ? ' ' + interimT : '')).trim();
+      if (display) setStatusMsg('”' + (display.length > 80 ? display.slice(0, 80) + '…' : display) + '”');
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onerror = (e: any) => { if (e.error !== 'no-speech' && e.error !== 'aborted') console.warn('rec error', e.error); };
 
     rec.onend = () => {
-      // Recognition ended naturally — if there's accumulated text, process it
-      if (accumulatedRef.current.trim() && !awaitingApiRef.current) {
-        if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+      // If the browser ended recognition on its own while the button was still held
+      // (e.g. internal timeout), fall back to sending whatever was captured so far.
+      if (listeningRef.current && accumulatedRef.current.trim() && !awaitingApiRef.current) {
+        listeningRef.current = false;
         const text = accumulatedRef.current.trim();
-        accumulatedRef.current = '';
-        handleUserSpeech(text);
+        clearSegments();
+        awaitingApiRef.current = true;
+        handleUserSpeechRef.current(text);
         return;
       }
-      // Otherwise restart if still in active session
+      listeningRef.current = false;
+      // NO auto-restart — button just goes back to its resting state
       if (activeRef.current && !awaitingApiRef.current) {
-        if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
-        restartTimerRef.current = setTimeout(() => {
-          try { rec.start(); setStatusMode('listening'); setStatusMsg('Ouvindo...'); } catch {}
-        }, 300);
+        setStatusMode('idle');
+        setStatusMsg('Segure o botão para falar');
       }
     };
 
     recognitionRef.current = rec;
-  }, [handleUserSpeech]);
+  }, []); // all values via refs — no stale closure
 
   const startSession = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -369,6 +452,7 @@ export default function TalkieChat() {
       return;
     }
     setActive(true); activeRef.current = true;
+    acquireWakeLock();
     initRecognition();
     awaitingApiRef.current = true;
     setStatusMode('thinking'); setStatusMsg('Iniciando...');
@@ -383,16 +467,35 @@ export default function TalkieChat() {
         await speak(data.reply);
       } else { awaitingApiRef.current = false; }
     } catch { awaitingApiRef.current = false; }
-    if (activeRef.current) restartListening();
-  }, [initRecognition, speak, restartListening]);
+    // After the greeting, wait for the user to press-and-hold the talk button
+    if (activeRef.current) { setStatusMode('idle'); setStatusMsg('Segure o botão para falar'); }
+  }, [initRecognition, speak, acquireWakeLock]);
 
   const stopSession = useCallback(() => {
     setActive(false); activeRef.current = false;
-    if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
+    listeningRef.current = false;
+    releaseWakeLock();
     if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} }
+    accumulatedRef.current = '';
+    baseAccumRef.current = '';
+    curSegmentRef.current = '';
+    awaitingApiRef.current = false;
     speechSynthesis.cancel();
     setStatusMode('idle'); setStatusMsg('Toque em Iniciar pra começar');
-  }, []);
+  }, [releaseWakeLock]);
+
+  // Push-to-talk: pointer capture keeps pointerup routed to this button even if the
+  // finger/mouse drifts off it while held — release always stops listening reliably.
+  const handlePressStart = useCallback((e: PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+    startListening();
+  }, [startListening]);
+
+  const handlePressEnd = useCallback((e: PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    stopListening();
+  }, [stopListening]);
 
   if (authError) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', padding:'40px', textAlign:'center', fontFamily:'Inter,sans-serif', color:'#8B93A1' }}>
@@ -417,7 +520,7 @@ export default function TalkieChat() {
         </div>
       </header>
 
-      {/* ── Orb ── */}
+      {/* ── Avatar + push-to-talk ── */}
       <div className="tk-avatar-section">
         <JanePhoto mode={statusMode} />
         <div className="tk-status-bar">
@@ -425,6 +528,17 @@ export default function TalkieChat() {
           <span className="tk-status-text">{statusMsg}</span>
         </div>
         {topic && <div className="tk-topic">Topic: <em>{topic}</em></div>}
+        {active && (statusMode === 'idle' || statusMode === 'listening') && (
+          <button
+            className={`tk-speak-btn ${statusMode === 'listening' ? 'tk-speak-active' : ''}`}
+            onPointerDown={handlePressStart}
+            onPointerUp={handlePressEnd}
+            onPointerCancel={handlePressEnd}
+            onContextMenu={e => e.preventDefault()}
+          >
+            {statusMode === 'listening' ? '🎤 Ouvindo... solte para enviar' : '🎤 Segure para falar'}
+          </button>
+        )}
       </div>
 
       {!recognitionSupported && (
@@ -446,6 +560,12 @@ export default function TalkieChat() {
                 ? <div><BubbleText text={t.text} onHover={handleWordHover} onLeave={handleWordLeave}/></div>
                 : <div>{t.text}</div>
               }
+              {t.role === 'user' && t.native_said && (
+                <div className="tk-native">
+                  <div className="tk-native-label">Como um nativo diria</div>
+                  {t.native_said}
+                </div>
+              )}
               {t.role === 'user' && t.corrections?.map((c, j) => (
                 <div className="tk-correction" key={j}>
                   <span className="tk-said">{c.said}</span>
@@ -631,8 +751,22 @@ export default function TalkieChat() {
         .tk-dot-listening { background:var(--tk-amber); box-shadow:0 0 6px var(--tk-amber); animation:pulse 1.2s ease-in-out infinite; }
         .tk-dot-thinking  { background:var(--tk-violet); box-shadow:0 0 6px var(--tk-violet); animation:pulse .8s ease-in-out infinite; }
         .tk-dot-speaking  { background:var(--tk-teal); box-shadow:0 0 6px var(--tk-teal); animation:pulse .55s ease-in-out infinite; }
-        .tk-topic { font-size:11px; color:var(--tk-dim); padding-bottom:4px; }
+        .tk-topic { font-size:11px; color:var(--tk-dim); padding-top:2px; }
         .tk-topic em { color:var(--tk-amber); font-style:normal; }
+        .tk-speak-btn {
+          margin-top:10px; padding:12px 32px; border-radius:999px; border:none; cursor:pointer;
+          font-weight:700; font-size:15px; letter-spacing:.3px;
+          background:var(--tk-amber); color:#241703;
+          box-shadow:0 4px 18px rgba(232,163,61,0.40);
+          transition:transform .12s, box-shadow .12s, background .15s;
+          user-select:none; -webkit-user-select:none; touch-action:none;
+        }
+        .tk-speak-btn:active { transform:scale(0.96); }
+        .tk-speak-active {
+          background:#F0B355;
+          box-shadow:0 0 0 6px rgba(232,163,61,0.22), 0 4px 22px rgba(232,163,61,0.55);
+          animation:jpulse-out 1.3s ease-out infinite;
+        }
         .tk-compat { background:#3a2430; color:#f3b8c4; border-top:1px solid var(--tk-err); padding:7px 14px; font-size:12px; text-align:center; flex-shrink:0; }
         .tk-transcript { flex:1; overflow-y:auto; padding:10px 14px 20px; display:flex; flex-direction:column; gap:12px; }
         .tk-empty { color:var(--tk-dim); text-align:center; margin-top:30px; font-size:13px; padding:0 20px; line-height:1.6; }
@@ -644,6 +778,8 @@ export default function TalkieChat() {
         .tk-label { font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--tk-dim); margin-bottom:3px; }
         .tk-word { cursor:pointer; border-radius:3px; padding:0 1px; transition:background 0.12s; }
         .tk-word:hover { background:rgba(129,140,248,0.22); }
+        .tk-native { margin-top:8px; padding:7px 10px 7px 10px; background:rgba(79,189,186,0.10); border-left:3px solid var(--tk-teal); border-radius:0 6px 6px 0; font-size:13px; color:rgba(79,189,186,0.95); line-height:1.5; }
+        .tk-native-label { font-size:10px; text-transform:uppercase; letter-spacing:.5px; opacity:.7; margin-bottom:3px; }
         .tk-correction { margin-top:7px; padding-top:7px; border-top:1px dashed var(--tk-line); font-size:12px; }
         .tk-said   { color:var(--tk-err); text-decoration:line-through; opacity:.9; }
         .tk-arrow  { color:var(--tk-dim); }

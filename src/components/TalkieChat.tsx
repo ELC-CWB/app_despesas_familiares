@@ -247,6 +247,12 @@ export default function TalkieChat() {
     return new Promise(resolve => {
       if (!text) { resolve(); return; }
       speechSynthesis.cancel();
+      // Some Android WebViews never fire onend/onerror on long utterances, which would
+      // otherwise leave the app stuck on "speaking" forever and hide the talk button.
+      const timeoutMs = Math.max(6000, text.split(/\s+/).length * 450 / rate);
+      let done = false;
+      const finish = () => { if (!done) { done = true; clearTimeout(fallback); resolve(); } };
+      const fallback = setTimeout(finish, timeoutMs);
       waitForVoices().then(allVoices => {
         const en = allVoices.filter(v => v.lang.startsWith('en'));
         const pool = en.length ? en : voices;
@@ -257,8 +263,8 @@ export default function TalkieChat() {
         u.rate = rate; u.pitch = 1.05;
         setStatusMode('speaking');
         setStatusMsg(rate < 1 ? 'Reproduzindo devagar...' : 'Jane está falando...');
-        u.onend = () => resolve();
-        u.onerror = () => resolve();
+        u.onend = finish;
+        u.onerror = finish;
         speechSynthesis.speak(u);
       });
     });
@@ -487,6 +493,7 @@ export default function TalkieChat() {
   // Push-to-talk: pointer capture keeps pointerup routed to this button even if the
   // finger/mouse drifts off it while held — release always stops listening reliably.
   const handlePressStart = useCallback((e: PointerEvent<HTMLButtonElement>) => {
+    if (awaitingApiRef.current) return;
     e.preventDefault();
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
     startListening();
@@ -528,15 +535,19 @@ export default function TalkieChat() {
           <span className="tk-status-text">{statusMsg}</span>
         </div>
         {topic && <div className="tk-topic">Topic: <em>{topic}</em></div>}
-        {active && (statusMode === 'idle' || statusMode === 'listening') && (
+        {active && (
           <button
-            className={`tk-speak-btn ${statusMode === 'listening' ? 'tk-speak-active' : ''}`}
+            className={`tk-speak-btn ${statusMode === 'listening' ? 'tk-speak-active' : ''} ${statusMode === 'thinking' || statusMode === 'speaking' ? 'tk-speak-disabled' : ''}`}
+            disabled={statusMode === 'thinking' || statusMode === 'speaking'}
             onPointerDown={handlePressStart}
             onPointerUp={handlePressEnd}
             onPointerCancel={handlePressEnd}
             onContextMenu={e => e.preventDefault()}
           >
-            {statusMode === 'listening' ? '🎤 Ouvindo... solte para enviar' : '🎤 Segure para falar'}
+            {statusMode === 'listening' ? '🎤 Ouvindo... solte para enviar'
+              : statusMode === 'thinking' ? '🎤 Aguarde, Jane está pensando...'
+              : statusMode === 'speaking' ? '🎤 Aguarde, Jane está falando...'
+              : '🎤 Segure para falar'}
           </button>
         )}
       </div>
@@ -766,6 +777,10 @@ export default function TalkieChat() {
           background:#F0B355;
           box-shadow:0 0 0 6px rgba(232,163,61,0.22), 0 4px 22px rgba(232,163,61,0.55);
           animation:jpulse-out 1.3s ease-out infinite;
+        }
+        .tk-speak-disabled {
+          background:var(--tk-panel2); color:var(--tk-dim);
+          box-shadow:none; cursor:default; opacity:.7;
         }
         .tk-compat { background:#3a2430; color:#f3b8c4; border-top:1px solid var(--tk-err); padding:7px 14px; font-size:12px; text-align:center; flex-shrink:0; }
         .tk-transcript { flex:1; overflow-y:auto; padding:10px 14px 20px; display:flex; flex-direction:column; gap:12px; }

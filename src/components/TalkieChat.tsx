@@ -134,6 +134,7 @@ export default function TalkieChat() {
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
   const listeningRef = useRef(false); // true while user's mic is on for a Falar turn
+  const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // pending mic-restart retry after Android auto-stops it
   const languageRef = useRef<Lang>('en'); // conversation language — switches on voice request, e.g. "let's talk in Portuguese"
   const setLanguage = useCallback((l: Lang) => { languageRef.current = l; setLanguageState(l); }, []);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -315,6 +316,7 @@ export default function TalkieChat() {
   const stopListening = useCallback(() => {
     if (!listeningRef.current) return;
     listeningRef.current = false;
+    if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
     const text = accumulatedRef.current.trim();
     accumulatedRef.current = '';
     baseAccumRef.current = '';
@@ -438,27 +440,32 @@ export default function TalkieChat() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onerror = (e: any) => { if (e.error !== 'no-speech' && e.error !== 'aborted') console.warn('rec error', e.error); };
 
-    rec.onend = () => {
-      // Android auto-stops the recognition engine on its own after a silence
-      // timeout or internal limit, even with continuous=true — this is NOT the
-      // user releasing the button. If the button is still held, restart silently
-      // and keep accumulating; only pointerup (stopListening) may finalize & send.
-      if (listeningRef.current && !awaitingApiRef.current) {
+    // Android auto-stops the recognition engine on its own after a silence timeout or
+    // internal limit, even with continuous=true — this is NOT the user releasing the
+    // button. Calling start() synchronously from onend throws InvalidStateError on many
+    // Android/Chrome builds (the engine hasn't finished tearing down yet), so we back off
+    // briefly and retry. The learner is practicing English: slow, hesitant, full of pauses
+    // and restarts is completely normal — the turn must NEVER be cut short or auto-sent for
+    // any reason while the button is held. Retry for as long as it takes; the only thing
+    // that may ever finalize and send is the user releasing the button (stopListening).
+    const attemptRestart = (attempt = 0) => {
+      restartTimerRef.current = setTimeout(() => {
+        restartTimerRef.current = null;
+        if (!listeningRef.current || awaitingApiRef.current) return; // button released meanwhile
         try {
           recognitionRef.current?.start();
-          return;
         } catch {
-          // start() rejected (e.g. fired too soon after stop) — don't strand the
-          // session with a dead mic; send whatever was captured so far as a fallback.
-          if (accumulatedRef.current.trim()) {
-            listeningRef.current = false;
-            const text = accumulatedRef.current.trim();
-            clearSegments();
-            awaitingApiRef.current = true;
-            handleUserSpeechRef.current(text);
-            return;
-          }
+          attemptRestart(attempt + 1); // keep retrying indefinitely — never give up and auto-send
         }
+      }, Math.min(200 + attempt * 150, 2000));
+    };
+
+    rec.onend = () => {
+      // If the button is still held, restart silently and keep accumulating;
+      // only pointerup (stopListening) may finalize & send.
+      if (listeningRef.current && !awaitingApiRef.current) {
+        attemptRestart();
+        return;
       }
       listeningRef.current = false;
       // Button held was released (or nothing to fall back to) — resting state.
@@ -517,6 +524,7 @@ export default function TalkieChat() {
   const stopSession = useCallback(() => {
     setActive(false); activeRef.current = false;
     listeningRef.current = false;
+    if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
     releaseWakeLock();
     if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} }
     accumulatedRef.current = '';
@@ -735,6 +743,8 @@ export default function TalkieChat() {
           width:100%; height:100%;
           object-fit:cover;
           object-position:center 15%;
+          transform:scale(1.3);
+          transform-origin:center 15%;
           display:block;
         }
 

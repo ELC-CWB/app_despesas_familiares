@@ -6,10 +6,12 @@ export interface TalkieMemoryRow {
   level: string;
   topic: string;
   memory: string;
+  city: string;
+  family_context: string;
   updated_at: string;
 }
 
-const DEFAULTS = { level: 'intermediário', topic: '', memory: '' };
+const DEFAULTS = { level: 'intermediário', topic: '', memory: '', city: '', family_context: '' };
 
 export async function getOrCreateMemory(
   supabase: SupabaseClient,
@@ -37,7 +39,7 @@ export async function getOrCreateMemory(
 export async function patchMemory(
   supabase: SupabaseClient,
   userId: string,
-  patch: Partial<Pick<TalkieMemoryRow, 'level' | 'topic' | 'memory'>>
+  patch: Partial<Pick<TalkieMemoryRow, 'level' | 'topic' | 'memory' | 'city' | 'family_context'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('talkie_memory')

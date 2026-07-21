@@ -25,7 +25,9 @@ export async function PATCH(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
 
   try {
-    const patch = (await request.json()) as { level?: string; topic?: string; memory?: string };
+    const patch = (await request.json()) as {
+      level?: string; topic?: string; memory?: string; city?: string; family_context?: string;
+    };
     await patchMemory(supabase, user.id, patch);
     const row = await getOrCreateMemory(supabase, user.id);
     return NextResponse.json(row);

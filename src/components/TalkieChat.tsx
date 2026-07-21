@@ -5,27 +5,32 @@ import Link from 'next/link';
 
 const LS_VOICE = 'talkie_voice';
 type StatusMode = 'idle' | 'listening' | 'thinking' | 'speaking';
+type Lang = 'en' | 'pt';
 interface Correction { said: string; better: string; why?: string; pronunciation?: string; }
-interface Turn { role: 'user' | 'assistant'; text: string; corrections?: Correction[]; native_said?: string; }
-interface ChatResult { native_said?: string; corrections?: Correction[]; reply: string; level: string; topic: string; memory: string; error?: string; }
-interface SettingsRow { level: string; topic: string; memory: string; error?: string; }
+interface Turn { role: 'user' | 'assistant'; text: string; corrections?: Correction[]; native_said?: string; lang?: Lang; }
+interface ChatResult { native_said?: string; corrections?: Correction[]; reply: string; level: string; topic: string; memory: string; language?: Lang; error?: string; }
+interface SettingsRow { level: string; topic: string; memory: string; city: string; family_context: string; error?: string; }
 interface Tooltip { word: string; context: string; x: number; y: number; text: string; loading: boolean; }
 
-// Known high-quality Google TTS voice names (Android Chrome)
-const GOOGLE_VOICE_NAMES = [
-  'Google US English', 'Google UK English Female', 'Google UK English Male',
-];
+const LANG_TAG: Record<Lang, string> = { en: 'en-US', pt: 'pt-BR' };
 
-function pickVoice(voices: SpeechSynthesisVoice[], preferred: string): SpeechSynthesisVoice | undefined {
+// Known high-quality Google TTS voice names (Android Chrome), per language
+const GOOGLE_VOICE_NAMES: Record<Lang, string[]> = {
+  en: ['Google US English', 'Google UK English Female', 'Google UK English Male'],
+  pt: ['Google português do Brasil'],
+};
+
+function pickVoice(voices: SpeechSynthesisVoice[], preferred: string, lang: Lang): SpeechSynthesisVoice | undefined {
   if (preferred) { const e = voices.find(v => v.name === preferred); if (e) return e; }
   // Try known Google TTS names first (most reliable on Android)
-  for (const name of GOOGLE_VOICE_NAMES) {
+  for (const name of GOOGLE_VOICE_NAMES[lang]) {
     const v = voices.find(v => v.name === name); if (v) return v;
   }
   // Fall back to any cloud voice
-  const cloud = voices.filter(v => !v.localService && v.lang.startsWith('en'));
+  const langPrefix = lang === 'pt' ? 'pt' : 'en';
+  const cloud = voices.filter(v => !v.localService && v.lang.startsWith(langPrefix));
   if (cloud.length) return cloud[0];
-  return voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
+  return voices.find(v => v.lang === LANG_TAG[lang]) || voices.find(v => v.lang.startsWith(langPrefix));
 }
 
 // Waits for voices to load if list is empty (common on Android first call)
@@ -46,7 +51,7 @@ function JanePhoto({ mode }: { mode: StatusMode }) {
       <div className="jane-outer-ring"/>
       <div className="jane-frame">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/jane3.jpg" alt="Jane" className="jane-img"/>
+        <img src="/jane4.jpg" alt="Jane" className="jane-img"/>
         <div className="jane-waves">
           <div className="jane-bar jane-bar-1"/>
           <div className="jane-bar jane-bar-2"/>
@@ -102,6 +107,8 @@ export default function TalkieChat() {
   const [level, setLevel] = useState('intermediário');
   const [topic, setTopic] = useState('');
   const [memory, setMemory] = useState('');
+  const [city, setCity] = useState('');
+  const [familyContext, setFamilyContext] = useState('');
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [authError, setAuthError] = useState(false);
   const [voiceName, setVoiceName] = useState('');
@@ -114,6 +121,7 @@ export default function TalkieChat() {
   const [recognitionSupported, setRecognitionSupported] = useState(true);
   const [noCloudVoice, setNoCloudVoice] = useState(false);
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [language, setLanguageState] = useState<Lang>('en');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
@@ -126,6 +134,8 @@ export default function TalkieChat() {
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
   const listeningRef = useRef(false); // true while user's mic is on for a Falar turn
+  const languageRef = useRef<Lang>('en'); // conversation language — switches on voice request, e.g. "let's talk in Portuguese"
+  const setLanguage = useCallback((l: Lang) => { languageRef.current = l; setLanguageState(l); }, []);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const translationCacheRef = useRef(new Map<string, string>());
@@ -174,7 +184,7 @@ export default function TalkieChat() {
       if (en.length) {
         setVoices(en);
         const hasCloud = en.some(v => !v.localService) ||
-          GOOGLE_VOICE_NAMES.some(n => all.find(v => v.name === n));
+          GOOGLE_VOICE_NAMES.en.some(n => all.find(v => v.name === n));
         setNoCloudVoice(!hasCloud);
       }
     };
@@ -186,6 +196,7 @@ export default function TalkieChat() {
         const data: SettingsRow = await resp.json();
         if (!resp.ok || data.error) { setAuthError(true); return; }
         setLevel(data.level); setTopic(data.topic); setMemory(data.memory);
+        setCity(data.city || ''); setFamilyContext(data.family_context || '');
       } catch { setAuthError(true); }
       finally { setSettingsLoaded(true); }
     })();
@@ -197,16 +208,20 @@ export default function TalkieChat() {
 
   const persistVoice = (v: string) => { setVoiceName(v); localStorage.setItem(LS_VOICE, v); };
 
-  const saveSettings = useCallback(async (patch: { level?: string; topic?: string; memory?: string }) => {
+  const saveSettings = useCallback(async (patch: { level?: string; topic?: string; memory?: string; city?: string; family_context?: string }) => {
     try {
       const r = await fetch('/api/talkie-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
       const d: SettingsRow = await r.json();
-      if (r.ok && !d.error) { setLevel(d.level); setTopic(d.topic); setMemory(d.memory); }
+      if (r.ok && !d.error) {
+        setLevel(d.level); setTopic(d.topic); setMemory(d.memory);
+        setCity(d.city || ''); setFamilyContext(d.family_context || '');
+      }
     } catch {}
   }, []);
 
   const persistLevel = (v: string) => { setLevel(v); saveSettings({ level: v }); };
   const persistTopic = (v: string) => { setTopic(v); saveSettings({ topic: v }); };
+  const persistCity = (v: string) => { setCity(v); saveSettings({ city: v }); };
   const resetMemory  = () => { setMemory(''); saveSettings({ memory: '' }); };
 
   // Translation tooltip with debounce + cache
@@ -242,8 +257,8 @@ export default function TalkieChat() {
     setTooltip(null);
   }, []);
 
-  // Wait for voices to load (Android can take a moment), then pick best available
-  const speak = useCallback((text: string, rate = 1.0): Promise<void> => {
+  // Wait for voices to load (Android can take a moment), then pick best available for the given language
+  const speak = useCallback((text: string, rate = 1.0, lang: Lang = languageRef.current): Promise<void> => {
     return new Promise(resolve => {
       if (!text) { resolve(); return; }
       speechSynthesis.cancel();
@@ -254,11 +269,12 @@ export default function TalkieChat() {
       const finish = () => { if (!done) { done = true; clearTimeout(fallback); resolve(); } };
       const fallback = setTimeout(finish, timeoutMs);
       waitForVoices().then(allVoices => {
-        const en = allVoices.filter(v => v.lang.startsWith('en'));
-        const pool = en.length ? en : voices;
+        const langPrefix = lang === 'pt' ? 'pt' : 'en';
+        const matched = allVoices.filter(v => v.lang.startsWith(langPrefix));
+        const pool = matched.length ? matched : (lang === 'en' ? voices : matched);
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; // force English pronunciation regardless of device language
-        const chosen = pickVoice(pool, voiceName);
+        u.lang = LANG_TAG[lang]; // force correct pronunciation regardless of device language
+        const chosen = pickVoice(pool, voiceName, lang);
         if (chosen) u.voice = chosen;
         u.rate = rate; u.pitch = 1.05;
         setStatusMode('speaking');
@@ -270,8 +286,8 @@ export default function TalkieChat() {
     });
   }, [voices, voiceName]);
 
-  const replayTurn = useCallback(async (text: string, rate = 1.0) => {
-    await speak(text, rate);
+  const replayTurn = useCallback(async (text: string, rate = 1.0, lang: Lang = 'en') => {
+    await speak(text, rate, lang);
     if (activeRef.current) { setStatusMode('idle'); setStatusMsg('Toque em Falar para responder'); }
     else { setStatusMode('idle'); setStatusMsg('Toque em Iniciar pra começar'); }
   }, [speak]);
@@ -286,6 +302,7 @@ export default function TalkieChat() {
     baseAccumRef.current = '';
     curSegmentRef.current = '';
     listeningRef.current = true;
+    recognitionRef.current.lang = LANG_TAG[languageRef.current];
     try {
       recognitionRef.current.start();
       setStatusMode('listening'); setStatusMsg('Ouvindo... solte para enviar');
@@ -315,7 +332,7 @@ export default function TalkieChat() {
     // awaitingApiRef.current = true is set by the caller before invoking this
     setStatusMode('thinking'); setStatusMsg('Entendido. Analisando...');
     try {
-      const resp = await fetch('/api/talkie-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
+      const resp = await fetch('/api/talkie-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, language: languageRef.current }) });
       const data: ChatResult = await resp.json();
       if (!resp.ok || data.error) {
         setStatusMode('idle'); setStatusMsg('Erro: ' + (data.error || resp.status));
@@ -323,28 +340,32 @@ export default function TalkieChat() {
         return;
       }
 
+      // Apply the (possibly switched) conversation language before speaking this turn,
+      // so a "let's talk in Portuguese" request takes effect on Jane's very own reply.
+      setLanguage(data.language === 'pt' ? 'pt' : 'en');
+
       // 1. Show user's full transcription with corrections and native phrasing
-      setTurns(p => [...p, { role: 'user', text, corrections: data.corrections || [], native_said: data.native_said }]);
+      setTurns(p => [...p, { role: 'user', text, corrections: data.corrections || [], native_said: data.native_said, lang: languageRef.current }]);
       setTopic(data.topic); setMemory(data.memory);
 
-      // 2. Speak the native phrasing (how a native speaker would say it)
+      // 2. Speak the native phrasing (how a native speaker would say it) — English mode only
       if (data.native_said?.trim()) {
         setStatusMsg('Como um nativo diria: "' + data.native_said + '"');
-        await speak(data.native_said, 0.85);
+        await speak(data.native_said, 0.85, 'en');
         await new Promise(r => setTimeout(r, 500));
       }
 
-      // 3. Speak pronunciation drills for specific problem words
+      // 3. Speak pronunciation drills for specific problem words — English mode only
       const pronunciations = (data.corrections || []).filter(c => c.pronunciation?.trim());
       for (const c of pronunciations) {
         setStatusMsg('Pronúncia: "' + c.pronunciation + '"');
-        await speak(c.pronunciation!, 0.72);
+        await speak(c.pronunciation!, 0.72, 'en');
         await new Promise(r => setTimeout(r, 600));
       }
 
       // 4. Speak and show Jane's conversational reply
-      setTurns(p => [...p, { role: 'assistant', text: data.reply }]);
-      await speak(data.reply);
+      setTurns(p => [...p, { role: 'assistant', text: data.reply, lang: languageRef.current }]);
+      await speak(data.reply, 1.0, languageRef.current);
       awaitingApiRef.current = false;
       // Show "Falar" button — user decides when to speak next (no auto-restart = no beeping)
       setStatusMode('idle');
@@ -353,7 +374,7 @@ export default function TalkieChat() {
       setStatusMode('idle'); setStatusMsg('Erro de conexão');
       awaitingApiRef.current = false;
     }
-  }, [speak]);
+  }, [speak, setLanguage]);
 
   // Keep the ref in sync so recognition handlers always call the latest version
   useEffect(() => { handleUserSpeechRef.current = handleUserSpeech; }, [handleUserSpeech]);
@@ -367,7 +388,7 @@ export default function TalkieChat() {
     // Push-to-talk: mic only activates on user tap — no auto-restart loop, no beeping.
     // continuous=true: keeps listening across natural intra-sentence pauses.
     // interimResults=true: live status-bar feedback while speaking.
-    rec.lang = 'en-US'; rec.continuous = true; rec.interimResults = true;
+    rec.lang = LANG_TAG[languageRef.current]; rec.continuous = true; rec.interimResults = true;
 
     const clearSegments = () => {
       accumulatedRef.current = '';
@@ -418,18 +439,29 @@ export default function TalkieChat() {
     rec.onerror = (e: any) => { if (e.error !== 'no-speech' && e.error !== 'aborted') console.warn('rec error', e.error); };
 
     rec.onend = () => {
-      // If the browser ended recognition on its own while the button was still held
-      // (e.g. internal timeout), fall back to sending whatever was captured so far.
-      if (listeningRef.current && accumulatedRef.current.trim() && !awaitingApiRef.current) {
-        listeningRef.current = false;
-        const text = accumulatedRef.current.trim();
-        clearSegments();
-        awaitingApiRef.current = true;
-        handleUserSpeechRef.current(text);
-        return;
+      // Android auto-stops the recognition engine on its own after a silence
+      // timeout or internal limit, even with continuous=true — this is NOT the
+      // user releasing the button. If the button is still held, restart silently
+      // and keep accumulating; only pointerup (stopListening) may finalize & send.
+      if (listeningRef.current && !awaitingApiRef.current) {
+        try {
+          recognitionRef.current?.start();
+          return;
+        } catch {
+          // start() rejected (e.g. fired too soon after stop) — don't strand the
+          // session with a dead mic; send whatever was captured so far as a fallback.
+          if (accumulatedRef.current.trim()) {
+            listeningRef.current = false;
+            const text = accumulatedRef.current.trim();
+            clearSegments();
+            awaitingApiRef.current = true;
+            handleUserSpeechRef.current(text);
+            return;
+          }
+        }
       }
       listeningRef.current = false;
-      // NO auto-restart — button just goes back to its resting state
+      // Button held was released (or nothing to fall back to) — resting state.
       if (activeRef.current && !awaitingApiRef.current) {
         setStatusMode('idle');
         setStatusMsg('Segure o botão para falar');
@@ -458,24 +490,29 @@ export default function TalkieChat() {
       return;
     }
     setActive(true); activeRef.current = true;
+    setLanguage('en'); // every new session starts in English, regardless of how the last one ended
     acquireWakeLock();
     initRecognition();
     awaitingApiRef.current = true;
     setStatusMode('thinking'); setStatusMsg('Iniciando...');
     try {
       const resp = await fetch('/api/talkie-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: '[SESSION START] Greet me warmly and naturally in English to kick off our chat. If we have talked before, pick up from where we left off using the memory; otherwise suggest a light, friendly topic.' }) });
+        body: JSON.stringify({
+          message: '[SESSION START] Greet me warmly and naturally in English — just a short, friendly hello to kick things off. Do not bring up or suggest any topic; let me decide what to talk about.',
+          greeting: true,
+          language: 'en',
+        }) });
       const data: ChatResult = await resp.json();
       if (data && !data.error) {
         setTopic(data.topic); setMemory(data.memory);
-        setTurns(p => [...p, { role: 'assistant', text: data.reply }]);
+        setTurns(p => [...p, { role: 'assistant', text: data.reply, lang: 'en' }]);
         awaitingApiRef.current = false;
-        await speak(data.reply);
+        await speak(data.reply, 1.0, 'en');
       } else { awaitingApiRef.current = false; }
     } catch { awaitingApiRef.current = false; }
     // After the greeting, wait for the user to press-and-hold the talk button
     if (activeRef.current) { setStatusMode('idle'); setStatusMsg('Segure o botão para falar'); }
-  }, [initRecognition, speak, acquireWakeLock]);
+  }, [initRecognition, speak, acquireWakeLock, setLanguage]);
 
   const stopSession = useCallback(() => {
     setActive(false); activeRef.current = false;
@@ -487,8 +524,9 @@ export default function TalkieChat() {
     curSegmentRef.current = '';
     awaitingApiRef.current = false;
     speechSynthesis.cancel();
+    setLanguage('en');
     setStatusMode('idle'); setStatusMsg('Toque em Iniciar pra começar');
-  }, [releaseWakeLock]);
+  }, [releaseWakeLock, setLanguage]);
 
   // Push-to-talk: pointer capture keeps pointerup routed to this button even if the
   // finger/mouse drifts off it while held — release always stops listening reliably.
@@ -535,6 +573,7 @@ export default function TalkieChat() {
           <span className="tk-status-text">{statusMsg}</span>
         </div>
         {topic && <div className="tk-topic">Topic: <em>{topic}</em></div>}
+        {active && language === 'pt' && <div className="tk-topic">Idioma: <em>Português</em></div>}
         {active && (
           <button
             className={`tk-speak-btn ${statusMode === 'listening' ? 'tk-speak-active' : ''} ${statusMode === 'thinking' || statusMode === 'speaking' ? 'tk-speak-disabled' : ''}`}
@@ -591,8 +630,8 @@ export default function TalkieChat() {
             </div>
             {t.role === 'assistant' && (
               <div className="tk-replay">
-                <button className="tk-replay-btn" title="Ouvir novamente" onClick={() => replayTurn(t.text, 1.0)}>🔊</button>
-                <button className="tk-replay-btn" title="Ouvir devagar" onClick={() => replayTurn(t.text, 0.65)}>🐢</button>
+                <button className="tk-replay-btn" title="Ouvir novamente" onClick={() => replayTurn(t.text, 1.0, t.lang || 'en')}>🔊</button>
+                <button className="tk-replay-btn" title="Ouvir devagar" onClick={() => replayTurn(t.text, 0.65, t.lang || 'en')}>🐢</button>
               </div>
             )}
           </div>
@@ -623,6 +662,20 @@ export default function TalkieChat() {
         <div className="tk-field">
           <label>Tema da próxima conversa (opcional)</label>
           <input type="text" value={topic} onChange={e => persistTopic(e.target.value)} placeholder="ex: my weekend, work, football..."/>
+        </div>
+        <div className="tk-field">
+          <label>Minha cidade (para previsão do tempo)</label>
+          <input type="text" value={city} onChange={e => persistCity(e.target.value)} placeholder="ex: Curitiba"/>
+        </div>
+        <div className="tk-field">
+          <label>Contexto familiar (esposa, filhos, etc.)</label>
+          <textarea
+            value={familyContext}
+            onChange={e => setFamilyContext(e.target.value)}
+            onBlur={e => saveSettings({ family_context: e.target.value })}
+            placeholder="ex: esposa Ana, filhos Miguel (8) e Sofia (5)"
+            rows={3}
+          />
         </div>
         <div className="tk-field">
           <label>Voz de resposta</label>
@@ -815,7 +868,7 @@ export default function TalkieChat() {
         .tk-panel h2 { font-size:15px; margin:0 0 16px; }
         .tk-field { margin-bottom:16px; }
         .tk-field label { display:block; font-size:12px; color:var(--tk-dim); margin-bottom:5px; }
-        .tk-field input[type=text], .tk-field select { width:100%; background:var(--tk-panel2); border:1px solid var(--tk-line); color:var(--tk-text); border-radius:10px; padding:9px 11px; font-size:13px; }
+        .tk-field input[type=text], .tk-field select, .tk-field textarea { width:100%; background:var(--tk-panel2); border:1px solid var(--tk-line); color:var(--tk-text); border-radius:10px; padding:9px 11px; font-size:13px; font-family:inherit; resize:vertical; }
         .tk-hint { font-size:11px; color:var(--tk-dim); margin-top:4px; }
         .tk-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--tk-dim); font-size:20px; cursor:pointer; }
         .tk-membox { background:var(--tk-panel2); border-radius:10px; padding:10px 12px; font-size:12px; color:var(--tk-dim); max-height:110px; overflow-y:auto; line-height:1.5; }

@@ -442,12 +442,17 @@ export default function TalkieChat() {
 
     // Android auto-stops the recognition engine on its own after a silence timeout or
     // internal limit, even with continuous=true — this is NOT the user releasing the
-    // button. Calling start() synchronously from onend throws InvalidStateError on many
-    // Android/Chrome builds (the engine hasn't finished tearing down yet), so we back off
-    // briefly and retry. The learner is practicing English: slow, hesitant, full of pauses
-    // and restarts is completely normal — the turn must NEVER be cut short or auto-sent for
-    // any reason while the button is held. Retry for as long as it takes; the only thing
-    // that may ever finalize and send is the user releasing the button (stopListening).
+    // button. The gap between stop and restart is dead mic time, so every extra ms here
+    // is spoken words permanently lost — restart on the very next tick (0ms), never with
+    // an artificial delay. Calling start() synchronously from inside onend itself throws
+    // InvalidStateError on many Android/Chrome builds (engine still tearing down), which
+    // is why this is deferred via setTimeout(0) rather than called inline — that's enough
+    // of a yield to avoid the race without adding a real delay. Only on an actual thrown
+    // error do we back off and retry with growing delay. The learner is practicing English:
+    // slow, hesitant, full of pauses and restarts is completely normal — the turn must
+    // NEVER be cut short or auto-sent for any reason while the button is held. Retry for
+    // as long as it takes; the only thing that may ever finalize and send is the user
+    // releasing the button (stopListening).
     const attemptRestart = (attempt = 0) => {
       restartTimerRef.current = setTimeout(() => {
         restartTimerRef.current = null;
@@ -457,7 +462,7 @@ export default function TalkieChat() {
         } catch {
           attemptRestart(attempt + 1); // keep retrying indefinitely — never give up and auto-send
         }
-      }, Math.min(200 + attempt * 150, 2000));
+      }, attempt === 0 ? 0 : Math.min(150 * attempt, 1500));
     };
 
     rec.onend = () => {

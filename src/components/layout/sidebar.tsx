@@ -1,32 +1,48 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen, Target } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen, ClipboardList, Target, Landmark, ChevronDown, type LucideIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const EXPENSES_NAV = [
+type NavLeaf = { href: string; label: string; icon: LucideIcon; exact?: boolean };
+type NavGroup = { label: string; icon: LucideIcon; children: NavLeaf[] };
+type NavItem = NavLeaf | NavGroup;
+
+const EXPENSES_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
 
-const INVESTMENTS_NAV = [
+const INVESTMENTS_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
-  { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
-  { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
-  { href: "/investments/indicators", label: "Indicadores", icon: Activity },
-  { href: "/investments/analyses", label: "Análises", icon: BookOpen },
+  {
+    label: "Ações", icon: TrendingUp, children: [
+      { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
+      { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
+      { href: "/investments/indicators", label: "Indicadores", icon: Activity },
+      { href: "/investments/analyses", label: "Análises", icon: BookOpen },
+      { href: "/investments/operations", label: "Operações", icon: ClipboardList },
+    ],
+  },
+  {
+    label: "Renda Fixa", icon: Landmark, children: [
+      { href: "/investments/fixed-income/quotes", label: "Cotações", icon: DollarSign },
+      { href: "/investments/fixed-income/operations", label: "Operações", icon: ClipboardList },
+    ],
+  },
   { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
   { href: "/investments/settings", label: "Configurações", icon: Settings },
 ];
 
-const GOALS_NAV = [
+const GOALS_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/goals", label: "Metas", icon: Target, exact: true },
 ];
@@ -40,14 +56,18 @@ interface SidebarProps {
   profile: Profile | null;
 }
 
+function isNavActive(pathname: string, href: string, exact?: boolean) {
+  return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
+}
+
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const isInvestments = pathname.startsWith("/investments");
   const isGoals = pathname.startsWith("/goals");
   const accentColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : EXPENSES_COLOR;
-  const accentBg = isInvestments ? "rgba(59,130,246,0.15)" : isGoals ? "rgba(139,92,246,0.15)" : "hsl(var(--primary))";
 
   async function handleLogout() {
     const supabase = createClient();
@@ -87,26 +107,75 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {(isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV)
-          .filter(item => item.href !== "/" || profile?.has_investments_access)
-          .map(({ href, label, icon: Icon, exact }) => {
-          const active = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                active
-                  ? "text-white shadow-sm"
-                  : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
-              )}
-              style={active ? { backgroundColor: accentColor } : undefined}
-            >
-              <Icon className="h-4 w-4 flex-shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
+          .filter(item => !("href" in item) || item.href !== "/" || profile?.has_investments_access)
+          .map((item) => {
+            if ("children" in item) {
+              const Icon = item.icon;
+              const groupActive = item.children.some((c) => isNavActive(pathname, c.href));
+              const isOpen = openGroups[item.label] ?? false;
+              return (
+                <div key={item.label}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroups((prev) => ({ ...prev, [item.label]: !isOpen }))}
+                    className={cn(
+                      "flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer",
+                      groupActive
+                        ? "text-white shadow-sm"
+                        : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
+                    )}
+                    style={groupActive ? { backgroundColor: accentColor } : undefined}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    <ChevronDown className={cn("h-4 w-4 flex-shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
+                  </button>
+                  {isOpen && (
+                    <div className="mt-1 ml-4 pl-3 border-l border-sidebar-border space-y-1">
+                      {item.children.map((child) => {
+                        const active = isNavActive(pathname, child.href);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150",
+                              active
+                                ? "text-white shadow-sm"
+                                : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
+                            )}
+                            style={active ? { backgroundColor: accentColor } : undefined}
+                          >
+                            <child.icon className="h-3.5 w-3.5 flex-shrink-0" />
+                            {child.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            const { href, label, icon: Icon, exact } = item;
+            const active = isNavActive(pathname, href, exact);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+                  active
+                    ? "text-white shadow-sm"
+                    : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
+                )}
+                style={active ? { backgroundColor: accentColor } : undefined}
+              >
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
       </nav>
 
       {/* User */}

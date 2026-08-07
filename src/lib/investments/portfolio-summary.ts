@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchFundamentusIndicators, fetchFundamentusProventos } from "@/lib/investments/fundamentus";
 import { getYahooAuth, yahooV7Fetch } from "@/lib/investments/yahoo-auth";
+import { resolveInvestmentTarget } from "@/lib/investments/investment-group";
+import { getFixedIncomeHoldingsData, type FixedIncomeHoldingsData } from "@/lib/investments/fixed-income-summary";
 
 export type OperationRow = {
   id: string;
@@ -186,42 +188,18 @@ export interface PortfolioSummary {
     totalReturn: number;
     totalReturnPercent: number;
   };
+  fixedIncome: FixedIncomeHoldingsData;
   isReadOnly: boolean;
   ownerName: string | null;
 }
 
-// Determines if `userId` is a non-admin group member (views admin's portfolio read-only),
-// queries investment_operations for the resolved profile, and computes positions/totals.
-export async function getPortfolioSummary(supabase: SupabaseClient, userId: string): Promise<PortfolioSummary> {
-  let targetProfileId = userId;
-  let isReadOnly = false;
-  let ownerName: string | null = null;
+const EMPTY_FIXED_INCOME: FixedIncomeHoldingsData = {
+  holdings: [],
+  positions: [],
+  totals: { totalPrincipal: 0, totalAccruedInterest: 0, totalCurrentValue: 0 },
+};
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("investment_group_id")
-    .eq("id", userId)
-    .single();
-
-  if (profile?.investment_group_id) {
-    const { data: group } = await supabase
-      .from("investment_groups")
-      .select("created_by")
-      .eq("id", profile.investment_group_id)
-      .single();
-
-    if (group && group.created_by !== userId) {
-      targetProfileId = group.created_by;
-      isReadOnly = true;
-      const { data: adminProfile } = await supabase
-        .from("profiles")
-        .select("name")
-        .eq("id", group.created_by)
-        .single();
-      ownerName = adminProfile?.name ?? null;
-    }
-  }
-
+async function computeStockSummary(supabase: SupabaseClient, targetProfileId: string) {
   const { data: ops, error } = await supabase
     .from("investment_operations")
     .select("*")
@@ -248,6 +226,29 @@ export async function getPortfolioSummary(supabase: SupabaseClient, userId: stri
     operations,
     positions,
     totals: { totalInvested, currentValue, gain, gainPercent, totalDividends12m, totalReturn, totalReturnPercent },
+  };
+}
+
+// Resolves the group-view target profile once, then computes stock (Ações) and
+// fixed-income (Renda Fixa) summaries in parallel — a Renda Fixa failure (e.g.
+// BCB down) never breaks the Ações side of the Carteira page.
+export async function getPortfolioSummary(supabase: SupabaseClient, userId: string): Promise<PortfolioSummary> {
+  const { targetProfileId, isReadOnly, ownerName } = await resolveInvestmentTarget(supabase, userId);
+
+  const [stockResult, fixedIncomeResult] = await Promise.allSettled([
+    computeStockSummary(supabase, targetProfileId),
+    getFixedIncomeHoldingsData(supabase, targetProfileId),
+  ]);
+
+  if (stockResult.status === "rejected") throw stockResult.reason;
+  const { operations, positions, totals } = stockResult.value;
+  const fixedIncome = fixedIncomeResult.status === "fulfilled" ? fixedIncomeResult.value : EMPTY_FIXED_INCOME;
+
+  return {
+    operations,
+    positions,
+    totals,
+    fixedIncome,
     isReadOnly,
     ownerName,
   };

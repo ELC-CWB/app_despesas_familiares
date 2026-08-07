@@ -329,7 +329,8 @@ export function AnalysesClient() {
         <table className="w-full text-sm table-fixed">
           <colgroup>
             <col style={{ width: "1.5rem" }} />
-            <col style={{ width: "8.5rem" }} />
+            <col style={{ width: "4.5rem" }} />
+            <col style={{ width: "9rem" }} />
             <col style={{ width: "5.5rem" }} />
             <col style={{ width: "5.5rem" }} />
             <col style={{ width: "4.5rem" }} />
@@ -343,6 +344,7 @@ export function AnalysesClient() {
             <tr>
               <th className="sticky top-0 z-10 bg-card border-b border-border text-center px-1 py-2 text-xs font-semibold text-muted-foreground">#</th>
               <th className="sticky top-0 z-10 bg-card border-b border-border text-left px-1.5 py-2 text-xs font-semibold text-muted-foreground">Ativo</th>
+              <th className="sticky top-0 z-10 bg-card border-b border-border text-left px-1.5 py-2 text-xs font-semibold text-muted-foreground">Empresa</th>
               <th className="sticky top-0 z-10 bg-card border-b border-border text-right px-1.5 py-2 text-xs font-semibold text-muted-foreground" style={grpTh}>
                 <div className="flex items-center justify-end gap-0.5">Preço Atual<SortBtn col="price" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} /></div>
               </th>
@@ -393,9 +395,13 @@ export function AnalysesClient() {
                     <div className="flex items-center gap-1.5">
                       <div className="min-w-0">
                         <p className="font-semibold text-foreground text-xs leading-tight">{row.symbol}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{row.shortName !== row.symbol ? row.shortName : row.sector}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{row.sector}</p>
                       </div>
                     </div>
+                  </td>
+
+                  <td className="px-1.5 py-1.5">
+                    <p className="text-xs text-foreground truncate">{row.shortName}</p>
                   </td>
 
                   {/* Preço Atual — borda esquerda da moldura */}

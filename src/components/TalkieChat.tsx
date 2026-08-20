@@ -102,6 +102,21 @@ function BubbleText({
   );
 }
 
+// ─── User transcript with mistakes highlighted inline ─────────────────────────
+function HighlightedUserText({ text, corrections }: { text: string; corrections: Correction[] }) {
+  const phrases = corrections.map(c => c.said?.trim()).filter((s): s is string => !!s);
+  if (!phrases.length) return <>{text}</>;
+  const escaped = [...phrases].sort((a, b) => b.length - a.length).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const parts = text.split(new RegExp(`(${escaped.join('|')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) => i % 2 === 1
+        ? <span key={i} className="tk-mistake" title="Veja a correção abaixo">{part}</span>
+        : <span key={i}>{part}</span>)}
+    </>
+  );
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function TalkieChat() {
   const [level, setLevel] = useState('intermediário');
@@ -131,10 +146,12 @@ export default function TalkieChat() {
   // When a genuinely new phrase starts (doesn't begin with current segment), we save the old one.
   const curSegmentRef = useRef('');   // current growing segment (replaced in-place)
   const baseAccumRef = useRef('');    // completed segments from earlier in this turn
+  const lastInterimRef = useRef('');  // most recent not-yet-final transcript, as a fallback if release cuts it off
   const awaitingApiRef = useRef(false);
   const activeRef = useRef(false);
   const listeningRef = useRef(false); // true while user's mic is on for a Falar turn
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // pending mic-restart retry after Android auto-stops it
+  const finalizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // brief flush window after button release, before sending to analysis
   const languageRef = useRef<Lang>('en'); // conversation language — switches on voice request, e.g. "let's talk in Portuguese"
   const setLanguage = useCallback((l: Lang) => { languageRef.current = l; setLanguageState(l); }, []);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -142,6 +159,27 @@ export default function TalkieChat() {
   const translationCacheRef = useRef(new Map<string, string>());
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wakeLockRef = useRef<any>(null);
+
+  // Merges one transcript chunk (a final result, or a not-yet-final one we're forced to
+  // commit early) into the running transcript. Android Chrome's results are cumulative
+  // within one "run" of the recognizer (each new final contains the full text so far for
+  // that segment) but reset to a blank slate on every restart — so a chunk that doesn't
+  // extend the current segment means a genuinely new phrase started, and the old segment
+  // must be archived into baseAccum rather than overwritten (which would lose it).
+  const commitSegment = useCallback((chunk: string) => {
+    const t = chunk.trim();
+    if (!t) return;
+    const cur = curSegmentRef.current;
+    const firstWords = cur.split(' ').slice(0, 3).join(' ').toLowerCase();
+    const isCumulative = cur === '' || t.toLowerCase().startsWith(firstWords);
+    if (isCumulative) {
+      curSegmentRef.current = t;
+    } else {
+      baseAccumRef.current = (baseAccumRef.current + ' ' + cur).trim();
+      curSegmentRef.current = t;
+    }
+    accumulatedRef.current = (baseAccumRef.current + ' ' + curSegmentRef.current).trim();
+  }, []);
 
   // Keep the screen on for the whole session — released automatically by the
   // browser whenever the tab loses visibility, so we re-acquire it on return.
@@ -312,23 +350,40 @@ export default function TalkieChat() {
     }
   }, []);
 
-  // Button released — stop listening and only now interpret what was said
+  // Button released — stop listening, but the last words spoken may still be sitting
+  // as an unfinalized ("interim") result at this exact instant. Calling .stop() asks the
+  // engine to flush a final result for whatever's in flight, but that arrives asynchronously
+  // — reading accumulatedRef synchronously here would silently drop those trailing words.
+  // awaitingApiRef is raised immediately (not just once text is known) so onend's idle-reset
+  // branch doesn't race in and clobber the "processing" status during the flush window.
   const stopListening = useCallback(() => {
     if (!listeningRef.current) return;
     listeningRef.current = false;
+    awaitingApiRef.current = true;
     if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
-    const text = accumulatedRef.current.trim();
-    accumulatedRef.current = '';
-    baseAccumRef.current = '';
-    curSegmentRef.current = '';
+    setStatusMode('thinking'); setStatusMsg('Processando sua fala...');
     try { recognitionRef.current?.stop(); } catch {}
-    if (text) {
-      awaitingApiRef.current = true;
-      handleUserSpeechRef.current(text);
-    } else {
-      setStatusMode('idle'); setStatusMsg('Segure o botão para falar');
-    }
-  }, []);
+    finalizeTimerRef.current = setTimeout(() => {
+      finalizeTimerRef.current = null;
+      // Fallback: no final result arrived for the tail end in time — commit the latest
+      // interim transcript instead of losing those words entirely.
+      if (lastInterimRef.current.trim()) { commitSegment(lastInterimRef.current); lastInterimRef.current = ''; }
+      const text = accumulatedRef.current.trim();
+      accumulatedRef.current = '';
+      baseAccumRef.current = '';
+      curSegmentRef.current = '';
+      lastInterimRef.current = '';
+      if (text) {
+        // Show the raw transcription immediately — corrections/native phrasing are
+        // filled in on this same turn once the analysis comes back.
+        setTurns(p => [...p, { role: 'user', text, lang: languageRef.current }]);
+        handleUserSpeechRef.current(text);
+      } else {
+        awaitingApiRef.current = false;
+        setStatusMode('idle'); setStatusMsg('Segure o botão para falar');
+      }
+    }, 300);
+  }, [commitSegment]);
 
   const handleUserSpeech = useCallback(async (text: string) => {
     // awaitingApiRef.current = true is set by the caller before invoking this
@@ -346,8 +401,15 @@ export default function TalkieChat() {
       // so a "let's talk in Portuguese" request takes effect on Jane's very own reply.
       setLanguage(data.language === 'pt' ? 'pt' : 'en');
 
-      // 1. Show user's full transcription with corrections and native phrasing
-      setTurns(p => [...p, { role: 'user', text, corrections: data.corrections || [], native_said: data.native_said, lang: languageRef.current }]);
+      // 1. Fill in corrections and native phrasing on the transcript bubble shown at
+      // release time (last turn — the button stays disabled until this resolves, so
+      // nothing else can have been appended in between).
+      setTurns(p => {
+        if (!p.length) return p;
+        const copy = [...p];
+        copy[copy.length - 1] = { ...copy[copy.length - 1], corrections: data.corrections || [], native_said: data.native_said };
+        return copy;
+      });
       setTopic(data.topic); setMemory(data.memory);
 
       // 2. Speak the native phrasing (how a native speaker would say it) — English mode only
@@ -422,21 +484,8 @@ export default function TalkieChat() {
           if (latestFinalT && interimT) break;
         }
 
-        if (latestFinalT) {
-          const cur = curSegmentRef.current;
-          // “Cumulative” if new transcript begins with the first word(s) of current segment
-          const firstWords = cur.split(' ').slice(0, 3).join(' ').toLowerCase();
-          const isCumulative = cur === '' || latestFinalT.toLowerCase().startsWith(firstWords);
-
-          if (isCumulative) {
-            curSegmentRef.current = latestFinalT; // extend current segment in-place
-          } else {
-            // New independent phrase — save the old segment and start fresh
-            baseAccumRef.current = (baseAccumRef.current + ' ' + cur).trim();
-            curSegmentRef.current = latestFinalT;
-          }
-          accumulatedRef.current = (baseAccumRef.current + ' ' + curSegmentRef.current).trim();
-        }
+        if (latestFinalT) commitSegment(latestFinalT);
+        lastInterimRef.current = interimT;
 
         // Show live transcript in status bar — button hold is what decides when to stop, not silence
         const display = (accumulatedRef.current + (interimT ? ' ' + interimT : '')).trim();
@@ -450,6 +499,12 @@ export default function TalkieChat() {
         // If the button is still held, restart silently and keep accumulating;
         // only pointerup (stopListening) may finalize & send.
         if (listeningRef.current && !awaitingApiRef.current) {
+          // Android's auto-stop can land mid-utterance, while the words spoken since the
+          // last final result are still sitting as "interim" only. The next recognizer
+          // instance starts with a blank results list, so anything not committed here is
+          // gone for good — this is the main source of mid-speech word loss, since a
+          // hesitant learner's pauses trigger this restart path constantly.
+          if (lastInterimRef.current.trim()) { commitSegment(lastInterimRef.current); lastInterimRef.current = ''; }
           attemptRestart();
           return;
         }
@@ -492,7 +547,7 @@ export default function TalkieChat() {
     };
 
     recognitionRef.current = createRecognizer();
-  }, []); // all values via refs — no stale closure
+  }, [commitSegment]); // other values via refs — no stale closure
 
   const startSession = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -541,11 +596,13 @@ export default function TalkieChat() {
     setActive(false); activeRef.current = false;
     listeningRef.current = false;
     if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
+    if (finalizeTimerRef.current) { clearTimeout(finalizeTimerRef.current); finalizeTimerRef.current = null; }
     releaseWakeLock();
     if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} }
     accumulatedRef.current = '';
     baseAccumRef.current = '';
     curSegmentRef.current = '';
+    lastInterimRef.current = '';
     awaitingApiRef.current = false;
     speechSynthesis.cancel();
     setLanguage('en');
@@ -632,7 +689,7 @@ export default function TalkieChat() {
               <div className="tk-label">{t.role === 'user' ? 'Você' : 'Jane'}</div>
               {t.role === 'assistant'
                 ? <div><BubbleText text={t.text} onHover={handleWordHover} onLeave={handleWordLeave}/></div>
-                : <div>{t.text}</div>
+                : <div><HighlightedUserText text={t.text} corrections={t.corrections || []}/></div>
               }
               {t.role === 'user' && t.native_said && (
                 <div className="tk-native">
@@ -872,6 +929,7 @@ export default function TalkieChat() {
         .tk-label { font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--tk-dim); margin-bottom:3px; }
         .tk-word { cursor:pointer; border-radius:3px; padding:0 1px; transition:background 0.12s; }
         .tk-word:hover { background:rgba(129,140,248,0.22); }
+        .tk-mistake { background:rgba(232,99,122,0.18); border-bottom:2px solid var(--tk-err); border-radius:2px; }
         .tk-native { margin-top:8px; padding:7px 10px 7px 10px; background:rgba(79,189,186,0.10); border-left:3px solid var(--tk-teal); border-radius:0 6px 6px 0; font-size:13px; color:rgba(79,189,186,0.95); line-height:1.5; }
         .tk-native-label { font-size:10px; text-transform:uppercase; letter-spacing:.5px; opacity:.7; margin-bottom:3px; }
         .tk-correction { margin-top:7px; padding-top:7px; border-top:1px dashed var(--tk-line); font-size:12px; }

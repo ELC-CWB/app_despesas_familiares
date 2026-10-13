@@ -28,6 +28,8 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  // Rotina agendada (Vercel Cron) chega sem sessão; a rota se protege com o CRON_SECRET
+  if (pathname.startsWith("/api/cron/")) return supabaseResponse;
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
 
   if (!user && !isAuthPage) {

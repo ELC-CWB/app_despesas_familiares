@@ -99,6 +99,35 @@ export async function fetchBcbIndicators(): Promise<BcbIndicators> {
   return data;
 }
 
+// ── PTAX do dólar (Olinda, CotacaoDolarPeriodo) ─────────────────────────────────
+
+export type PtaxDia = { data: string; compra: number; venda: number }; // data ISO
+
+// Olinda usa datas MM-DD-AAAA. Um registro por dia útil (o fechamento do dia).
+export async function fetchPtaxPeriodo(dataInicialIso: string, dataFinalIso: string): Promise<PtaxDia[] | null> {
+  const mdY = (iso: string) => { const [y, m, d] = iso.split("-"); return `${m}-${d}-${y}`; };
+  const url =
+    "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/" +
+    "CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)" +
+    `?@dataInicial='${mdY(dataInicialIso)}'&@dataFinalCotacao='${mdY(dataFinalIso)}'` +
+    "&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao";
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000), cache: "no-store" });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const rows = (json?.value ?? []) as { cotacaoCompra: number; cotacaoVenda: number; dataHoraCotacao: string }[];
+    // Se houver mais de um registro no dia, fica o último (o fechamento)
+    const porDia = new Map<string, PtaxDia>();
+    for (const r of rows) {
+      const data = r.dataHoraCotacao.slice(0, 10);
+      porDia.set(data, { data, compra: r.cotacaoCompra, venda: r.cotacaoVenda });
+    }
+    return [...porDia.values()];
+  } catch {
+    return null;
+  }
+}
+
 // ── Historical daily/monthly series ─────────────────────────────────────────────
 
 export type SgsPoint = { date: string; valor: number }; // date normalized to ISO YYYY-MM-DD

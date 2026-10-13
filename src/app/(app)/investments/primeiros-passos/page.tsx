@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout/header";
+import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { getCarteira, temEstrutura } from "@/lib/carteira/dados";
 import { PrimeirosPassosClient } from "@/components/carteira/primeiros-passos-client";
 
@@ -21,7 +22,7 @@ export default async function PrimeirosPassosPage() {
 
   return (
     <div>
-      <Header title="Primeiros passos" subtitle="Monte a estratégia da sua carteira" profile={profile} />
+      <Header title="Primeiros passos" subtitle="Monte a estratégia da sua carteira" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="p-5 lg:p-8">
         <PrimeirosPassosClient />
       </div>

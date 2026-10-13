@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LineChart } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout/header";
+import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { getCarteira, temEstrutura } from "@/lib/carteira/dados";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import { patrimonioFimAcumulacao, retiradaMaxPerpetua, vereditoPerpetuidade } from "@/lib/carteira/regras";
@@ -24,7 +25,7 @@ export default async function PlanoPage() {
 
   return (
     <div>
-      <Header title="Plano" subtitle="Acumulação e usufruto da carteira" profile={profile} />
+      <Header title="Plano" subtitle="Acumulação e usufruto da carteira" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="p-5 lg:p-8 space-y-4 max-w-4xl">
         {!p ? (
           <div className="rounded-2xl border border-border bg-card p-8 shadow-sm flex flex-col items-center gap-3 text-center">

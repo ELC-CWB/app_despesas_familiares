@@ -8,18 +8,63 @@ import {
   ALIQUOTA_EXTERIOR, ALIQUOTAS_PADRAO, CORRETORA_PADRAO, TIPOS_ATIVO, type ChaveAliquota,
 } from "@/lib/carteira/constantes";
 import { novoId } from "@/lib/carteira/ids";
+import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import type { Estrutura } from "@/lib/carteira/tipos";
 import { validarEstrutura } from "@/lib/carteira/validacao";
 import { ACCENT, BotaoAdicionar, Campo, DecimalInput, inputCls, Secao } from "@/components/carteira/campos";
 import { AtivosEditor, BlocosEditor, CorretoraEditor, GeografiasEditor } from "@/components/carteira/editores";
 
+// Cobertura do colchão (REGRAS §3): floor(valor do colchão / saque mensal), com o saque
+// estimado pela retirada do plano sobre o patrimônio atual. Verde ≥ mínimo, vermelho abaixo.
+function Cobertura({
+  colchao, minMeses, avaliacao,
+}: {
+  colchao: { codigo: string; valor: number } | null;
+  minMeses: number;
+  avaliacao: AvaliacaoAtual;
+}) {
+  if (!colchao) {
+    return (
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Sem colchão: quando nenhum ativo estiver acima do alvo, o saque sai do ativo mais perto do alvo, que é o menos prejudicado pela venda.
+      </p>
+    );
+  }
+  const saqueMes = (avaliacao.patrimonio * avaliacao.retiradaPct) / 100 / 12;
+  if (saqueMes <= 0) {
+    return (
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        A cobertura em meses de saque aparece quando a carteira tiver posições com cotação.
+      </p>
+    );
+  }
+  const meses = Math.floor(colchao.valor / saqueMes);
+  const ok = meses >= minMeses;
+  return (
+    <div className="rounded-lg px-3 py-2 text-xs leading-relaxed font-medium"
+      style={ok ? { backgroundColor: "rgba(46,107,63,0.10)", color: "#2E6B3F" } : { backgroundColor: "rgba(180,35,24,0.08)", color: "#B42318" }}>
+      <strong>{meses} {meses === 1 ? "mês" : "meses"}.</strong>{" "}
+      {colchao.codigo || "O colchão"} tem {fmtBRL(colchao.valor, 0)}, o que cobre {meses} meses de saques de {fmtBRL(saqueMes, 0)}
+      {" "}({fmtNum(avaliacao.retiradaPct, 1, 2)}% a.a. sobre o patrimônio atual).{" "}
+      {ok ? `Acima do mínimo de ${minMeses} meses.` : `Abaixo do mínimo de ${minMeses} meses: considere aumentar o alvo do colchão.`}
+    </div>
+  );
+}
+
 // Configurações da carteira (docs/carteira/SPEC.md §4.5). Tudo é salvo de uma vez.
+export type AvaliacaoAtual = {
+  patrimonio: number;
+  valorPorAtivo: Record<string, number>;
+  retiradaPct: number; // do plano em uso (padrão 3,5%)
+};
+
 export function ConfiguracoesClient({
-  estruturaInicial, isReadOnly, ownerName,
+  estruturaInicial, isReadOnly, ownerName, avaliacao,
 }: {
   estruturaInicial: Estrutura;
   isReadOnly: boolean;
   ownerName: string | null;
+  avaliacao: AvaliacaoAtual;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -154,11 +199,8 @@ export function ConfiguracoesClient({
                   onValue={(v) => set("config", { ...e.config, colchao_min_meses: Math.max(0, Math.round(v ?? 0)) })} />
               </Campo>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {colchao
-                ? `A cobertura em meses de saque de ${colchao.codigo || "colchão"} aparece aqui assim que houver cotações.`
-                : "Sem colchão: quando nenhum ativo estiver acima do alvo, o saque sai do ativo mais perto do alvo, que é o menos prejudicado pela venda."}
-            </p>
+            <Cobertura colchao={colchao ? { codigo: colchao.codigo, valor: avaliacao.valorPorAtivo[colchao.id] ?? 0 } : null}
+              minMeses={e.config.colchao_min_meses} avaliacao={avaliacao} />
           </div>
         </Secao>
 

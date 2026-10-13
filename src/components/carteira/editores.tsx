@@ -1,6 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
+import { useState } from "react";
+import { Loader2, X } from "lucide-react";
 import {
   COR_HEX, COR_IDS, MERCADO_CORRETORA_NOME, MERCADO_NOME, MOEDAS, TIPOS_ATIVO,
   type Mercado, type MercadoCorretora, type Moeda, type TipoAtivo,
@@ -197,6 +198,22 @@ export function AtivosEditor({
 }) {
   const soma = somaAlvos(ativos);
   const somaOk = alvosFecham100(soma);
+  const [conferencia, setConferencia] = useState<Record<string, ResultadoTicker>>({});
+  const [conferindo, setConferindo] = useState(false);
+
+  // Confere na fonte (Yahoo) se cada ticker existe e em que moeda vem
+  const conferirTickers = async () => {
+    const tickers = [...new Set(ativos.map((a) => a.ticker_cotacao).filter((t): t is string => !!t))];
+    if (!tickers.length) return;
+    setConferindo(true);
+    try {
+      const res = await fetch(`/api/carteira/cotacoes/verificar?t=${encodeURIComponent(tickers.join(","))}`);
+      const json = await res.json();
+      setConferencia(Object.fromEntries((json.resultados ?? []).map((r: ResultadoTicker) => [r.ticker, r])));
+    } finally {
+      setConferindo(false);
+    }
+  };
 
   const mudarCodigo = (a: Ativo, codigo: string) => {
     const cod = codigo.toUpperCase();
@@ -289,6 +306,9 @@ export function AtivosEditor({
                 <BotaoRemover titulo="Remover ativo" onClick={() => onChange(ativos.filter((x) => x.id !== a.id))} />
               )}
             </div>
+            {!compacto && a.ticker_cotacao && conferencia[a.ticker_cotacao] && (
+              <ConferenciaTicker r={conferencia[a.ticker_cotacao]} moedaAtivo={a.moeda} />
+            )}
           </div>
         ))}
       </div>
@@ -306,6 +326,13 @@ export function AtivosEditor({
             className="px-3 py-1.5 rounded-lg text-xs font-bold border border-border text-muted-foreground hover:bg-secondary/50 transition-colors">
             Preencher bandas pela regra 5/25
           </button>
+          {!compacto && ativos.some((a) => a.ticker_cotacao) && (
+            <button type="button" onClick={conferirTickers} disabled={conferindo}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-border text-muted-foreground hover:bg-secondary/50 transition-colors disabled:opacity-60">
+              {conferindo && <Loader2 className="h-3 w-3 animate-spin" />}
+              Conferir tickers na fonte
+            </button>
+          )}
         </div>
       )}
 
@@ -328,6 +355,26 @@ export function AtivosEditor({
         ))}
       </div>
     </div>
+  );
+}
+
+type ResultadoTicker = {
+  ticker: string; ok: boolean; nome?: string | null; moeda?: string | null; moedaOriginal?: string | null;
+  preco?: number; data?: string;
+};
+
+function ConferenciaTicker({ r, moedaAtivo }: { r: ResultadoTicker; moedaAtivo: string }) {
+  if (!r.ok) {
+    return <p className="text-[11px] font-medium mt-2" style={{ color: VERMELHO }}>✗ {r.ticker} não encontrado na fonte de cotações. Confira o ticker.</p>;
+  }
+  const moedaDifere = r.moeda && r.moeda !== moedaAtivo;
+  return (
+    <p className="text-[11px] mt-2 text-muted-foreground">
+      <span style={{ color: moedaDifere ? VERMELHO : "#2E6B3F" }} className="font-semibold">{moedaDifere ? "!" : "✓"}</span>{" "}
+      {r.nome ?? r.ticker} · {r.moeda}{r.moedaOriginal && r.moedaOriginal !== r.moeda ? ` (vem em ${r.moedaOriginal}, convertido)` : ""}
+      {r.preco != null && ` ${fmtNum(r.preco, 2, 4)}`}
+      {moedaDifere && <span className="font-semibold" style={{ color: VERMELHO }}> · A cotação vem em {r.moeda}, mas o ativo está cadastrado em {moedaAtivo}.</span>}
+    </p>
   );
 }
 

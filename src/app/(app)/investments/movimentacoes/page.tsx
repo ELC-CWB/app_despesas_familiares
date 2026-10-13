@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeftRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout/header";
+import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { getCarteira } from "@/lib/carteira/dados";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 
@@ -44,7 +45,7 @@ export default async function MovimentacoesPage() {
 
   return (
     <div>
-      <Header title="Movimentações" subtitle="Compras, vendas e proventos" profile={profile} />
+      <Header title="Movimentações" subtitle="Compras, vendas e proventos" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="p-5 lg:p-8 space-y-4">
         <div className="rounded-xl px-4 py-3 text-sm border"
           style={{ borderColor: `${ACCENT}4d`, backgroundColor: `${ACCENT}0d`, color: ACCENT }}>

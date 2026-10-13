@@ -13,9 +13,10 @@ interface HeaderProps {
   groupName?: string | null;
   displayMonth?: number;
   displayYear?: number;
+  acessorio?: React.ReactNode; // substitui o selo de mês (ex.: cotação do dólar na Carteira)
 }
 
-export function Header({ title, subtitle, profile, groupName, displayMonth, displayYear }: HeaderProps) {
+export function Header({ title, subtitle, profile, groupName, displayMonth, displayYear, acessorio }: HeaderProps) {
   const now = new Date();
   const monthLabel = MONTHS[displayMonth ?? (now.getMonth() + 1)];
   const year = displayYear ?? now.getFullYear();
@@ -41,9 +42,11 @@ export function Header({ title, subtitle, profile, groupName, displayMonth, disp
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="hidden sm:block text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-full font-medium">
-          {monthLabel} {year}
-        </span>
+        {acessorio ?? (
+          <span className="hidden sm:block text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-full font-medium">
+            {monthLabel} {year}
+          </span>
+        )}
         <Avatar className="h-8 w-8 lg:hidden">
           <AvatarImage src={profile?.avatar_url ?? undefined} />
           <AvatarFallback className="text-xs bg-primary text-white">

@@ -290,7 +290,8 @@ create policy "InvInvites: update (accept)"
 
 -- (investment_tickers e investment_operations removidas em
 --  migrations/20261013_drop_old_investments.sql — ver docs/carteira/)
--- Carteira (carteira_*): tabelas, RLS e funções em migrations/20261013_carteira_base.sql
+-- Carteira (carteira_*): tabelas, RLS e funções em migrations/20261013_carteira_base.sql e _ajustes.sql
+-- Dados de mercado (mercado_*) e fotos diárias (carteira_snapshots): migrations/20261014_carteira_mercado.sql
 
 -- ============================================================
 -- EXPENSES

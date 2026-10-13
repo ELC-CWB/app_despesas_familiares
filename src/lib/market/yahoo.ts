@@ -1,6 +1,8 @@
 // Yahoo Finance (API não oficial) — serviço compartilhado de cotações.
 // Tickers sempre no formato da fonte, com sufixo: QLBR11.SA, VALU.L, USDBRL=X.
 
+import { dataPregao, normalizarPreco } from "@/lib/market/normalizar";
+
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -66,21 +68,23 @@ export function yahooQuoteFetch(
   );
 }
 
-// ── Histórico (endpoint v8 chart) ───────────────────────────────────────────────
+// ── Histórico diário (endpoint v8 chart, não exige crumb) ───────────────────────
 
-export type YahooChartPoint = { date: number; close: number; volume: number };
+// Um dia de pregão, com o preço já normalizado (GBp → GBP) e a data no fuso da bolsa
+export type YahooDia = { data: string; fechamento: number; volume: number | null };
 
 export type YahooChart = {
   ticker: string;
-  currency: string | null; // atenção: alguns tickers .L vêm em "GBp" (pence)
-  regularMarketPrice: number | null;
-  regularMarketTime: number | null; // epoch em segundos
-  points: YahooChartPoint[];
+  nome: string | null;
+  moeda: string | null;         // já normalizada
+  moedaOriginal: string | null; // como o Yahoo devolveu (ex.: "GBp")
+  pregaoAberto: boolean;        // o último dia ainda não é fechamento
+  dias: YahooDia[];             // em ordem cronológica
 };
 
 export async function fetchYahooChart(
   ticker: string,
-  { range = "1mo", interval = "1d" }: { range?: string; interval?: string } = {},
+  { range = "5d", interval = "1d" }: { range?: string; interval?: string } = {},
 ): Promise<YahooChart | null> {
   try {
     const res = await fetch(
@@ -91,23 +95,45 @@ export async function fetchYahooChart(
 
     const json = await res.json();
     const result = json?.chart?.result?.[0] as {
-      meta?: { currency?: string; regularMarketPrice?: number; regularMarketTime?: number };
+      meta?: {
+        currency?: string; longName?: string; shortName?: string; gmtoffset?: number;
+        regularMarketPrice?: number; regularMarketTime?: number;
+        currentTradingPeriod?: { regular?: { start?: number; end?: number } };
+      };
       timestamp?: (number | null)[];
       indicators?: { quote?: { close?: (number | null)[]; volume?: (number | null)[] }[] };
     } | undefined;
     if (!result) return null;
 
+    const meta = result.meta ?? {};
+    const off = meta.gmtoffset ?? 0;
     const quote = result.indicators?.quote?.[0] ?? {};
-    const points = (result.timestamp ?? [])
-      .map((ts, i) => ({ date: ts ?? 0, close: quote.close?.[i] ?? 0, volume: quote.volume?.[i] ?? 0 }))
-      .filter((p) => p.date > 0 && p.close > 0);
+    const porDia = new Map<string, YahooDia>();
+    (result.timestamp ?? []).forEach((ts, i) => {
+      const bruto = quote.close?.[i];
+      if (!ts || !bruto || bruto <= 0) return;
+      const { preco } = normalizarPreco(bruto, meta.currency);
+      porDia.set(dataPregao(ts, off), { data: dataPregao(ts, off), fechamento: preco, volume: quote.volume?.[i] ?? null });
+    });
+
+    // O preço mais recente vem em regularMarketPrice; garante o dia dele na série
+    if (meta.regularMarketPrice && meta.regularMarketTime) {
+      const dia = dataPregao(meta.regularMarketTime, off);
+      const { preco } = normalizarPreco(meta.regularMarketPrice, meta.currency);
+      porDia.set(dia, { data: dia, fechamento: preco, volume: porDia.get(dia)?.volume ?? null });
+    }
+
+    const agora = Date.now() / 1000;
+    const periodo = meta.currentTradingPeriod?.regular;
+    const pregaoAberto = !!periodo?.start && !!periodo?.end && agora >= periodo.start && agora < periodo.end;
 
     return {
       ticker,
-      currency: result.meta?.currency ?? null,
-      regularMarketPrice: result.meta?.regularMarketPrice ?? null,
-      regularMarketTime: result.meta?.regularMarketTime ?? null,
-      points,
+      nome: meta.longName ?? meta.shortName ?? null,
+      moeda: normalizarPreco(1, meta.currency).moeda,
+      moedaOriginal: meta.currency ?? null,
+      pregaoAberto,
+      dias: [...porDia.values()].sort((a, b) => a.data.localeCompare(b.data)),
     };
   } catch {
     return null;

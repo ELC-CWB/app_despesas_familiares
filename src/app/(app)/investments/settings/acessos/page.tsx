@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
+import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { InvestmentSettingsClient } from "@/components/investments/investment-settings-client";
 
 // Configurações › Acessos: grupo de investimentos e controle de acesso ao módulo.
@@ -47,7 +48,7 @@ export default async function ConfiguracoesAcessosPage() {
 
   return (
     <div>
-      <Header title="Acessos" subtitle="Grupo de investimentos e acesso ao módulo" profile={profile} />
+      <Header title="Acessos" subtitle="Grupo de investimentos e acesso ao módulo" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="p-5 lg:p-8">
         <InvestmentSettingsClient
           profile={profile}

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Carteira Perpétua — Plano</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F5F7}
+a{color:#2F4A66}a:hover{color:#1C2F43}
+button{font:inherit}
+input[type=range]{width:100%;accent-color:#1F3247;height:28px;margin:0}
+@media (max-width: 640px){.pg{padding:20px 12px 32px !important}.pg section{padding:16px !important;border-radius:14px !important}.pg h1{font-size:24px !important}.pg svg[viewBox="0 0 760 340"] text,.pg svg[viewBox="0 0 760 300"] text{font-size:20px !important}.pg svg[viewBox^="0 0 760"]{overflow:visible}}
+.nav-top a{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:9px;font-size:14px;font-weight:600;text-decoration:none;color:#4A5A6B}.nav-top a:hover{background:#E3E8ED;color:#15202B}.nav-top a[aria-current="page"]{background:#1F3247;color:#FFFFFF}.nav-bot{display:none}
+@media (max-width: 640px){.nav-top .nav-links{display:none !important}.pg{padding-bottom:96px !important}.nav-bot{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#FFFFFF;border-top:1px solid #E3E8ED;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}.nav-bot a{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center;font-size:11px;font-weight:600;text-decoration:none;color:#6B7885;border-radius:10px}.nav-bot a[aria-current="page"]{color:#1F3247;background:#EAF1F9}}
+</style>
+</helmet>
+<div class="pg" style="min-height: 100vh; background: #F3F5F7; color: #15202B; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box; padding: 32px 20px 48px">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; position: relative">
+<nav class="nav-bot" aria-label="Navegação principal">
+<a href="Main.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"></path><path d="M14.5 2.5a8 8 0 0 1 7 7h-7z"></path></svg><span>Visão geral</span></a>
+<a href="Plano.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"></path><path d="M4 16l5-5 4 3 7-8"></path></svg><span>Plano</span></a>
+<a href="Movimentacoes.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v14"></path><path d="M3 14l4 4 4-4"></path><path d="M17 20V6"></path><path d="M13 10l4-4 4 4"></path></svg><span>Movimentações</span></a>
+<a href="Configuracoes.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg><span>Configurações</span></a>
+</nav>
+<nav class="nav-top" aria-label="Navegação principal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1F3247">Carteira Perpétua</div>
+<div class="nav-links" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E3E8ED">
+<a href="Main.dc.html">Visão geral</a>
+<a href="Plano.dc.html" aria-current="page">Plano</a>
+<a href="Movimentacoes.dc.html">Movimentações</a>
+<a href="Configuracoes.dc.html">Configurações</a>
+</div>
+<div title="Dólar comercial de hoje (08/10/2026), usado para converter os ativos no exterior. As projeções mantêm o câmbio real constante." style="font-size: 11px; color: #6B7885; white-space: nowrap">US$ 1 = <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #33414F">R$ 5,01</span></div>
+</nav>
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.01em">Plano</h1>
+<div style="font-size: 13px; color: #4A5A6B">{{versaoTxt}} · valores em reais de hoje · dados fictícios</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; background: {{status.bg}}; color: {{status.ink}}">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: {{status.dot}}"></span>
+<div style="display: flex; flex-direction: column">
+<div style="font-size: 14px; font-weight: 600">{{status.title}}</div>
+<div style="font-size: 12px">{{status.detail}}</div>
+</div>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 14px">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="3">
+<div style="flex: 1 1 220px; background: #FFFFFF; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B">{{c.label}}</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500">{{c.value}}</div>
+<div style="font-size: 12px; color: #4A5A6B">{{c.sub}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<section style="flex: 1 1 300px; min-width: 0; background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Premissas do plano</h2>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 13px; font-weight: 500; color: #33414F">Usufruto</div>
+<div style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #E3E8ED">
+<sc-for list="{{modos}}" as="m" hint-placeholder-count="2"><button type="button" onClick="{{m.go}}" aria-pressed="{{m.on}}" style="flex: 1 1 0; min-height: 36px; border: 0; border-radius: 8px; background: {{m.bg}}; color: {{m.ink}}; font-size: 13px; font-weight: 600; cursor: pointer">{{m.label}}</button></sc-for>
+</div>
+</div>
+<sc-for list="{{sliders}}" as="s" hint-placeholder-count="7">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+<label for="{{s.id}}" style="font-size: 13px; font-weight: 500; color: #33414F">{{s.label}}</label>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500">{{s.shown}}</div>
+</div>
+<input id="{{s.id}}" type="range" min="{{s.min}}" max="{{s.max}}" step="{{s.step}}" value="{{s.val}}" onChange="{{s.on}}">
+</div>
+</sc-for>
+<sc-if value="{{perp.show}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 10px; background: {{perp.bg}}">
+<div style="font-size: 13px; font-weight: 700; color: {{perp.ink}}">{{perp.titulo}}</div>
+<div style="font-size: 12px; color: #33414F; line-height: 1.5">{{perp.texto}}</div>
+</div>
+</sc-if>
+<details style="display: block; padding: 14px 16px; border-radius: 12px; border: 1px solid #E3E8ED">
+<summary style="cursor: pointer; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #33414F">Sugestão de ajuste da retirada</summary>
+<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px">
+<sc-for list="{{regras}}" as="r" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #EEF1F4">
+<label style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; line-height: 1.3; cursor: pointer"><input type="checkbox" checked="{{r.on}}" onChange="{{r.toggle}}" style="flex: none; width: 18px; height: 18px; margin: 0">{{r.titulo}}</label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; opacity: {{r.op}}">
+<label style="display: flex; flex-direction: column; gap: 4px; min-width: 0"><span style="font-size: 12px; font-weight: 500; color: #33414F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.l1}}</span><span style="display: flex; align-items: center; gap: 6px"><input type="number" min="0" step="1" value="{{r.v1}}" onChange="{{r.on1}}" style="flex: 1 1 auto; width: 100%; min-width: 0; box-sizing: border-box; height: 40px; padding: 0 10px; border: 1px solid #C9D1D9; border-radius: 8px; background: #FFFFFF; font-size: 14px; text-align: right; font-family: 'IBM Plex Mono', monospace"><span style="flex: none; font-size: 13px; color: #6B7885">%</span></span></label>
+<label style="display: flex; flex-direction: column; gap: 4px; min-width: 0"><span style="font-size: 12px; font-weight: 500; color: #33414F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.l2}}</span><span style="display: flex; align-items: center; gap: 6px"><input type="number" min="0" step="1" value="{{r.v2}}" onChange="{{r.on2}}" style="flex: 1 1 auto; width: 100%; min-width: 0; box-sizing: border-box; height: 40px; padding: 0 10px; border: 1px solid #C9D1D9; border-radius: 8px; background: #FFFFFF; font-size: 14px; text-align: right; font-family: 'IBM Plex Mono', monospace"><span style="flex: none; font-size: 13px; color: #6B7885">%</span></span></label>
+</div>
+<div style="font-size: 12px; color: #4A5A6B; line-height: 1.5">{{r.desc}}</div>
+</div>
+</sc-for>
+</div>
+</details>
+<sc-if value="{{vendoAntiga}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 10px; background: #EAF1F9; border: 1px solid #8EB6E3">
+<div style="font-size: 13px; color: #1A4A82; line-height: 1.5"><strong>Visualizando a versão {{vendoN}}</strong> ({{vendoData}}). Os gráficos mostram as premissas dessa versão. A versão em uso continua sendo a {{versaoAtual}}.</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{voltarAtual}}" style="min-height: 36px; padding: 0 12px; border: 1px solid #C9D1D9; border-radius: 8px; background: #FFFFFF; color: #33414F; font-size: 13px; font-weight: 600; cursor: pointer">Voltar à versão {{versaoAtual}}</button>
+<button type="button" onClick="{{usarVendo}}" style="min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: #1F3247; color: #FFFFFF; font-size: 13px; font-weight: 600; cursor: pointer">Usar a versão {{vendoN}}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{naoVendo}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{alterado}}" hint-placeholder-val="{{ false }}"><div style="font-size: 12px; color: #8A5A00; background: #FFF6DB; border-radius: 8px; padding: 8px 10px">As premissas foram alteradas e ainda não foram salvas.</div></sc-if>
+<button type="button" onClick="{{abrirSalvar}}" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: {{btnBg}}; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: {{btnCursor}}">Salvar plano</button>
+</sc-if>
+<details style="font-size: 13px; color: #33414F">
+<summary style="cursor: pointer; font-weight: 600">Versões do plano ({{nVersoes}})</summary>
+<div style="display: flex; flex-direction: column; margin-top: 8px">
+<sc-for list="{{versoes}}" as="v" hint-placeholder-count="2">
+<button type="button" onClick="{{v.abrir}}" style="display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 8px; margin: 2px 0; border: 0; border-radius: 8px; background: {{v.bg}}; text-align: left; font: inherit; color: #15202B; cursor: pointer">
+<span style="display: flex; justify-content: space-between; gap: 8px; width: 100%"><span style="font-weight: 600">Versão {{v.n}} · {{v.data}}</span><span style="font-size: 12px; color: {{v.ink}}; font-weight: 600">{{v.tag}}</span></span>
+<span style="font-size: 12px; color: #4A5A6B; line-height: 1.5">{{v.resumo}}</span>
+</button>
+</sc-for>
+</div>
+</details>
+</section>
+
+<div style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Túnel do plano</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #33414F">
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border-radius: 2px; background: #DCE8F6; border: 1px solid #8EB6E3; display: inline-block"></span>Faixa do plano ({{pessTxt}} a {{otimTxt}} ao ano)</div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; background: #1F3247; display: inline-block"></span>Patrimônio real</div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border-radius: 2px; background: #FEF6F5; border: 1px solid #F5D5D0; display: inline-block"></span>Período de usufruto (com retiradas)</div>
+</div>
+</div>
+<svg viewBox="0 0 760 340" style="width: 100%; height: auto; display: block; font-family: 'IBM Plex Sans', system-ui, sans-serif" role="img" aria-label="Túnel do plano com o patrimônio real">
+<rect x="{{t.ux}}" y="16" width="{{t.uw}}" height="290" fill="#FEF6F5"></rect>
+<sc-for list="{{t.grid}}" as="g" hint-placeholder-count="5">
+<line x1="70" x2="744" y1="{{g.y}}" y2="{{g.y}}" stroke="#E6EAEE" stroke-width="1"></line>
+<text x="62" y="{{g.y}}" text-anchor="end" dominant-baseline="central" font-size="11" fill="#4A5A6B">{{g.label}}</text>
+</sc-for>
+<sc-for list="{{t.xticks}}" as="x" hint-placeholder-count="6">
+<text x="{{x.x}}" y="326" text-anchor="middle" font-size="11" fill="#4A5A6B">{{x.label}}</text>
+</sc-for>
+<polygon points="{{t.band}}" fill="#DCE8F6"></polygon>
+<polyline points="{{t.hi}}" fill="none" stroke="#8EB6E3" stroke-width="1.5"></polyline>
+<polyline points="{{t.lo}}" fill="none" stroke="#8EB6E3" stroke-width="1.5"></polyline>
+<sc-if value="{{t.fimShow}}" hint-placeholder-val="{{ false }}">
+<circle cx="{{t.fimX}}" cy="{{t.fimY}}" r="5" fill="#D93A32"></circle>
+<text x="{{t.fimLx}}" y="{{t.fimLy}}" font-size="11" font-weight="600" fill="#B42318">{{t.fimTxt}}</text>
+</sc-if>
+<sc-if value="{{t.presShow}}" hint-placeholder-val="{{ false }}">
+<line x1="{{t.ux}}" x2="744" y1="{{t.presY}}" y2="{{t.presY}}" stroke="#2E6B3F" stroke-width="1.5" stroke-dasharray="6 4"></line>
+<text x="740" y="{{t.presLy}}" text-anchor="end" font-size="11" font-weight="600" fill="#2E6B3F">Patrimônio a preservar (pessimista)</text>
+</sc-if>
+<line x1="{{t.ux}}" x2="{{t.ux}}" y1="16" y2="306" stroke="#4A5A6B" stroke-width="1" stroke-dasharray="4 4"></line>
+<text x="{{t.uxl}}" y="22" font-size="11" font-weight="600" fill="#33414F">Início do usufruto · {{t.uyear}}</text>
+<polyline points="{{t.real}}" fill="none" stroke="#1F3247" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<circle cx="{{t.lastX}}" cy="{{t.lastY}}" r="4.5" fill="#1F3247"></circle>
+<text x="{{t.lastLx}}" y="{{t.lastLy}}" font-size="11" font-weight="600" fill="#1F3247">Hoje</text>
+</svg>
+</section>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Total aportado x patrimônio real</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #33414F">
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 2px; background: #4F86C6; display: inline-block"></span>Rendimentos</div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 2px; background: #A3ACB6; display: inline-block"></span>Aportes líquidos</div>
+</div>
+</div>
+<svg viewBox="0 0 760 300" style="width: 100%; height: auto; display: block; font-family: 'IBM Plex Sans', system-ui, sans-serif" role="img" aria-label="Total aportado comparado ao patrimônio real">
+<sc-for list="{{a.grid}}" as="g" hint-placeholder-count="5">
+<line x1="70" x2="744" y1="{{g.y}}" y2="{{g.y}}" stroke="#E6EAEE" stroke-width="1"></line>
+<text x="62" y="{{g.y}}" text-anchor="end" dominant-baseline="central" font-size="11" fill="#4A5A6B">{{g.label}}</text>
+</sc-for>
+<sc-for list="{{a.xticks}}" as="x" hint-placeholder-count="8">
+<text x="{{x.x}}" y="288" text-anchor="middle" font-size="11" fill="#4A5A6B">{{x.label}}</text>
+</sc-for>
+<sc-for list="{{a.bars}}" as="b" hint-placeholder-count="8">
+<rect x="{{b.x}}" y="{{b.ay}}" width="{{b.w}}" height="{{b.ah}}" fill="#A3ACB6"></rect>
+<rect x="{{b.x}}" y="{{b.gy}}" width="{{b.w}}" height="{{b.gh}}" fill="#4F86C6"></rect>
+</sc-for>
+</svg>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 13px; color: #33414F">
+<div>Total aportado (líquido): <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">{{a.totAport}}</strong></div>
+<div>Patrimônio real: <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">{{a.totReal}}</strong></div>
+<div>Rendimento acumulado: <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #2E6B3F">{{a.totGain}}</strong></div>
+</div>
+</section>
+
+</div>
+</div>
+</div>
+</div>
+<sc-if value="{{dlg}}" hint-placeholder-val="{{ false }}">
+<div style="position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box">
+<div onClick="{{fecharDlg}}" style="position: absolute; inset: 0; background: rgba(21,32,43,0.45)"></div>
+<div role="dialog" aria-modal="true" aria-label="Salvar plano" style="position: relative; width: 100%; max-width: 460px; background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #15202B; box-shadow: 0 20px 48px rgba(21,32,43,0.28)">
+<h3 style="margin: 0; font-size: 18px; font-weight: 700">Como salvar as mudanças?</h3>
+<div style="font-size: 13px; color: #4A5A6B; line-height: 1.5">{{dlgResumo}}</div>
+<button type="button" onClick="{{salvarSobrescrever}}" style="text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 14px; border: 1px solid #C9D1D9; border-radius: 12px; background: #FFFFFF; cursor: pointer; color: #15202B"><span style="font-size: 15px; font-weight: 700">Atualizar a versão {{versaoAtual}}</span><span style="font-size: 12px; color: #4A5A6B; line-height: 1.5">Substitui as premissas da versão atual. O túnel antigo deixa de existir.</span></button>
+<button type="button" onClick="{{salvarNova}}" style="text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 14px; border: 2px solid #1F3247; border-radius: 12px; background: #F4F7FB; cursor: pointer; color: #15202B"><span style="font-size: 15px; font-weight: 700">Salvar como versão {{versaoNova}}</span><span style="font-size: 12px; color: #4A5A6B; line-height: 1.5">Mantém a versão {{versaoAtual}} no histórico para consulta. Recomendado para mudanças grandes, como trocar a data do usufruto.</span></button>
+<button type="button" onClick="{{fecharDlg}}" style="align-self: flex-end; min-height: 38px; padding: 0 14px; border: 0; border-radius: 8px; background: transparent; color: #33414F; font-size: 13px; font-weight: 600; cursor: pointer">Cancelar</button>
+</div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { inicial: 50000, aporte: 5000, anosAporte: 20, anosUsufruto: 25, retirada: 3.5, pess: 3, otim: 6, perpetuo: true,
+      versoes: [{ n: 1, data: 'jan/2019', p: { inicial: 50000, aporte: 5000, anosAporte: 20, anosUsufruto: 25, retirada: 3.5, pess: 3, otim: 6, perpetuo: true } }], atual: 0, vendo: null, dlg: false,
+      reg: { protOn: true, queda: 20, corte: 10, altaOn: true, gatilho: 3, aumento: 10 } };
+    try { var r = JSON.parse(window.localStorage.getItem('cp-regras') || 'null'); if (r) this.state.reg = Object.assign(this.state.reg, r); } catch (e) {}
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var USU = s.perpetuo ? 40 : s.anosUsufruto;
+    var START = 2019;
+    var realRets = [0.05, 0.02, 0.06, 0.03, 0.05, 0.04, 0.05];
+    var realAporteAno = 60000, realInicial = 50000;
+    var real = [realInicial], aport = [realInicial];
+    realRets.forEach(function (r, i) {
+      real.push((real[i] + realAporteAno) * (1 + r));
+      aport.push(aport[i] + realAporteAno);
+    });
+    var hoje = realRets.length;
+
+    var pess = Math.min(s.pess, s.otim - 0.5), otim = s.otim;
+    function path(rate) {
+      var v = [s.inicial], wd = 0, saques = [], fim = -1;
+      for (var t = 0; t < s.anosAporte + USU; t++) {
+        var cur = v[t];
+        if (t < s.anosAporte) cur = (cur + s.aporte * 12) * (1 + rate / 100);
+        else {
+          if (t === s.anosAporte) wd = v[t] * s.retirada / 100;
+          var saque = Math.min(wd, cur);
+          saques.push(saque);
+          if (fim < 0 && cur - wd <= 0) fim = t;
+          cur = Math.max(0, (cur - saque) * (1 + rate / 100));
+        }
+        v.push(cur);
+      }
+      v.saques = saques; v.wd = wd; v.fim = fim;
+      return v;
+    }
+    var lo = path(pess), hi = path(otim);
+    var T = s.anosAporte + USU;
+
+    function money(v) {
+      if (v >= 1e6) return 'R$ ' + (v / 1e6).toFixed(v >= 1e7 ? 0 : 1).replace('.', ',') + ' mi';
+      return 'R$ ' + Math.round(v / 1000) + ' mil';
+    }
+    function brl(v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+    function pctTxt(v) { return String(v).replace('.', ',') + '%'; }
+    function niceMax(m) {
+      var p = Math.pow(10, Math.floor(Math.log10(m))), n = m / p;
+      var f = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
+      return f * p;
+    }
+    function chart(maxV, nYears, x0, x1, y0, y1) {
+      var ymax = niceMax(maxV);
+      var X = function (t) { return x0 + (t / nYears) * (x1 - x0); };
+      var Y = function (v) { return y1 - (v / ymax) * (y1 - y0); };
+      var grid = [];
+      for (var i = 0; i <= 4; i++) { var gv = ymax * i / 4; grid.push({ y: Y(gv).toFixed(1), label: i === 0 ? 'R$ 0' : money(gv) }); }
+      return { X: X, Y: Y, grid: grid };
+    }
+    function pts(arr, X, Y, n) { var o = []; for (var i = 0; i < (n || arr.length); i++) o.push(X(i).toFixed(1) + ',' + Y(arr[i]).toFixed(1)); return o.join(' '); }
+
+    var c1 = chart(Math.max.apply(null, hi.concat(real)), T, 70, 744, 30, 306);
+    var band = pts(hi, c1.X, c1.Y);
+    var loRev = []; for (var i = lo.length - 1; i >= 0; i--) loRev.push(c1.X(i).toFixed(1) + ',' + c1.Y(lo[i]).toFixed(1));
+    var step1 = T > 40 ? 10 : 5, xt1 = [];
+    for (var y = 0; y <= T; y += step1) xt1.push({ x: c1.X(y).toFixed(1), label: String(START + y) });
+    var ux = c1.X(s.anosAporte);
+    var lastX = c1.X(hoje), lastY = c1.Y(real[hoje]);
+    var t = {
+      grid: c1.grid, xticks: xt1, band: band + ' ' + loRev.join(' '),
+      hi: pts(hi, c1.X, c1.Y), lo: pts(lo, c1.X, c1.Y), real: pts(real, c1.X, c1.Y),
+      ux: ux.toFixed(1), uxl: (ux + 6 > 600 ? ux - 170 : ux + 6).toFixed(1), uyear: String(START + s.anosAporte),
+      lastX: lastX.toFixed(1), lastY: lastY.toFixed(1), lastLx: (lastX + 8).toFixed(1), lastLy: (lastY - 8).toFixed(1)
+    };
+    var BAR_H = 0;
+    t.uw = Math.max(0, 744 - ux).toFixed(1);
+    t.presShow = !!s.perpetuo; t.presY = c1.Y(lo[s.anosAporte]).toFixed(1); t.presLy = (c1.Y(lo[s.anosAporte]) - 6).toFixed(1);
+    t.fimShow = lo.fim >= 0;
+    if (t.fimShow) { var fx = c1.X(lo.fim + 1); t.fimX = fx.toFixed(1); t.fimY = c1.Y(0).toFixed(1); t.fimLx = (fx > 620 ? fx - 150 : fx + 8).toFixed(1); t.fimLy = (c1.Y(0) - BAR_H - 22).toFixed(1); t.fimTxt = 'Pessimista esgota em ' + (START + lo.fim + 1); }
+
+    var c2 = chart(Math.max.apply(null, real.concat(aport)), hoje, 70, 744, 20, 268);
+    var nb = hoje + 1, slot = (744 - 70) / nb, bw = slot * 0.62, aw = bw * 0.5, base = c2.Y(0);
+    var xt2 = [], bars = [];
+    for (var j = 0; j <= hoje; j++) {
+      var cx = 70 + slot * (j + 0.5);
+      xt2.push({ x: cx.toFixed(1), label: String(START + j) });
+      var ay = c2.Y(Math.min(aport[j], real[j])), gy = c2.Y(Math.max(real[j], aport[j]));
+      bars.push({
+        x: (cx - bw / 2).toFixed(1), w: bw.toFixed(1),
+        ay: ay.toFixed(1), ah: (base - ay).toFixed(1),
+        gy: gy.toFixed(1), gh: (real[j] > aport[j] ? ay - gy : 0).toFixed(1)
+      });
+    }
+    var a = {
+      grid: c2.grid, xticks: xt2, bars: bars,
+      totAport: brl(aport[hoje]), totReal: brl(real[hoje]), totGain: '+' + brl(real[hoje] - aport[hoje])
+    };
+
+    var lowNow = lo[hoje], hiNow = hi[hoje], rNow = real[hoje];
+    var status;
+    if (hoje > s.anosAporte + USU) status = { title: 'Fora do período do plano', detail: '', bg: '#E8EEF3', ink: '#1F3247', dot: '#8A96A3' };
+    else if (rNow < lowNow) status = { title: 'Abaixo do túnel', detail: 'Faltam ' + brl(lowNow - rNow) + ' para a borda pessimista', bg: '#FBE9E7', ink: '#8E1F17', dot: '#D93A32' };
+    else if (rNow > hiNow) status = { title: 'Acima do túnel', detail: brl(rNow - hiNow) + ' acima da borda otimista', bg: '#E5F2E8', ink: '#1F5A2E', dot: '#3C8A50' };
+    else status = { title: 'Dentro do túnel', detail: 'Plano em dia em ' + (START + hoje), bg: '#E8EEF3', ink: '#1F3247', dot: '#4F6680' };
+
+    var pl = lo[s.anosAporte], ph = hi[s.anosAporte];
+    var cards = [
+      { label: 'Patrimônio no início do usufruto', value: money(pl) + ' a ' + money(ph), sub: 'em ' + (START + s.anosAporte) + ', valores de hoje' },
+      { label: 'Retirada mensal bruta', value: brl(pl * s.retirada / 100 / 12) + ' a ' + brl(ph * s.retirada / 100 / 12), sub: pctTxt(s.retirada) + ' ao ano sobre o patrimônio inicial do usufruto' },
+      { label: 'Patrimônio real hoje', value: brl(rNow), sub: 'faixa do plano para ' + (START + hoje) + ': ' + money(lowNow) + ' a ' + money(hiNow) }
+    ];
+
+    var fimAno = START + T;
+    var endLo = lo[T], endHi = hi[T];
+    var sust;
+    if (lo.fim >= 0) sust = { t: 'No cenário pessimista o patrimônio se esgota em ' + (START + lo.fim + 1) + ', antes do fim do período exibido. Reduza a retirada, aumente os aportes ou os anos de aporte.', ink: '#B42318' };
+    else if (endLo < lo[s.anosAporte]) sust = { t: 'Em ' + fimAno + ' o patrimônio fica entre ' + money(endLo) + ' e ' + money(endHi) + '. No cenário pessimista ele diminui ao longo do usufruto, mas não se esgota.', ink: '#8A5A00' };
+    else sust = { t: 'Em ' + fimAno + ' o patrimônio fica entre ' + money(endLo) + ' e ' + money(endHi) + ': mesmo no cenário pessimista ele se mantém ou cresce.', ink: '#2E6B3F' };
+    var cen = [{ nome: 'Otimista', taxa: pctTxt(otim) + ' a.a.', w: hi.wd }, { nome: 'Pessimista', taxa: pctTxt(pess) + ' a.a.', w: lo.wd }];
+    var wd = { ano: String(START + s.anosAporte),
+      grupos: [
+        { titulo: 'Retirada anual', linhas: cen.map(function (c) { return { nome: c.nome, taxa: c.taxa, v: brl(c.w) }; }) },
+        { titulo: 'Retirada mensal', linhas: cen.map(function (c) { return { nome: c.nome, taxa: c.taxa, v: brl(c.w / 12) }; }) }
+      ], sust: sust.t, sustInk: sust.ink };
+
+    function on(key) { return function (e) { var v = Number(e.target.value); var u = {}; u[key] = v; self.setState(u); }; }
+    var sliders = [
+      { id: 'sl-ini', label: 'Patrimônio inicial', min: 0, max: 500000, step: 10000, val: s.inicial, shown: brl(s.inicial), on: on('inicial') },
+      { id: 'sl-apo', label: 'Aporte mensal', min: 500, max: 30000, step: 500, val: s.aporte, shown: brl(s.aporte), on: on('aporte') },
+      { id: 'sl-aa', label: 'Anos de aporte', min: 8, max: 40, step: 1, val: s.anosAporte, shown: s.anosAporte + ' anos (até ' + (START + s.anosAporte) + ')', on: on('anosAporte') },
+      { id: 'sl-au', label: 'Anos de usufruto', min: 10, max: 50, step: 1, val: s.anosUsufruto, shown: s.anosUsufruto + ' anos', on: on('anosUsufruto') },
+      { id: 'sl-ret', label: 'Retirada anual bruta', min: 2, max: 6, step: 0.25, val: s.retirada, shown: pctTxt(s.retirada), on: on('retirada') },
+      { id: 'sl-pes', label: 'Rentabilidade real pessimista', min: 0, max: 8, step: 0.5, val: s.pess, shown: pctTxt(pess) + ' ao ano', on: on('pess') },
+      { id: 'sl-oti', label: 'Rentabilidade real otimista', min: 1, max: 10, step: 0.5, val: s.otim, shown: pctTxt(otim) + ' ao ano', on: on('otim') }
+    ];
+
+    try { window.localStorage.setItem('cp-regras', JSON.stringify(s.reg)); } catch (e) {}
+    function setR(k, isBool) { return function (e) { var v = isBool ? e.target.checked : Number(e.target.value); self.setState(function (st) { var o = Object.assign({}, st.reg); o[k] = v; return { reg: o }; }); }; }
+    var R = s.reg;
+    var regras = [
+      { titulo: 'Proteção nas quedas', on: R.protOn, toggle: setR('protOn', true), op: R.protOn ? 1 : 0.45, l1: 'Abaixo do pico', v1: R.queda, on1: setR('queda'), l2: 'Redução', v2: R.corte, on2: setR('corte'),
+        desc: 'Queda maior que ' + R.queda + '% do pico: sugere reduzir a retirada em ' + R.corte + '%, até a carteira recuperar o pico.' },
+      { titulo: 'Aumento quando a carteira cresce', on: R.altaOn, toggle: setR('altaOn', true), op: R.altaOn ? 1 : 0.45, l1: 'Retirada abaixo de', v1: R.gatilho, on1: setR('gatilho'), l2: 'Aumento', v2: R.aumento, on2: setR('aumento'),
+        desc: 'Revisão anual: se a retirada ficar abaixo de ' + R.gatilho + '% do saldo, sugere aumentá-la em ' + R.aumento + '%.' }
+    ];
+    var CAMPOS = ['inicial', 'aporte', 'anosAporte', 'anosUsufruto', 'retirada', 'pess', 'otim', 'perpetuo'];
+    var vAt = s.versoes[s.vendo != null ? s.vendo : s.atual];
+    function carregar(i, extra) { var o = Object.assign({}, s.versoes[i].p, extra || {}); self.setState(o); }
+    var alterado = CAMPOS.some(function (k) { return s[k] !== vAt.p[k]; });
+    function snap() { var o = {}; CAMPOS.forEach(function (k) { o[k] = s[k]; }); return o; }
+    var meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'], hj = new Date(), dataHoje = meses[hj.getMonth()] + '/' + hj.getFullYear();
+    function resumoP(p) { return 'Aporte ' + brl(p.aporte) + '/mês por ' + p.anosAporte + ' anos · retirada ' + pctTxt(p.retirada) + ' · rentabilidade ' + pctTxt(p.pess) + ' a ' + pctTxt(p.otim) + ' a.a.'; }
+    var mud = CAMPOS.filter(function (k) { return s[k] !== vAt.p[k]; }).map(function (k) { return { inicial: 'patrimônio inicial', aporte: 'aporte mensal', anosAporte: 'anos de aporte', anosUsufruto: 'anos de usufruto exibidos', retirada: 'retirada', pess: 'rentabilidade pessimista', otim: 'rentabilidade otimista', perpetuo: 'tipo de usufruto' }[k]; });
+    var versoes = s.versoes.map(function (v, i) { var vis = s.vendo === i; return { n: v.n, data: v.data + (v.editada ? ' (atualizada em ' + v.editada + ')' : ''), resumo: resumoP(v.p), tag: i === s.atual ? 'em uso' : (vis ? 'visualizando' : 'ver'), ink: i === s.atual ? '#2E6B3F' : '#1A4A82', bg: vis ? '#EAF1F9' : 'transparent', abrir: function () { if (i === s.atual) carregar(i, { vendo: null }); else carregar(i, { vendo: i }); } }; }).reverse();
+    var extra = {
+      versaoTxt: 'Plano versão ' + s.versoes[s.atual].n + ' · criada em ' + s.versoes[s.atual].data, vendoAntiga: s.vendo != null, naoVendo: s.vendo == null, vendoN: vAt.n, vendoData: vAt.data,
+      voltarAtual: function () { carregar(s.atual, { vendo: null }); }, usarVendo: function () { self.setState({ atual: s.vendo, vendo: null }); }, alterado: alterado, semAlteracao: !alterado, btnBg: alterado ? '#1F3247' : '#A3ACB6', btnCursor: alterado ? 'pointer' : 'default',
+      versoes: versoes, nVersoes: s.versoes.length, dlg: s.dlg, versaoAtual: s.versoes[s.atual].n, versaoNova: s.versoes.length + 1,
+      dlgResumo: 'Você alterou: ' + mud.join(', ') + '.',
+      abrirSalvar: function () { if (alterado) self.setState({ dlg: true }); }, fecharDlg: function () { self.setState({ dlg: false }); },
+      salvarSobrescrever: function () { self.setState(function (st) { var vs = st.versoes.slice(); vs[st.atual] = Object.assign({}, vs[st.atual], { p: snap(), editada: dataHoje }); return { versoes: vs, dlg: false }; }); },
+      salvarNova: function () { self.setState(function (st) { var vs = st.versoes.concat([{ n: st.versoes.length + 1, data: dataHoje, p: snap() }]); return { versoes: vs, atual: vs.length - 1, dlg: false }; }); }
+    };
+    if (s.perpetuo) sliders = sliders.filter(function (x) { return x.id !== 'sl-au'; });
+    var maxPerp = pess / (100 + pess) * 100, maxPerpO = otim / (100 + otim) * 100;
+    function pct1(v) { return v.toFixed(1).replace('.', ',') + '%'; }
+    var perp = { show: s.perpetuo };
+    if (s.retirada <= maxPerp + 1e-9) perp = Object.assign(perp, { bg: '#EEF6F0', ink: '#1F5A2E', titulo: 'Perpétua mesmo no cenário pessimista', texto: 'Com retirada de ' + pctTxt(s.retirada) + ' ao ano, o patrimônio se mantém em termos reais mesmo rendendo ' + pctTxt(pess) + ' acima da inflação.' });
+    else if (s.retirada <= maxPerpO + 1e-9) perp = Object.assign(perp, { bg: '#FFF6DB', ink: '#8A5A00', titulo: 'Perpétua só no cenário otimista', texto: 'No cenário pessimista o patrimônio diminui aos poucos. Para ser perpétua também nele, a retirada máxima é ' + pct1(maxPerp) + ' ao ano (' + brl(lo[s.anosAporte] * maxPerp / 100 / 12) + ' por mês).' });
+    else perp = Object.assign(perp, { bg: '#FDECEA', ink: '#8E1F17', titulo: 'Não é perpétua', texto: 'A retirada é maior que o rendimento real nos dois cenários. Para ser perpétua no pessimista, a retirada máxima é ' + pct1(maxPerp) + ' ao ano (' + brl(lo[s.anosAporte] * maxPerp / 100 / 12) + ' por mês).' });
+    var modos = [['perp', 'Perpétuo', true], ['prazo', 'Com prazo', false]].map(function (m) { var on = s.perpetuo === m[2]; return { label: m[1], on: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', ink: on ? '#15202B' : '#4A5A6B', go: function () { self.setState({ perpetuo: m[2] }); } }; });
+    return { perp: perp, modos: modos, vendoAntiga: extra.vendoAntiga, naoVendo: extra.naoVendo, vendoN: extra.vendoN, vendoData: extra.vendoData, voltarAtual: extra.voltarAtual, usarVendo: extra.usarVendo, versaoTxt: extra.versaoTxt, alterado: extra.alterado, semAlteracao: extra.semAlteracao, btnBg: extra.btnBg, btnCursor: extra.btnCursor, versoes: extra.versoes, nVersoes: extra.nVersoes, dlg: extra.dlg, versaoAtual: extra.versaoAtual, versaoNova: extra.versaoNova, dlgResumo: extra.dlgResumo, abrirSalvar: extra.abrirSalvar, fecharDlg: extra.fecharDlg, salvarSobrescrever: extra.salvarSobrescrever, salvarNova: extra.salvarNova,
+      regras: regras, wd: wd, status: status, cards: cards, sliders: sliders, t: t, a: a, pessTxt: pctTxt(pess), otimTxt: pctTxt(otim) };
+  }
+}
+</script>
+</body>
+</html>

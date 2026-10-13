@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen, ClipboardList, Target, Landmark, type LucideIcon } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp, PieChart, Target, type LucideIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,22 +25,7 @@ const EXPENSES_NAV: NavItem[] = [
 
 const INVESTMENTS_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
-  {
-    label: "Ações", icon: TrendingUp, children: [
-      { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
-      { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
-      { href: "/investments/indicators", label: "Indicadores", icon: Activity },
-      { href: "/investments/analyses", label: "Análises", icon: BookOpen },
-      { href: "/investments/operations", label: "Operações", icon: ClipboardList },
-    ],
-  },
-  {
-    label: "Renda Fixa", icon: Landmark, children: [
-      { href: "/investments/fixed-income/quotes", label: "Cotações", icon: DollarSign },
-      { href: "/investments/fixed-income/operations", label: "Operações", icon: ClipboardList },
-    ],
-  },
-  { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
+  { href: "/investments", label: "Visão geral", icon: PieChart, exact: true },
   { href: "/investments/settings", label: "Config.", icon: Settings },
 ];
 

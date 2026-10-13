@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, House, TrendingUp, DollarSign, Activity, AreaChart, Briefcase, BookOpen, ClipboardList, Target, Landmark, ChevronDown, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, PieChart, Target, ChevronDown, type LucideIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type NavLeaf = { href: string; label: string; icon: LucideIcon; exact?: boolean };
@@ -23,22 +23,7 @@ const EXPENSES_NAV: NavItem[] = [
 
 const INVESTMENTS_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
-  {
-    label: "Ações", icon: TrendingUp, children: [
-      { href: "/investments/quotes", label: "Cotações", icon: DollarSign },
-      { href: "/investments/charts", label: "Gráficos", icon: AreaChart },
-      { href: "/investments/indicators", label: "Indicadores", icon: Activity },
-      { href: "/investments/analyses", label: "Análises", icon: BookOpen },
-      { href: "/investments/operations", label: "Operações", icon: ClipboardList },
-    ],
-  },
-  {
-    label: "Renda Fixa", icon: Landmark, children: [
-      { href: "/investments/fixed-income/quotes", label: "Cotações", icon: DollarSign },
-      { href: "/investments/fixed-income/operations", label: "Operações", icon: ClipboardList },
-    ],
-  },
-  { href: "/investments/portfolio", label: "Carteira", icon: Briefcase },
+  { href: "/investments", label: "Visão geral", icon: PieChart, exact: true },
   { href: "/investments/settings", label: "Configurações", icon: Settings },
 ];
 

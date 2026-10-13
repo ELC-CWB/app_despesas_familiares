@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Carteira Perpétua — Visão geral</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F5F7}
+a{color:#2F4A66}a:hover{color:#1C2F43}
+button{font:inherit}
+@media (max-width: 640px){.pg{padding:20px 12px 32px !important}.pg section{padding:16px !important;border-radius:14px !important}.pg h1{font-size:24px !important}}@media (max-width: 640px){.rp-min{min-width:0 !important}.rp-grid{grid-template-columns:minmax(0,1fr) 48px 48px 56px !important;column-gap:10px !important}.rp-hide{display:none !important}}
+.nav-top a{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:9px;font-size:14px;font-weight:600;text-decoration:none;color:#4A5A6B}.nav-top a:hover{background:#E3E8ED;color:#15202B}.nav-top a[aria-current="page"]{background:#1F3247;color:#FFFFFF}.nav-bot{display:none}
+@media (max-width: 640px){.nav-top .nav-links{display:none !important}.pg{padding-bottom:96px !important}.nav-bot{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#FFFFFF;border-top:1px solid #E3E8ED;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}.nav-bot a{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center;font-size:11px;font-weight:600;text-decoration:none;color:#6B7885;border-radius:10px}.nav-bot a[aria-current="page"]{color:#1F3247;background:#EAF1F9}}
+</style>
+</helmet>
+<div class="pg" style="min-height: 100vh; background: #F3F5F7; color: #15202B; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box; padding: 32px 20px 48px">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; position: relative">
+<nav class="nav-bot" aria-label="Navegação principal">
+<a href="Main.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"></path><path d="M14.5 2.5a8 8 0 0 1 7 7h-7z"></path></svg><span>Visão geral</span></a>
+<a href="Plano.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"></path><path d="M4 16l5-5 4 3 7-8"></path></svg><span>Plano</span></a>
+<a href="Movimentacoes.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v14"></path><path d="M3 14l4 4 4-4"></path><path d="M17 20V6"></path><path d="M13 10l4-4 4 4"></path></svg><span>Movimentações</span></a>
+<a href="Configuracoes.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg><span>Configurações</span></a>
+</nav>
+<nav class="nav-top" aria-label="Navegação principal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1F3247">Carteira Perpétua</div>
+<div class="nav-links" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E3E8ED">
+<a href="Main.dc.html" aria-current="page">Visão geral</a>
+<a href="Plano.dc.html">Plano</a>
+<a href="Movimentacoes.dc.html">Movimentações</a>
+<a href="Configuracoes.dc.html">Configurações</a>
+</div>
+<div title="Dólar comercial de hoje (08/10/2026), usado para converter os ativos no exterior. As projeções mantêm o câmbio real constante." style="font-size: 11px; color: #6B7885; white-space: nowrap">US$ 1 = <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #33414F">R$ 5,01</span></div>
+</nav>
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.01em">Visão geral</h1>
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #4A5A6B"><span>{{atualizTxt}} · dados fictícios</span><button type="button" onClick="{{atualizar}}" title="Busca as cotações mais recentes. Os dados têm atraso de até 15 minutos em relação à bolsa." style="display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid #C9D1D9; border-radius: 8px; background: #FFFFFF; color: #1F3247; font-size: 12px; font-weight: 600; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>{{atualizBtn}}</button></div>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+<div style="font-size: 13px; color: #4A5A6B">Patrimônio total</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500">{{totalFmt}}</div>
+</div>
+</header>
+
+<div style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 12px; background: {{bannerBg}}; color: {{bannerInk}}">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 15px; font-weight: 600">{{bannerTitle}}</div>
+<div style="font-size: 13px">{{bannerDetail}}</div>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+
+<section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Alocação planejada</h2>
+</div>
+
+<div style="position: relative; width: 100%; max-width: 420px; aspect-ratio: 1 / 1; margin: 0 auto; container-type: inline-size">
+<svg viewBox="0 0 400 400" style="width: 100%; height: 100%; display: block; font-family: 'IBM Plex Sans', system-ui, sans-serif" role="img" aria-label="Gráfico de alocação por geografia, bloco e ativo, com os desvios fora da banda em vermelho">
+<defs>
+<pattern id="hatchRed" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3.5" height="7" fill="#D93A32"></rect></pattern>
+</defs>
+<sc-for list="{{segs}}" as="s" hint-placeholder-count="14">
+<g opacity="{{s.op}}" style="cursor: pointer" onMouseEnter="{{s.enter}}" onMouseLeave="{{s.leave}}" onClick="{{s.tap}}">
+<path d="{{s.d}}" fill="{{s.fill}}" stroke="#FFFFFF" stroke-width="2"></path>
+<sc-if value="{{s.hasOv}}" hint-placeholder-val="{{ false }}">
+<path d="{{s.ov}}" fill="{{s.ovFill}}" stroke="#FFFFFF" stroke-width="1"></path>
+</sc-if>
+</g>
+</sc-for>
+</svg>
+<sc-for list="{{chars}}" as="c" hint-placeholder-count="60">
+<div style="position: absolute; left: {{c.left}}; top: {{c.top}}; transform: translate(-50%, -50%) rotate({{c.rot}}deg); pointer-events: none; font-family: 'IBM Plex Mono', monospace; font-size: calc({{c.fs}} * 0.25cqw); font-weight: 600; line-height: 1; white-space: pre; color: {{c.ink}}; opacity: {{c.op}}">{{c.ch}}</div>
+</sc-for>
+<sc-if value="{{tip.show}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: {{tip.left}}; top: {{tip.top}}; transform: translate(-50%, calc(-100% - 14px)); pointer-events: none; z-index: 2; background: #15202B; color: #FFFFFF; border-radius: 8px; padding: 8px 12px; white-space: nowrap; box-shadow: 0 4px 14px rgba(21, 32, 43, 0.25); display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 12px; font-weight: 700">{{tip.name}}</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">{{tip.pct}} · {{tip.valor}}</div>
+<div style="font-size: 11px; color: #C9D1D9">alvo {{tip.alvo}}</div>
+</div>
+</sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: #33414F">
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 14px">
+<sc-for list="{{legend}}" as="l" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 6px; font-weight: {{l.weight}}"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background: {{l.color}}"></span>{{l.name}}</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 14px">
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background: #D93A32"></span>Excesso fora da banda</div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background: repeating-linear-gradient(45deg, #D93A32 0 3px, #FFFFFF 3px 6px); border: 1px solid #E49A95; box-sizing: border-box"></span>Falta fora da banda</div>
+</div>
+</div>
+
+<div style="margin: auto 0; display: flex; flex-direction: column; gap: 8px">
+<sc-if value="{{faseAcum}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-radius: 12px; background: #F3F5F7; margin: 0">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B">Próximo aporte</div>
+<div style="font-size: 18px; font-weight: 700">{{next.name}}</div>
+<div style="font-size: 13px; color: #33414F">Faltam {{next.falta}} para o alvo</div>
+</div>
+<a href="Movimentacoes.dc.html?op=compra&amp;ativo={{next.name}}" onClick="{{irCompra}}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 10px; background: #1F3247; color: #FFFFFF; font-size: 14px; font-weight: 600; white-space: nowrap; flex: none; text-decoration: none; cursor: pointer">Registrar aporte</a>
+</div>
+</sc-if>
+<sc-if value="{{faseUsu}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 12px; background: #FBF3E6">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #8A5A00">Saque deste mês · {{saque.mes}}</div>
+<div style="font-size: 18px; font-weight: 700">{{saque.valor}} <span style="font-weight: 500; color: #4A5A6B">de</span> {{saque.ativo}}</div>
+<div style="font-size: 13px; color: #33414F">{{saque.motivo}}</div>
+</div>
+<a href="Movimentacoes.dc.html?op=venda&amp;ativo={{saque.ativo}}&amp;valor={{saque.bruto}}" onClick="{{irVenda}}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 10px; background: #1F3247; color: #FFFFFF; font-size: 14px; font-weight: 600; white-space: nowrap; flex: none; text-decoration: none">Registrar venda</a>
+</div>
+<sc-if value="{{ajuste.show}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; background: {{ajuste.bg}}; border: 1px solid {{ajuste.border}}">
+<div style="font-size: 13px; font-weight: 700; color: {{ajuste.ink}}">{{ajuste.titulo}}</div>
+<div style="font-size: 13px; color: #33414F; line-height: 1.5">{{ajuste.texto}}</div>
+<sc-if value="{{ajuste.pendente}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{ajuste.aceitar}}" style="min-height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: #1F3247; color: #FFFFFF; font-size: 13px; font-weight: 600; cursor: pointer">{{ajuste.btn}}</button>
+<button type="button" onClick="{{ajuste.recusar}}" style="min-height: 36px; padding: 0 14px; border: 1px solid #C9D1D9; border-radius: 8px; background: #FFFFFF; color: #33414F; font-size: 13px; font-weight: 600; cursor: pointer">{{ajuste.btn2}}</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: #4A5A6B; border-top: 1px solid #EBDDC4; padding-top: 8px">
+<span>Retirada bruta: {{saque.valor}}</span><span>IR estimado: {{saque.ir}}</span><span>Líquido estimado: <strong style="color: #15202B">{{saque.liq}}</strong></span>
+</div>
+<details style="font-size: 12px; color: #4A5A6B">
+<summary style="cursor: pointer; font-weight: 600; color: #33414F">Como o ativo é escolhido</summary>
+<ol style="margin: 6px 0 0; padding-left: 18px; line-height: 1.6">
+<li>Ativo negociado no Brasil mais acima do alvo, sem custo de câmbio.</li>
+<li>Se nenhum estiver acima do alvo, ativo no exterior mais acima do alvo, com custo de câmbio na volta.</li>
+<li>{{saque.passo3}}</li>
+</ol>
+</details>
+</div>
+</sc-if>
+<div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 11px; color: #6B7885">
+<sc-if value="{{faseUsu}}" hint-placeholder-val="{{ false }}"><span>Mercado:</span>
+<div style="display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: #E3E8ED; margin-right: 8px">
+<sc-for list="{{cenarios}}" as="f" hint-placeholder-count="3"><button type="button" onClick="{{f.go}}" aria-pressed="{{f.on}}" style="min-height: 26px; padding: 0 10px; border: 0; border-radius: 6px; background: {{f.bg}}; color: {{f.ink}}; font-size: 11px; font-weight: 600; cursor: pointer">{{f.label}}</button></sc-for>
+</div></sc-if>
+<span>Simular fase:</span>
+<div style="display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: #E3E8ED">
+<sc-for list="{{fases}}" as="f" hint-placeholder-count="2"><button type="button" onClick="{{f.go}}" aria-pressed="{{f.on}}" style="min-height: 26px; padding: 0 10px; border: 0; border-radius: 6px; background: {{f.bg}}; color: {{f.ink}}; font-size: 11px; font-weight: 600; cursor: pointer">{{f.label}}</button></sc-for>
+</div>
+</div>
+</div>
+</section>
+
+<section style="flex: 999 1 640px; min-width: 0; background: #FFFFFF; border-radius: 16px; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Real x planejado</h2>
+</div>
+<div style="overflow-x: auto">
+<div class="rp-min" style="min-width: 620px; display: flex; flex-direction: column">
+<div class="rp-grid" style="display: grid; grid-template-columns: minmax(150px, 1.6fr) minmax(52px, 0.6fr) minmax(52px, 0.6fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(64px, 0.7fr); gap: 4px 20px; padding: 6px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; border-bottom: 1px solid #D9DFE5">
+<div>Geografia / Bloco / Ativo</div>
+<div style="text-align: right">Alvo</div>
+<div style="text-align: right">Real</div>
+<div class="rp-hide" style="text-align: right">Valor atual</div>
+<div class="rp-hide" style="text-align: right">Diferença</div>
+<div style="text-align: right">Desvio em p.p.</div>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="14">
+<div class="rp-grid" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}" style="display: grid; grid-template-columns: minmax(150px, 1.6fr) minmax(52px, 0.6fr) minmax(52px, 0.6fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(64px, 0.7fr); gap: 0 20px; align-items: center; padding: {{r.pad}}; border-top: {{r.border}}; background: {{r.bg}}; font-size: {{r.size}}">
+<div style="display: flex; align-items: center; gap: 8px; padding-left: {{r.indent}}">
+<span style="width: 10px; height: 10px; border-radius: 3px; flex: none; background: {{r.swatch}}"></span>
+<button type="button" onClick="{{r.tap}}" style="border: 0; background: transparent; padding: 0; min-height: 24px; line-height: 1.2; text-align: left; color: {{r.ink}}; font-weight: {{r.weight}}; text-transform: {{r.case}}; letter-spacing: {{r.track}}; cursor: pointer">{{r.name}}</button>
+</div>
+<div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{r.ink}}">{{r.alvo}}</div>
+<div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: {{r.weight}}; color: {{r.ink}}">{{r.real}}</div>
+<div class="rp-hide" style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{r.ink}}">{{r.valor}}</div>
+<div class="rp-hide" style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{r.devInk}}">{{r.dif}}</div>
+<div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{r.devInk}}">{{r.desvio}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+<details style="font-size: 12px; color: #4A5A6B"><summary style="cursor: pointer; font-weight: 600; color: #33414F; width: fit-content">Como ler o gráfico</summary><div style="margin-top: 6px; line-height: 1.5">Cada fatia tem o tamanho planejado. Desvios dentro da banda são tolerados e não aparecem no gráfico. Fora da banda, a parte vermelha no fim da fatia mostra o tamanho do desvio: sólida quando sobra, listrada quando falta. A correção sugerida é sempre pelo próximo aporte.</div></details>
+</section>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { hover: null, pinned: null, rev: 0, fase: 'acumulacao', cenario: 'normal', ajusteDec: '', atualizHora: '', atualizando: false };
+    var self = this;
+    try { window.addEventListener('storage', function (e) { if (!e || e.key === 'cp-estrutura') self.setState({ rev: Date.now() }); }); } catch (e) {}
+  }
+  renderVals() {
+    var self = this;
+    var total = 850000;
+    var RED = '#D93A32';
+    var geos = [
+      { id: 'geo-gl', name: 'Global', color: '#8EB6E3', ink: '#1A4A82' },
+      { id: 'geo-br', name: 'Brasil', color: '#8DCB9F', ink: '#1C6436' }
+    ];
+    var blocks = [
+      { id: 'ext', geo: 'geo-gl', name: 'Ações globais', short: 'Ações', alvo: 50, half: 5, color: '#BCD5F1' },
+      { id: 'alt', geo: 'geo-gl', name: 'Alternativos', short: 'Altern.', alvo: 5, half: 2.5, color: '#DDE9F8' },
+      { id: 'acb', geo: 'geo-br', name: 'Ações Brasil', short: 'Ações', alvo: 20, half: 5, color: '#A9D9B6' },
+      { id: 'rf', geo: 'geo-br', name: 'Renda fixa', alvo: 25, half: 5, color: '#C6E8CF' }
+    ];
+    // Estrutura salva em Configurações (geografias, cores e blocos)
+    var PAL = { azul: ['#8EB6E3', '#1A4A82'], verde: ['#8DCB9F', '#1C6436'], laranja: ['#F2B880', '#8A4B0F'], roxo: ['#C3A8E0', '#4E2C7A'], rosa: ['#EBA6B9', '#8A2846'], turquesa: ['#85CFCB', '#145C58'], amarelo: ['#E8D27A', '#6B5500'], cinza: ['#A9B8C6', '#33414F'] };
+    function mixW(hex, t) { var r = [1, 3, 5].map(function (i) { var v = parseInt(hex.slice(i, i + 2), 16); return Math.round(v + (255 - v) * t).toString(16).padStart(2, '0'); }); return '#' + r.join(''); }
+    var cfg = null;
+    try { cfg = JSON.parse(window.localStorage.getItem('cp-estrutura') || 'null'); } catch (e) {}
+    if (cfg && cfg.geos && cfg.blocos) {
+      var halfDe = {}; blocks.forEach(function (b) { halfDe[b.id] = b.half; });
+      geos = cfg.geos.map(function (g) { var p = PAL[g.cor] || PAL.cinza; return { id: 'geo-' + g.id, name: g.nome || 'Sem nome', color: p[0], ink: p[1] }; });
+      var tons = {};
+      cfg.geos.forEach(function (g) { var bs = cfg.blocos.filter(function (b) { return b.geo === g.id; }); bs.forEach(function (b, i) { tons[b.id] = mixW((PAL[g.cor] || PAL.cinza)[0], bs.length > 1 ? 0.3 + 0.4 * i / (bs.length - 1) : 0.4); }); });
+      blocks = cfg.blocos.map(function (b) { return { id: b.id, geo: 'geo-' + b.geo, name: b.nome || 'Sem nome', short: b.curto || undefined, half: halfDe[b.id] != null ? halfDe[b.id] : 5, color: tons[b.id] || '#E3E8ED' }; });
+    }
+    var assets = [
+      { id: 'VALU', block: 'ext', alvo: 30, real: 33.6, rel: 0.25 },
+      { id: 'IWVL', block: 'ext', alvo: 10, real: 11.2, rel: 0.25 },
+      { id: 'IWQU', block: 'ext', alvo: 10, real: 8.5, rel: 0.25 },
+      { id: 'QLBR11', block: 'acb', alvo: 20, real: 16.5, rel: 0.25 },
+      { id: 'LFTS11', block: 'rf', alvo: 10, real: 10.6, rel: 0.25 },
+      { id: 'B5MB11', block: 'rf', alvo: 15, real: 12.5, rel: 0.25 },
+      { id: 'GOLD11', block: 'alt', alvo: 2.5, real: 3.0, rel: 0.5 },
+      { id: 'HODL11', block: 'alt', alvo: 2.5, real: 4.1, rel: 0.5 }
+    ];
+    function num(v, d) { return v.toFixed(d).replace('.', ','); }
+    function pct(v) { return num(v, 1) + '%'; }
+    function pp(v) { var s = num(v, 2); s = s.replace(/0+$/, '').replace(/,$/, ''); return s; }
+    function brl(v) { return 'R$ ' + Math.round(Math.abs(v)).toLocaleString('pt-BR'); }
+    function signed(v, txt) { return (v > 0.0001 ? '+' : (v < -0.0001 ? '−' : '')) + txt; }
+
+    blocks.forEach(function (b) { b.alvo = assets.filter(function (x) { return x.block === b.id; }).reduce(function (t, x) { return t + x.alvo; }, 0); });
+    blocks = blocks.filter(function (b) { return b.alvo > 0; });
+    geos = geos.filter(function (g) { return blocks.some(function (b) { return b.geo === g.id; }); });
+    var parent = {}, children = {};
+    geos.forEach(function (g) {
+      g.items = blocks.filter(function (b) { return b.geo === g.id; });
+      children[g.id] = g.items.map(function (b) { return b.id; });
+    });
+    blocks.forEach(function (b) {
+      parent[b.id] = b.geo;
+      b.ink = geos.filter(function (g) { return g.id === b.geo; })[0].ink;
+      b.items = assets.filter(function (a) { return a.block === b.id; });
+      children[b.id] = b.items.map(function (a) { return a.id; });
+      b.real = b.items.reduce(function (s, a) { return s + a.real; }, 0);
+      b.out = Math.abs(b.real - b.alvo) > b.half;
+      b.items.forEach(function (a) {
+        parent[a.id] = b.id;
+        a.color = b.color;
+        a.ink = b.ink;
+        a.half = Math.min(5, a.alvo * a.rel);
+        a.out = Math.abs(a.real - a.alvo) > a.half;
+      });
+    });
+    geos.forEach(function (g) {
+      g.alvo = g.items.reduce(function (s, b) { return s + b.alvo; }, 0);
+      g.real = g.items.reduce(function (s, b) { return s + b.real; }, 0);
+      g.out = false;
+    });
+
+    var active = this.state.hover || this.state.pinned;
+    var rel = {};
+    if (active) {
+      rel[active] = true;
+      var up = parent[active];
+      while (up) { rel[up] = true; up = parent[up]; }
+      (function down(id) { (children[id] || []).forEach(function (c) { rel[c] = true; down(c); }); })(active);
+    }
+    function on(id) { return !active || !!rel[id]; }
+    function enter(id) { return function () { self.setState({ hover: id }); }; }
+    function leave() { self.setState({ hover: null }); }
+    function tap(id) { return function () { self.setState(function (s) { return { pinned: s.pinned === id ? null : id }; }); }; }
+
+    var C = 200;
+    function xy(r, deg) { var rad = (deg - 90) * Math.PI / 180; return [C + r * Math.cos(rad), C + r * Math.sin(rad)]; }
+    function p(r, deg) { var q = xy(r, deg); return q[0].toFixed(2) + ' ' + q[1].toFixed(2); }
+    function arc(r0, r1, a0, a1) {
+      var large = (a1 - a0) > 180 ? 1 : 0;
+      return 'M ' + p(r1, a0) + ' A ' + r1 + ' ' + r1 + ' 0 ' + large + ' 1 ' + p(r1, a1) +
+        ' L ' + p(r0, a1) + ' A ' + r0 + ' ' + r0 + ' 0 ' + large + ' 0 ' + p(r0, a0) + ' Z';
+    }
+    function seg(item, r0, r1, a0, a1, minFlat, fsFlat, fsRad, fw) {
+      var dev = item.real - item.alvo;
+      var frac = Math.min(Math.abs(dev) / item.alvo, 1);
+      var span = a1 - a0;
+      var mid = (a0 + a1) / 2;
+      var pt = xy((r0 + r1) / 2, mid);
+      var label = item.short || item.name || item.id;
+      var rm = (r0 + r1) / 2, thick = r1 - r0, rot = 0, show = false, fs = fsFlat, chars = [];
+      var tries = [[1, 1.0], [0.85, 1.0]], stepDeg = 0, totDeg = 0;
+      for (var k = 0; k < tries.length && !show; k++) {
+        fs = fsFlat * tries[k][0];
+        stepDeg = (fs * 0.62 * tries[k][1]) / rm * 180 / Math.PI; totDeg = stepDeg * label.length;
+        show = totDeg <= span - 4 && fs * 1.2 <= thick - 4;
+      }
+      if (!show) fs = fsFlat;
+      if (show) {
+        var bottom = false; // todas as palavras seguem o sentido horário, com o topo das letras voltado para fora
+        for (var ci = 0; ci < label.length; ci++) {
+          var th = bottom ? mid + totDeg / 2 - (ci + 0.5) * stepDeg : mid - totDeg / 2 + (ci + 0.5) * stepDeg;
+          var cp = xy(rm, th);
+          chars.push({ ch: label.charAt(ci), left: (cp[0] / 4).toFixed(2) + '%', top: (cp[1] / 4).toFixed(2) + '%', rot: (bottom ? th - 180 : th).toFixed(1), fs: fs.toFixed(1), ink: item.ink, op: on(item.id) ? '1' : '0.3' });
+        }
+      }
+      return {
+        id: item.id, px: pt[0], py: pt[1],
+        d: arc(r0, r1, a0, a1), fill: item.color,
+        hasOv: !!item.out, ov: arc(r0, r1, a1 - span * frac, a1), ovFill: dev > 0 ? RED : 'url(#hatchRed)',
+        left: (pt[0] / 4).toFixed(2) + '%', top: (pt[1] / 4).toFixed(2) + '%', rotDeg: rot.toFixed(1),
+        fs: fs.toFixed(1), fw: fw, label: label, show: show, ink: item.ink, chars: chars,
+        op: on(item.id) ? '1' : '0.3',
+        enter: enter(item.id), leave: leave, tap: tap(item.id)
+      };
+    }
+
+    var segs = [], ga = 0;
+    geos.forEach(function (g) {
+      var g1 = ga + g.alvo * 3.6;
+      segs.push(seg(g, 34, 78, ga, g1, 50, 14, 9, '700'));
+      var ba = ga;
+      g.items.forEach(function (b) {
+        var b1 = ba + b.alvo * 3.6;
+        segs.push(seg(b, 84, 128, ba, b1, 60, 15, 7.5, '700'));
+        var aa = ba;
+        b.items.forEach(function (a) {
+          var a1 = aa + a.alvo * 3.6;
+          segs.push(seg(a, 134, 180, aa, a1, 30, 13, 10, '600'));
+          aa = a1;
+        });
+        ba = b1;
+      });
+      ga = g1;
+    });
+
+    function mix(a, b, t) { function h(x, i) { return parseInt(x.slice(i, i + 2), 16); } var r = [1, 3, 5].map(function (i) { return Math.round(h(a, i) * (1 - t) + h(b, i) * t).toString(16).padStart(2, '0'); }); return '#' + r.join(''); }
+    function row(item, level, banda, out, first) {
+      var dev = item.real - item.alvo;
+      var isActive = active === item.id;
+      var stInk = out ? '#B42318' : '#4A5A6B';
+      var styles = [
+        { pad: '7px 10px 4px', indent: '0px', weight: '700', size: '12px', cs: 'uppercase', tr: '0.06em' },
+        { pad: '4px 10px', indent: '14px', weight: '700', size: '14px', cs: 'none', tr: 'normal' },
+        { pad: '1px 10px', indent: '30px', weight: '500', size: '14px', cs: 'none', tr: 'normal' }
+      ][level];
+      return {
+        name: item.name || item.id, weight: styles.weight, indent: styles.indent, pad: styles.pad,
+        size: styles.size, 'case': styles.cs, track: styles.tr, swatch: item.color,
+        border: first ? '0' : (level === 0 ? '6px solid #FFFFFF' : '1px solid #FFFFFF'),
+        ink: out ? '#B42318' : '#15202B', bg: (function () { var base = level === 2 ? mix(item.color, '#FFFFFF', 0.55) : item.color; return isActive ? mix(base, '#15202B', 0.10) : (active && !rel[item.id] ? mix(base, '#FFFFFF', 0.45) : base); })(),
+        alvo: pct(item.alvo), banda: banda, real: pct(item.real),
+        desvio: signed(dev, num(Math.abs(dev), 1)), valor: brl(item.real / 100 * total),
+        dif: signed(dev, brl(dev / 100 * total)), devInk: out ? '#B42318' : '#33414F',
+        status: level === 0 ? '—' : (out ? 'Fora da banda' : 'Dentro da banda'),
+        statusInk: level === 0 ? '#9AA6B4' : stInk, statusDot: level === 0 ? 'transparent' : (out ? RED : '#B7C1CB'),
+        enter: enter(item.id), leave: leave, tap: tap(item.id)
+      };
+    }
+    var rows = [];
+    geos.forEach(function (g, gi) {
+      rows.push(row(g, 0, '—', false, gi === 0));
+      g.items.forEach(function (b) {
+        rows.push(row(b, 1, '±' + pp(b.half) + ' p.p.', b.out));
+        b.items.forEach(function (a) { rows.push(row(a, 2, '±' + pp(a.half) + ' p.p.', a.out)); });
+      });
+    });
+
+    var foraA = assets.filter(function (a) { return a.out; });
+    var foraB = blocks.filter(function (b) { return b.out; });
+    var off = foraA.length + foraB.length > 0;
+    var detail = off
+      ? 'Fora da banda: ' + foraB.map(function (b) { return b.name; }).concat(foraA.map(function (a) { return a.id; })).join(', ')
+      : 'Todos os desvios estão dentro das bandas definidas.';
+    // Sugestão de saque (fase de usufruto)
+    var EXT = { VALU: true, IWVL: true, IWQU: true }, GAIN = { VALU: 0.45, IWVL: 0.35, IWQU: 0.05, GOLD11: 0.30, HODL11: 0.40, QLBR11: 0.05, LFTS11: 0.25, B5MB11: 0.20 };
+    var COLCHAO = 'LFTS11';
+    try { var cc = window.localStorage.getItem('cp-colchao'); if (cc !== null) COLCHAO = cc; } catch (e) {}
+    var REG = { protOn: true, queda: 20, corte: 10, altaOn: true, gatilho: 3, aumento: 10 };
+    try { var rg = JSON.parse(window.localStorage.getItem('cp-regras') || 'null'); if (rg) REG = Object.assign(REG, rg); } catch (e) {}
+    var CEN = { normal: { pat: 850000, pico: 868000 }, queda: { pat: 637500, pico: 850000 }, alta: { pat: 1150000, pico: 1150000 } }[self.state.cenario];
+    var baseAnual = Math.round(850000 * 0.035), quedaPct = (1 - CEN.pat / CEN.pico) * 100, pctSaldo = baseAnual / CEN.pat * 100;
+    var ajuste = { show: false }, fator = 1, dec = self.state.ajusteDec;
+    function decidir(v) { return function () { self.setState({ ajusteDec: v }); }; }
+    if (REG.protOn && quedaPct > REG.queda) {
+      var novo = Math.round(baseAnual * (1 - REG.corte / 100) / 12);
+      if (dec === 'aceito') fator = 1 - REG.corte / 100;
+      ajuste = { show: true, pendente: !dec, bg: '#FDECEA', border: '#F2C6BF', ink: '#8E1F17', btn: 'Reduzir para ' + brl(novo), btn2: 'Manter o valor',
+        titulo: dec === 'aceito' ? 'Retirada reduzida em ' + REG.corte + '%' : (dec === 'recusado' ? 'Redução não aplicada' : 'Proteção nas quedas acionada'),
+        texto: dec === 'aceito' ? 'O saque volta a ' + brl(baseAnual / 12) + ' quando a carteira recuperar o pico de ' + brl(CEN.pico) + '.' : 'A carteira está ' + quedaPct.toFixed(0) + '% abaixo do pico de ' + brl(CEN.pico) + '. A regra sugere reduzir a retirada em ' + REG.corte + '%: de ' + brl(baseAnual / 12) + ' para ' + brl(novo) + ' por mês.' + (dec === 'recusado' ? ' Você optou por manter o valor.' : '') };
+    } else if (REG.altaOn && pctSaldo < REG.gatilho) {
+      var maior = Math.round(baseAnual * (1 + REG.aumento / 100) / 12);
+      if (dec === 'aceito') fator = 1 + REG.aumento / 100;
+      ajuste = { show: true, pendente: !dec, bg: '#EEF6F0', border: '#BFE0C8', ink: '#1F5A2E', btn: 'Aumentar para ' + brl(maior), btn2: 'Agora não',
+        titulo: dec === 'aceito' ? 'Retirada aumentada em ' + REG.aumento + '%' : (dec === 'recusado' ? 'Aumento não aplicado' : 'A carteira cresceu: dá para aumentar a retirada'),
+        texto: dec === 'aceito' ? 'O novo valor passa a ser a base, corrigida pelo IPCA nos próximos anos.' : 'A retirada anual de ' + brl(baseAnual) + ' é ' + pctSaldo.toFixed(1).replace('.', ',') + '% do saldo atual de ' + brl(CEN.pat) + ', abaixo do gatilho de ' + REG.gatilho + '%. A regra sugere aumentar em ' + REG.aumento + '%: para ' + brl(maior) + ' por mês.' + (dec === 'recusado' ? ' A sugestão volta na revisão do próximo ano.' : '') };
+    }
+    ajuste.aceitar = decidir('aceito'); ajuste.recusar = decidir('recusado');
+    var cenarios = [['normal', 'Normal'], ['queda', 'Queda de 25%'], ['alta', 'Alta forte']].map(function (f) { var on = self.state.cenario === f[0]; return { label: f[1], on: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', ink: on ? '#15202B' : '#6B7885', go: function () { self.setState({ cenario: f[0], ajusteDec: '' }); } }; });
+    var saqueBruto = Math.round(baseAnual / 12 * fator);
+    function excesso(a) { return (a.real - a.alvo) / 100 * total; }
+    var acima = assets.filter(function (a) { return excesso(a) > 0; }).sort(function (x, y) { return excesso(y) - excesso(x); });
+    var br = acima.filter(function (a) { return !EXT[a.id]; }), ex = acima.filter(function (a) { return EXT[a.id]; });
+    var esc, motivo;
+    if (br.length) { esc = br[0]; motivo = esc.id + ' está ' + brl(excesso(esc)) + ' acima do alvo e é negociado no Brasil, sem custo de câmbio.'; }
+    else if (ex.length) { esc = ex[0]; motivo = 'Nenhum ativo brasileiro está acima do alvo. ' + esc.id + ' está ' + brl(excesso(esc)) + ' acima; a volta tem custo de câmbio.'; }
+    else if (COLCHAO && assets.some(function (a) { return a.id === COLCHAO; })) { esc = assets.filter(function (a) { return a.id === COLCHAO; })[0]; motivo = 'Nenhum ativo está acima do alvo: o saque sai do colchão de liquidez para não vender ações em queda.'; }
+    else { esc = assets.slice().sort(function (x, y) { return Math.abs(excesso(x)) - Math.abs(excesso(y)); })[0]; motivo = 'Nenhum ativo está acima do alvo e não há colchão definido: o saque sai de ' + esc.id + ', o ativo mais perto do alvo.'; }
+    if (saqueBruto > excesso(esc) && excesso(esc) > 0) motivo += ' O saque é maior que o excesso; depois dele o ativo fica um pouco abaixo do alvo.';
+    var irS = saqueBruto * (GAIN[esc.id] || 0) * 0.15, cambS = EXT[esc.id] ? saqueBruto * (0.0125 + 0.0038) : 0;
+    var mesesPt = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'], hojeD = new Date();
+    var saque = { bruto: saqueBruto, mes: mesesPt[hojeD.getMonth()] + '/' + hojeD.getFullYear(), valor: brl(saqueBruto), ativo: esc.id, motivo: motivo, ir: brl(irS), liq: brl(saqueBruto - irS - cambS), passo3: (function () { var c = assets.filter(function (a) { return a.id === COLCHAO; })[0]; return c ? 'Se nenhum ativo estiver acima do alvo, o colchão de liquidez (' + c.id + '), para não vender ações em queda. Hoje ele cobre ' + Math.floor(c.real / 100 * total / saqueBruto) + ' meses de saques.' : 'Se nenhum ativo estiver acima do alvo, o ativo mais perto do alvo (nenhum colchão de liquidez definido em Configurações).'; })(), colchao: COLCHAO || 'não definido', mesesCol: (function () { var c = assets.filter(function (a) { return a.id === COLCHAO; })[0]; return c ? Math.floor(c.real / 100 * total / saqueBruto) + ' meses de saques' : ''; })() };
+    var fases = [['acumulacao', 'Acumulação'], ['usufruto', 'Usufruto']].map(function (f) { var on = self.state.fase === f[0]; return { label: f[1], on: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', ink: on ? '#15202B' : '#6B7885', go: function () { self.setState({ fase: f[0] }); } }; });
+    var next = assets.slice().sort(function (x, y) { return (x.real / x.alvo) - (y.real / y.alvo); })[0];
+
+    var tip = { show: false, left: '0%', top: '0%', name: '', pct: '', valor: '', alvo: '' };
+    if (active) {
+      var sg = segs.filter(function (x) { return x.id === active; })[0];
+      var itm = geos.concat(blocks, assets).filter(function (x) { return x.id === active; })[0];
+      if (sg && itm) tip = { show: true, left: (sg.px / 4).toFixed(2) + '%', top: (sg.py / 4).toFixed(2) + '%', name: itm.name || itm.id, pct: pct(itm.real), valor: brl(itm.real / 100 * total), alvo: pct(itm.alvo) };
+    }
+    var legend = [];
+    geos.forEach(function (g) {
+      legend.push({ name: g.name, color: g.color, weight: '700' });
+      g.items.forEach(function (b) { legend.push({ name: b.name, color: b.color, weight: '400' }); });
+    });
+
+    return {
+      totalFmt: brl(total),
+      bannerBg: off ? '#FBE9E7' : '#E8EEF3',
+      bannerInk: off ? '#8E1F17' : '#1F3247',
+      bannerTitle: off ? 'Sua carteira está fora da estratégia definida' : 'Sua carteira está dentro da estratégia',
+      bannerDetail: detail,
+      segs: segs, chars: segs.reduce(function (acc, x) { return acc.concat(x.chars); }, []), rows: rows, legend: legend, tip: tip,
+      irVenda: function () { try { window.localStorage.setItem('cp-acao', JSON.stringify({ op: 'venda', ativo: esc.id, valor: saqueBruto, t: Date.now() })); } catch (e) {} },
+      irCompra: function () { try { window.localStorage.setItem('cp-acao', JSON.stringify({ op: 'compra', ativo: next.id, t: Date.now() })); } catch (e) {} },
+      atualizTxt: self.state.atualizHora ? 'Cotações de hoje às ' + self.state.atualizHora + ' (atraso de até 15 min)' : 'Preços de fechamento de 06/10/2026',
+      atualizBtn: self.state.atualizando ? 'Atualizando…' : 'Atualizar',
+      atualizar: function () { self.setState({ atualizando: true }); setTimeout(function () { var d = new Date(); self.setState({ atualizando: false, atualizHora: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') }); }, 700); },
+      ajuste: ajuste, cenarios: cenarios, saque: saque, fases: fases, faseAcum: self.state.fase === 'acumulacao', faseUsu: self.state.fase === 'usufruto',
+      next: { name: next.id, falta: brl((next.alvo - next.real) / 100 * total) }
+    };
+  }
+}
+</script>
+</body>
+</html>

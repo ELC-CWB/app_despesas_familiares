@@ -10,7 +10,7 @@ const SERIES = {
   poupanca: 195,  // Poupança, rendimento no período de referência, %
 } as const;
 
-// Daily series used to accrue interest on fixed-income holdings (day-by-day compounding)
+// Daily/monthly series codes (IPCA mensal = SGS 433, used by the Carteira plan and withdrawals)
 export const SGS_SELIC_DIARIA = 11;
 export const SGS_CDI_DIARIA = 12;
 export const SGS_IPCA_MENSAL = SERIES.ipcaMes;
@@ -99,7 +99,7 @@ export async function fetchBcbIndicators(): Promise<BcbIndicators> {
   return data;
 }
 
-// ── Historical daily/monthly series (used to accrue fixed-income interest) ─────
+// ── Historical daily/monthly series ─────────────────────────────────────────────
 
 export type SgsPoint = { date: string; valor: number }; // date normalized to ISO YYYY-MM-DD
 

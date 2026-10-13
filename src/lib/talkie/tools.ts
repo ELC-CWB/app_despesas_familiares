@@ -1,7 +1,6 @@
 // src/lib/talkie/tools.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TalkieMemoryRow } from './memory';
-import { getPortfolioSummary } from '@/lib/investments/portfolio-summary';
 
 export interface ToolCtx {
   supabase: SupabaseClient;
@@ -32,13 +31,6 @@ const EXPENSES_TOOL = {
   },
 };
 
-const PORTFOLIO_TOOL = {
-  name: 'get_investment_portfolio',
-  description:
-    "Get a summary of the user's stock/investment portfolio: total invested, current value, gains, dividend yield, and top positions. Call this whenever the user asks about their investments, stocks, portfolio performance, or dividends.",
-  input_schema: { type: 'object', properties: {}, required: [] },
-};
-
 const WEATHER_TOOL = {
   name: 'get_weather',
   description:
@@ -66,7 +58,7 @@ const HOLIDAYS_TOOL = {
   },
 };
 
-const PHASE_A_TOOLS = [EXPENSES_TOOL, PORTFOLIO_TOOL, WEATHER_TOOL, HOLIDAYS_TOOL];
+const PHASE_A_TOOLS = [EXPENSES_TOOL, WEATHER_TOOL, HOLIDAYS_TOOL];
 
 // Phase B (Google Calendar) will extend this with calendar tools, gated on a
 // `google_tokens` row existing for the user — not implemented yet.
@@ -80,8 +72,6 @@ export async function executeTool(name: string, input: Record<string, unknown>, 
   switch (name) {
     case 'get_expenses':
       return getExpenses(ctx, input);
-    case 'get_investment_portfolio':
-      return getInvestmentPortfolio(ctx);
     case 'get_weather':
       return getWeather(ctx, input);
     case 'get_holidays':
@@ -94,13 +84,6 @@ export async function executeTool(name: string, input: Record<string, unknown>, 
 // ─── Handlers — each THROWS on failure; route.ts converts that into an is_error tool_result ──
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
-
-function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
-  ]);
-}
 
 async function getExpenses(ctx: ToolCtx, input: Record<string, unknown>) {
   const now = new Date();
@@ -136,35 +119,6 @@ async function getExpenses(ctx: ToolCtx, input: Record<string, unknown>) {
     total: round2(total),
     by_category: Object.entries(byCategory).map(([category, amount]) => ({ category, amount: round2(amount) })),
     top_items: topItems,
-  };
-}
-
-async function getInvestmentPortfolio(ctx: ToolCtx) {
-  const full = await withTimeout(
-    getPortfolioSummary(ctx.supabase, ctx.userId),
-    10000,
-    'Investment data lookup timed out.'
-  );
-  return {
-    is_read_only: full.isReadOnly,
-    owner_name: full.ownerName,
-    totals: {
-      total_invested: round2(full.totals.totalInvested),
-      current_value: round2(full.totals.currentValue),
-      gain: round2(full.totals.gain),
-      gain_percent: round2(full.totals.gainPercent),
-      dividends_12m: round2(full.totals.totalDividends12m),
-      total_return_percent: round2(full.totals.totalReturnPercent),
-    },
-    position_count: full.positions.length,
-    top_positions: full.positions.slice(0, 5).map((p) => ({
-      symbol: p.symbol,
-      company_name: p.company_name,
-      quantity: p.quantity,
-      current_value: round2(p.currentValue),
-      gain_percent: round2(p.gainPercent),
-      dy_12m_percent: round2(p.dy12m),
-    })),
   };
 }
 

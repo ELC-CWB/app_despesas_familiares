@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Carteira Perpétua — Movimentações</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F5F7}
+a{color:#2F4A66}a:hover{color:#1C2F43}
+button,input,select{font:inherit}
+input,select{min-height:44px;box-sizing:border-box;border:1px solid #C9D1D9;border-radius:10px;padding:0 12px;background:#FFFFFF;color:#15202B;width:100%}
+@media (max-width: 640px){.pg{padding:20px 12px 32px !important}.pg section{padding:16px !important;border-radius:14px !important}.pg h1{font-size:24px !important}}@media (max-width: 640px){.hhead{display:flex !important;flex-wrap:wrap;gap:8px 20px !important}.hplain{display:none !important}.hrow{grid-template-columns:minmax(0,1fr) auto !important;grid-template-areas:"ativo val" "date op";gap:2px 12px !important;padding:10px 4px !important}.hrow .c-x{display:none !important}.c-ativo{grid-area:ativo}.c-val{grid-area:val}.c-date{grid-area:date;font-size:12px !important}.c-op{grid-area:op;text-align:right;font-size:12px !important}.ef-min{min-width:0 !important}.ef-grid{grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr)) !important}.ef-hide{display:none !important}}
+.nav-top a{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:9px;font-size:14px;font-weight:600;text-decoration:none;color:#4A5A6B}.nav-top a:hover{background:#E3E8ED;color:#15202B}.nav-top a[aria-current="page"]{background:#1F3247;color:#FFFFFF}.nav-bot{display:none}
+@media (max-width: 640px){.nav-top .nav-links{display:none !important}.pg{padding-bottom:96px !important}.nav-bot{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#FFFFFF;border-top:1px solid #E3E8ED;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}.nav-bot a{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center;font-size:11px;font-weight:600;text-decoration:none;color:#6B7885;border-radius:10px}.nav-bot a[aria-current="page"]{color:#1F3247;background:#EAF1F9}}
+@media (max-width: 900px){.ef-sticky{position:static !important}}
+</style>
+</helmet>
+<div class="pg" style="min-height: 100vh; background: #F3F5F7; color: #15202B; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box; padding: 32px 20px 48px">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; position: relative">
+<nav class="nav-bot" aria-label="Navegação principal">
+<a href="Main.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"></path><path d="M14.5 2.5a8 8 0 0 1 7 7h-7z"></path></svg><span>Visão geral</span></a>
+<a href="Plano.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"></path><path d="M4 16l5-5 4 3 7-8"></path></svg><span>Plano</span></a>
+<a href="Movimentacoes.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v14"></path><path d="M3 14l4 4 4-4"></path><path d="M17 20V6"></path><path d="M13 10l4-4 4 4"></path></svg><span>Movimentações</span></a>
+<a href="Configuracoes.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg><span>Configurações</span></a>
+</nav>
+<nav class="nav-top" aria-label="Navegação principal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1F3247">Carteira Perpétua</div>
+<div class="nav-links" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E3E8ED">
+<a href="Main.dc.html">Visão geral</a>
+<a href="Plano.dc.html">Plano</a>
+<a href="Movimentacoes.dc.html" aria-current="page">Movimentações</a>
+<a href="Configuracoes.dc.html">Configurações</a>
+</div>
+<div title="Dólar comercial de hoje (08/10/2026), usado para converter os ativos no exterior. As projeções mantêm o câmbio real constante." style="font-size: 11px; color: #6B7885; white-space: nowrap">US$ 1 = <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #33414F">R$ 5,01</span></div>
+</nav>
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.01em">Movimentações</h1>
+<div style="font-size: 13px; color: #4A5A6B">Patrimônio atual R$ 850.000 · dados fictícios</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; border-radius: 12px; background: #E3E8ED">
+<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{tb.on}}" onClick="{{tb.go}}" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: {{tb.bg}}; color: {{tb.ink}}; font-size: 14px; font-weight: 600; cursor: pointer">{{tb.label}}</button>
+</sc-for>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+
+<section style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">{{form.title}}</h2>
+<div style="font-size: 13px; color: #4A5A6B; line-height: 1.5">{{form.hint}}</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #EAF1F9; color: #1F3247">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; font-weight: 600">{{form.sugTitle}}</div>
+<div style="font-size: 12px">{{form.sugDetail}}</div>
+</div>
+</div>
+
+<sc-if value="{{isCompra}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ap-etf" style="font-size: 13px; font-weight: 500; color: #33414F">Ativo</label>
+<select id="ap-etf" value="{{apEtf}}" onChange="{{onApEtf}}">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="8"><option value="{{o.id}}">{{o.label}}</option></sc-for>
+<option value="__novo">+ Cadastrar novo ativo…</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ap-corr" style="font-size: 13px; font-weight: 500; color: #33414F">Corretora</label>
+<select id="ap-corr" value="{{apCorr}}" onChange="{{onApCorr}}">
+<sc-for list="{{corrOpts}}" as="c" hint-placeholder-count="1"><option value="{{c.id}}">{{c.label}}</option></sc-for>
+</select>
+</div>
+</div>
+<sc-if value="{{novo.aberto}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid #8EB6E3; background: #F4F8FD">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 14px; font-weight: 700; color: #15202B">Novo ativo</div>
+<div style="font-size: 12px; color: #4A5A6B">Cadastro rápido para esta compra. Os demais detalhes (taxa, banda) podem ser ajustados depois em Configurações.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Código</span><input type="text" value="{{novo.cod}}" onChange="{{novo.onCod}}" placeholder="Ex.: IVVB11" style="text-transform: uppercase; font-weight: 600"></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Tipo</span><select value="{{novo.tipo}}" onChange="{{novo.onTipo}}"><sc-for list="{{novo.tipos}}" as="t" hint-placeholder-count="6"><option value="{{t.id}}">{{t.nome}}</option></sc-for></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Mercado</span><select value="{{novo.mercado}}" onChange="{{novo.onMercado}}"><option value="brasil">Brasil</option><option value="exterior">Exterior</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Bloco</span><select value="{{novo.bloco}}" onChange="{{novo.onBloco}}"><sc-for list="{{novo.blocos}}" as="b" hint-placeholder-count="4"><option value="{{b.id}}">{{b.nome}}</option></sc-for></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Alvo %</span><input type="text" inputmode="decimal" value="{{novo.alvo}}" onChange="{{novo.onAlvo}}" placeholder="0" style="text-align: right; font-family: 'IBM Plex Mono', monospace"></label>
+</div>
+<div style="font-size: 12px; color: #8A5A00; background: #FFF6DB; border-radius: 8px; padding: 8px 10px; line-height: 1.5">{{novo.aviso}}</div>
+<sc-if value="{{novo.erro}}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size: 12px; color: #8E1F17">{{novo.erro}}</div></sc-if>
+<div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{novo.cancelar}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #C9D1D9; border-radius: 10px; background: #FFFFFF; color: #33414F; font-size: 13px; font-weight: 600; cursor: pointer">Cancelar</button>
+<button type="button" onClick="{{novo.salvar}}" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #1F3247; color: #FFFFFF; font-size: 13px; font-weight: 600; cursor: pointer">Cadastrar e usar nesta compra</button>
+</div>
+</div>
+</sc-if>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ap-val" style="font-size: 13px; font-weight: 500; color: #33414F">Valor da compra (R$)</label>
+<input id="ap-val" type="text" inputmode="decimal" value="{{apValTxt}}" onChange="{{onApVal}}" onBlur="{{fmtApVal}}" style="text-align: right; font-family: 'IBM Plex Mono', monospace">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ap-data" style="font-size: 13px; font-weight: 500; color: #33414F">Data</label>
+<input id="ap-data" type="date" value="2026-10-07">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ap-preco" style="font-size: 13px; font-weight: 500; color: #33414F">Valor da cota (R$)</label>
+<input id="ap-preco" type="text" inputmode="decimal" value="{{apPrecoTxt}}" onChange="{{onApPreco}}" onBlur="{{fmtApPreco}}" style="text-align: right; font-family: 'IBM Plex Mono', monospace">
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{atualizarCota}}" title="Busca a cotação mais recente, com atraso de até 15 minutos." style="padding: 0; border: 0; background: none; color: #1A4A82; font-size: 12px; font-weight: 600; cursor: pointer">{{cotaBtn}}</button><sc-if value="{{cotaHora}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; color: #6B7885">cotação de {{cotaHora}}, atraso de até 15 min</span></sc-if></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ap-cotas" style="font-size: 13px; font-weight: 500; color: #33414F">Cotas (calculado)</label>
+<input id="ap-cotas" type="text" value="{{apCotas}}" readonly>
+</div>
+</div>
+<sc-if value="{{apExterior}}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 12px; color: #7A5A00; background: #FFF6DB; border-radius: 10px; padding: 10px 12px; line-height: 1.5">Ativo no exterior: a compra exige remessa, com IOF de {{iofIdaTxt}} e spread cambial de {{spreadTxt}}.</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isVenda}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="rt-etf" style="font-size: 13px; font-weight: 500; color: #33414F">Ativo</label>
+<select id="rt-etf" value="{{rtEtf}}" onChange="{{onRtEtf}}">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="8"><option value="{{o.id}}">{{o.label}}</option></sc-for>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="rt-corr" style="font-size: 13px; font-weight: 500; color: #33414F">Corretora</label>
+<select id="rt-corr" value="{{apCorr}}" onChange="{{onApCorr}}">
+<sc-for list="{{corrOpts}}" as="c" hint-placeholder-count="1"><option value="{{c.id}}">{{c.label}}</option></sc-for>
+</select>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="rt-val" style="font-size: 13px; font-weight: 500; color: #33414F">Valor da venda (R$)</label>
+<input id="rt-val" type="text" inputmode="decimal" value="{{rtValTxt}}" onChange="{{onRtVal}}" onBlur="{{fmtRtVal}}" style="text-align: right; font-family: 'IBM Plex Mono', monospace">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="rt-data" style="font-size: 13px; font-weight: 500; color: #33414F">Data</label>
+<input id="rt-data" type="date" value="2026-10-07">
+</div>
+</div>
+<div style="font-size: 12px; color: #4A5A6B; line-height: 1.5">{{vdHint}}<br>Meta de retirada mensal pelo plano: {{metaMensal}} (3,5% ao ano, bruto).</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isProv}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pv-etf" style="font-size: 13px; font-weight: 500; color: #33414F">Ativo</label>
+<select id="pv-etf" value="{{pvEtf}}" onChange="{{onPvEtf}}">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="8"><option value="{{o.id}}">{{o.label}}</option></sc-for>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pv-tipo" style="font-size: 13px; font-weight: 500; color: #33414F">Tipo de provento</label>
+<select id="pv-tipo" value="{{pvTipo}}" onChange="{{onPvTipo}}">
+<option value="dividendo">Dividendo</option>
+<option value="jcp">Juros sobre capital próprio (JCP)</option>
+<option value="rendimento">Rendimento de FII</option>
+<option value="outro">Outro (amortização, bonificação em dinheiro)</option>
+</select>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pv-bruto" style="font-size: 13px; font-weight: 500; color: #33414F">Valor bruto (R$)</label>
+<input id="pv-bruto" type="text" inputmode="decimal" value="{{pvBrutoTxt}}" onChange="{{onPvBruto}}" onBlur="{{fmtPvBruto}}" placeholder="0,00" style="text-align: right; font-family: 'IBM Plex Mono', monospace">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pv-ir" style="font-size: 13px; font-weight: 500; color: #33414F">IR retido na fonte (R$)</label>
+<input id="pv-ir" type="text" inputmode="decimal" value="{{pvIrTxt}}" onChange="{{onPvIr}}" onBlur="{{fmtPvIr}}" placeholder="0,00" style="text-align: right; font-family: 'IBM Plex Mono', monospace">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pv-data" style="font-size: 13px; font-weight: 500; color: #33414F">Data do pagamento</label>
+<input id="pv-data" type="date" value="2026-10-07">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pv-corr" style="font-size: 13px; font-weight: 500; color: #33414F">Corretora</label>
+<select id="pv-corr" value="{{apCorr}}" onChange="{{onApCorr}}">
+<sc-for list="{{corrOpts}}" as="c" hint-placeholder-count="1"><option value="{{c.id}}">{{c.label}}</option></sc-for>
+</select>
+</div>
+</div>
+<div style="font-size: 12px; color: #4A5A6B; line-height: 1.5">{{pvHint}}</div>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="f-obs" style="font-size: 13px; font-weight: 500; color: #33414F">Observações <span style="font-weight: 400; color: #6B7885">(opcional)</span></label>
+<textarea id="f-obs" rows="2" placeholder="Ex.: rebalanceamento, retirada do mês, reinvestimento de uma venda…" style="width: 100%; box-sizing: border-box; min-height: 72px; padding: 10px 12px; border: 1px solid #C9D1D9; border-radius: 10px; font: inherit; font-size: 14px; color: #15202B; background: #FFFFFF; resize: vertical; line-height: 1.5"></textarea>
+</div>
+<div style="display: flex; flex-direction: column; gap: 0; border-top: 1px solid #E3E8ED">
+<sc-for list="{{lines}}" as="l" hint-placeholder-count="4">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #EEF1F4; font-size: {{l.size}}; font-weight: {{l.weight}}; color: {{l.ink}}">
+<div>{{l.label}}</div>
+<div style="font-family: 'IBM Plex Mono', monospace">{{l.value}}</div>
+</div>
+</sc-for>
+</div>
+
+
+<button type="button" style="margin-top: auto; min-height: 48px; padding: 0 18px; border: 0; border-radius: 10px; background: #1F3247; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">{{form.cta}}</button>
+</section>
+
+<div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<div class="ef-wrap" style="flex: 1 1 auto; display: flex; flex-direction: column">
+<section class="ef-sticky" style="position: sticky; top: max(16px, calc(50vh - 230px)); background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Efeito na carteira</h2>
+<div style="font-size: 12px; color: #4A5A6B">Alocação antes e depois da operação</div>
+</div>
+<div style="overflow-x: auto">
+<div class="ef-min" style="min-width: 520px; display: flex; flex-direction: column">
+<div class="ef-grid" style="display: grid; grid-template-columns: minmax(110px, 1.2fr) repeat(3, minmax(0, 1fr)) minmax(140px, 1.4fr); gap: 8px; padding: 8px 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; border-bottom: 1px solid #D9DFE5">
+<div>Ativo</div><div style="text-align: right">Alvo</div><div style="text-align: right">Antes</div><div style="text-align: right">Depois</div><div class="ef-hide">Banda</div>
+</div>
+<sc-for list="{{effect}}" as="e" hint-placeholder-count="8">
+<div class="ef-grid" style="display: grid; grid-template-columns: minmax(110px, 1.2fr) repeat(3, minmax(0, 1fr)) minmax(140px, 1.4fr); gap: 8px; align-items: center; padding: 9px 4px; background: {{e.bg}}; border-radius: 6px; font-size: 14px">
+<div style="display: flex; align-items: center; gap: 8px; font-weight: {{e.weight}}"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{e.color}}"></span>{{e.id}}</div>
+<div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4A5A6B">{{e.alvo}}</div>
+<div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{e.antesInk}}">{{e.antes}}</div>
+<div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: {{e.depoisInk}}">{{e.depois}}</div>
+<div class="ef-hide" style="font-size: 12px; font-weight: 600; color: {{e.statusInk}}">{{e.status}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+</div>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" onClick="{{tgResumo}}" aria-expanded="{{resumoAberto}}" style="display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; font-size: 17px; font-weight: 600; color: #15202B; cursor: pointer">Custos de aquisição <span aria-hidden="true" style="font-size: 13px; color: #6B7885">{{resumoSeta}}</span></button>
+<sc-if value="{{resumoAberto}}" hint-placeholder-val="{{ false }}"><div style="font-size: 12px; color: #4A5A6B">Quanto saiu da sua conta, quanto ficou nos custos e quanto foi investido</div></sc-if>
+</div>
+<sc-if value="{{resumoAberto}}" hint-placeholder-val="{{ false }}">
+<div style="width: 180px">
+<label for="rs-ano" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Período</label>
+<select id="rs-ano" value="{{ano}}" onChange="{{onAno}}">
+<sc-for list="{{anos}}" as="y" hint-placeholder-count="9"><option value="{{y.v}}">{{y.label}}</option></sc-for>
+</select>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{resumoAberto}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center">
+<div style="position: relative; width: 180px; height: 180px; flex: none">
+<svg viewBox="0 0 200 200" style="width: 180px; height: 180px; display: block" role="img" aria-label="Divisão do valor desembolsado entre valor investido e custos">
+<sc-for list="{{pie}}" as="p" hint-placeholder-count="3">
+<path d="{{p.d}}" fill="{{p.color}}" stroke="#FFFFFF" stroke-width="1.5"></path>
+</sc-for>
+</svg>
+<div style="position: absolute; left: {{res.lblLeft}}; top: {{res.lblTop}}; transform: translate(-50%, -50%); pointer-events: none; display: flex; flex-direction: column; align-items: center; color: #15202B">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600">{{res.pctLiq}}</div>
+<div style="font-size: 11px; font-weight: 600; color: #33414F">líquido</div>
+</div>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #E3E8ED; font-size: 15px; font-weight: 700">
+<div>Total desembolsado</div><div style="font-family: 'IBM Plex Mono', monospace">{{res.bruto}}</div>
+</div>
+<sc-for list="{{res.rows}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #EEF1F4; font-size: 14px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 2px; background: {{r.color}}"></span>{{r.label}}</div>
+<div style="display: flex; gap: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 13px"><span style="color: #4A5A6B">{{r.pct}}</span><span>{{r.value}}</span></div>
+</div>
+</sc-for>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; font-size: 15px; font-weight: 700">
+<div>Investido líquido</div><div style="font-family: 'IBM Plex Mono', monospace">{{res.liquido}}</div>
+</div>
+</div>
+</div>
+</sc-if>
+</section>
+
+
+
+</div>
+</div>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<sc-if value="{{hAnyOpen}}" hint-placeholder-val="{{ false }}"><div onClick="{{hFechar}}" style="position: fixed; inset: 0; z-index: 20"></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 17px; font-weight: 600">Histórico de movimentações</h2></div>
+<button type="button" onClick="{{hLimpar}}" style="min-height: 36px; padding: 0 14px; border: 1px solid #C9D1D9; border-radius: 10px; background: #FFFFFF; color: #33414F; font-size: 13px; font-weight: 600; cursor: pointer">Limpar filtros</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<sc-for list="{{hTot}}" as="t" hint-placeholder-count="3">
+<div style="flex: 1 1 150px; background: #F3F5F7; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B">{{t.label}}</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: {{t.ink}}">{{t.value}}</div>
+<div style="font-size: 11px; color: #4A5A6B">{{t.sub}}</div>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{hVazio}}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 13px; color: #4A5A6B; padding: 12px 0">Nenhuma movimentação encontrada com esses filtros.</div>
+</sc-if>
+<div>
+<div style="display: flex; flex-direction: column">
+<div class="hhead" style="display: grid; grid-template-columns: 100px minmax(110px, 1.1fr) minmax(100px, 0.9fr) minmax(100px, 0.9fr) minmax(90px, 0.8fr) minmax(100px, 0.9fr) minmax(90px, 0.8fr) minmax(120px, 1fr); gap: 8px 16px; align-items: start; padding: 10px 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; border-bottom: 1px solid #D9DFE5">
+<div style="position: relative; display: flex; flex-direction: column; gap: 2px">
+<button type="button" onClick="{{hTgData}}" aria-expanded="{{hOpenData}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: {{hInkData}}; cursor: pointer">Data <span aria-hidden="true">▾</span></button>
+<sc-if value="{{hTxtData}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; color: #1A4A82">{{hTxtData}}</span></sc-if>
+<sc-if value="{{hOpenData}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 34px; left: 0; z-index: 30; background: #FFFFFF; border: 1px solid #D9DFE5; border-radius: 12px; box-shadow: 0 8px 24px rgba(21,32,43,0.14); padding: 12px; display: flex; flex-direction: column; gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 13px; color: #15202B; width: 230px">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #33414F">De<input type="date" value="{{hDe}}" onChange="{{onHDe}}"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #33414F">Até<input type="date" value="{{hAte}}" onChange="{{onHAte}}"></label>
+<div style="display: flex; gap: 8px; justify-content: flex-end">
+<button type="button" onClick="{{hLimpData}}" style="min-height: 36px; padding: 0 12px; border: 1px solid #C9D1D9; border-radius: 8px; background: #FFFFFF; color: #33414F; font: inherit; font-weight: 600; cursor: pointer">Limpar</button>
+<button type="button" onClick="{{hFechar}}" style="min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: #1A4A82; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">OK</button>
+</div>
+</div>
+</sc-if>
+</div>
+<div style="position: relative; display: flex; flex-direction: column; gap: 2px">
+<button type="button" onClick="{{hTgAtivo}}" aria-expanded="{{hOpenAtivo}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: {{hInkAtivo}}; cursor: pointer">Ativo <span aria-hidden="true">▾</span></button>
+<sc-if value="{{hTxtAtivo}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; color: #1A4A82">{{hTxtAtivo}}</span></sc-if>
+<sc-if value="{{hOpenAtivo}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 34px; left: 0; z-index: 30; background: #FFFFFF; border: 1px solid #D9DFE5; border-radius: 12px; box-shadow: 0 8px 24px rgba(21,32,43,0.14); padding: 12px; display: flex; flex-direction: column; gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 13px; color: #15202B; width: 200px; gap: 2px">
+<sc-for list="{{hOpts}}" as="o" hint-placeholder-count="9"><button type="button" onClick="{{o.go}}" style="display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: {{o.bg}}; color: #15202B; font: inherit; font-weight: {{o.fw}}; text-align: left; cursor: pointer">{{o.label}}</button></sc-for>
+</div>
+</sc-if>
+</div>
+<div style="position: relative; display: flex; flex-direction: column; gap: 2px">
+<button type="button" onClick="{{hTgOp}}" aria-expanded="{{hOpenOp}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: {{hInkOp}}; cursor: pointer">Operação <span aria-hidden="true">▾</span></button>
+<sc-if value="{{hTxtOp}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; color: #1A4A82">{{hTxtOp}}</span></sc-if>
+<sc-if value="{{hOpenOp}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 34px; left: 0; z-index: 30; background: #FFFFFF; border: 1px solid #D9DFE5; border-radius: 12px; box-shadow: 0 8px 24px rgba(21,32,43,0.14); padding: 12px; display: flex; flex-direction: column; gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 13px; color: #15202B; width: 180px; gap: 2px">
+<sc-for list="{{hOpOpts}}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{o.go}}" style="display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: {{o.bg}}; color: #15202B; font: inherit; font-weight: {{o.fw}}; text-align: left; cursor: pointer">{{o.label}}</button></sc-for>
+</div>
+</sc-if>
+</div>
+<div style="position: relative; display: flex; flex-direction: column; gap: 2px">
+<button type="button" onClick="{{hTgCorr}}" aria-expanded="{{hOpenCorr}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: {{hInkCorr}}; cursor: pointer">Corretora <span aria-hidden="true">▾</span></button>
+<sc-if value="{{hTxtCorr}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; color: #1A4A82">{{hTxtCorr}}</span></sc-if>
+<sc-if value="{{hOpenCorr}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 34px; left: 0; z-index: 30; background: #FFFFFF; border: 1px solid #D9DFE5; border-radius: 12px; box-shadow: 0 8px 24px rgba(21,32,43,0.14); padding: 12px; display: flex; flex-direction: column; gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 13px; color: #15202B; width: 200px; gap: 2px">
+<sc-for list="{{hCorrOpts}}" as="o" hint-placeholder-count="4"><button type="button" onClick="{{o.go}}" style="display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: {{o.bg}}; color: #15202B; font: inherit; font-weight: {{o.fw}}; text-align: left; cursor: pointer">{{o.label}}</button></sc-for>
+</div>
+</sc-if>
+</div>
+<div class="hplain" style="text-align: right; padding-top: 7px">Taxas</div>
+<div class="hplain" style="text-align: right; padding-top: 7px">Valor da cota</div><div class="hplain" style="text-align: right; padding-top: 7px">Cotas</div><div class="hplain" style="text-align: right; padding-top: 7px">Valor líquido</div>
+</div>
+<sc-for list="{{history}}" as="h" hint-placeholder-count="8">
+<div role="button" tabindex="0" aria-label="Ver detalhes da operação" onClick="{{h.abrir}}" class="hrow" style="display: grid; grid-template-columns: 100px minmax(110px, 1.1fr) minmax(100px, 0.9fr) minmax(100px, 0.9fr) minmax(90px, 0.8fr) minmax(100px, 0.9fr) minmax(90px, 0.8fr) minmax(120px, 1fr); gap: 8px 16px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #EEF1F4; font-size: 14px; cursor: pointer; border-radius: 8px">
+<div class="c-date" style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #33414F">{{h.date}}</div>
+<div class="c-ativo" style="display: flex; align-items: center; gap: 6px; font-weight: 600; min-width: 0">{{h.ativo}}<sc-if value="{{h.temNota}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7885" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Tem observação"><path d="M4 4h16v12H8l-4 4z"></path></svg></sc-if></div>
+<div class="c-op" style="font-size: 13px; font-weight: 600; color: {{h.ink}}">{{h.op}}</div>
+<div class="c-x" style="font-size: 13px; color: #33414F">{{h.corretora}}</div>
+<div class="c-x" style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #8A5A00">{{h.taxas}}</div>
+<div class="c-x" style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{h.preco}}</div>
+<div class="c-x" style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{h.qtd}}</div>
+<div class="c-val" style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: {{h.ink}}">{{h.value}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+
+</div>
+
+<sc-if value="{{det}}" hint-placeholder-val="{{ false }}">
+<div style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box">
+<div onClick="{{fecharDet}}" style="position: absolute; inset: 0; background: rgba(21,32,43,0.45)"></div>
+<div role="dialog" aria-modal="true" aria-label="Detalhes da operação" style="position: relative; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; background: #FFFFFF; border-radius: 16px; box-shadow: 0 20px 48px rgba(21,32,43,0.28); padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #15202B">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: {{det.ink}}">{{det.op}}</span>
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">{{det.ativo}}</h3>
+<span style="font-size: 13px; color: #4A5A6B">{{det.date}} · {{det.corretora}}</span>
+</div>
+<button type="button" onClick="{{fecharDet}}" aria-label="Fechar" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F3F5F7; color: #33414F; font-size: 18px; cursor: pointer">×</button>
+</div>
+<sc-for list="{{det.grupos}}" as="g" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; padding-bottom: 4px; border-bottom: 1px solid #D9DFE5">{{g.titulo}}</div>
+<sc-for list="{{g.itens}}" as="i" hint-placeholder-count="4">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 14px">
+<span style="color: #33414F">{{i.k}}<sc-if value="{{i.nota}}" hint-placeholder-val="{{ false }}"><span style="color: #6B7885; font-size: 12px"> · {{i.nota}}</span></sc-if></span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: {{i.fw}}; color: {{i.ink}}; white-space: nowrap">{{i.v}}</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="det-obs" style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; padding-bottom: 4px; border-bottom: 1px solid #D9DFE5">Observações</label>
+<textarea id="det-obs" rows="3" placeholder="Opcional. Ex.: rebalanceamento, retirada do mês, reinvestimento de uma venda…" value="{{det.nota}}" onChange="{{onNota}}" style="width: 100%; box-sizing: border-box; min-height: 72px; padding: 10px 12px; border: 1px solid #C9D1D9; border-radius: 10px; font: inherit; font-size: 14px; color: #15202B; background: #FFFFFF; resize: vertical; line-height: 1.5"></textarea>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1750}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'compra', apEtf: 'QLBR11', apVal: 5000, apValTxt: '5.000,00', apPreco: 123.62, apPrecoTxt: '123,62', rtEtf: 'HODL11', rtVal: 2975, rtValTxt: '2.975,00', rlDe: 'HODL11', rlPara: 'QLBR11', rlVal: 2975, spread: 1.25, iofIda: 1.1, iofVolta: 0.38, ano: 'todos', hDe: '', hAte: '', hAtivo: 'todos', hOp: 'todos', hOpen: '', apCorr: 'inter', hSel: '', hCorr: 'todos', notas: {}, resumoAberto: false, cotaHora: '', cotaLoad: false, pvEtf: 'QLBR11', pvTipo: 'dividendo', pvBruto: 0, pvBrutoTxt: '', pvIr: 0, pvIrTxt: '', novos: [], nv: { aberto: false, cod: '', tipo: 'etf_acoes', mercado: 'brasil', bloco: 'acb', alvo: '', erro: '' } };
+    var self = this;
+    function num2(v) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    var PRECO = { VALU: 812.40, IWVL: 248.90, IWQU: 380.50, GOLD11: 21.35, HODL11: 63.10, QLBR11: 123.62, LFTS11: 160.79, B5MB11: 137.07 };
+    function aplicar(a) {
+      if (!a || !a.op) return {};
+      if (a.op === 'venda') return { tab: 'venda', rtEtf: a.ativo || self.state.rtEtf, rtVal: Number(a.valor) || self.state.rtVal, rtValTxt: num2(Number(a.valor) || self.state.rtVal) };
+      if (a.op === 'compra') { var u = { tab: 'compra' }; if (a.ativo && PRECO[a.ativo]) { u.apEtf = a.ativo; u.apPreco = PRECO[a.ativo]; u.apPrecoTxt = num2(PRECO[a.ativo]); } return u; }
+      return {};
+    }
+    var acao = null;
+    try { var q = new URLSearchParams(window.location.search); if (q.get('op')) acao = { op: q.get('op'), ativo: q.get('ativo'), valor: q.get('valor') }; } catch (e) {}
+    try { if (!acao) { acao = JSON.parse(window.localStorage.getItem('cp-acao') || 'null'); if (acao && Date.now() - (acao.t || 0) > 10 * 60 * 1000) acao = null; } window.localStorage.removeItem('cp-acao'); } catch (e) {}
+    Object.assign(this.state, aplicar(acao));
+    try { window.addEventListener('storage', function (e) { if (e.key === 'cp-acao' && e.newValue) { var a = JSON.parse(e.newValue); self.setState(aplicar(a)); try { window.localStorage.removeItem('cp-acao'); } catch (x) {} } }); } catch (e) {}
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var total = 850000, IR = 0.15, SPREAD = (s.spread || 0) / 100, IOF_IDA = (s.iofIda || 0) / 100, IOF_VOLTA = (s.iofVolta || 0) / 100;
+    function pctN(v) { return String(v || 0).replace('.', ',') + '%'; }
+    var assets = [
+      { id: 'VALU', alvo: 30, real: 33.6, rel: 0.25, ext: true, gain: 0.45, color: '#BCD5F1', preco: 812.40 },
+      { id: 'IWVL', alvo: 10, real: 11.2, rel: 0.25, ext: true, gain: 0.35, color: '#BCD5F1', preco: 248.90 },
+      { id: 'IWQU', alvo: 10, real: 8.5, rel: 0.25, ext: true, gain: 0.05, color: '#BCD5F1', preco: 380.50 },
+      { id: 'GOLD11', alvo: 2.5, real: 3.0, rel: 0.5, ext: false, gain: 0.30, color: '#DDE9F8', preco: 21.35 },
+      { id: 'HODL11', alvo: 2.5, real: 4.1, rel: 0.5, ext: false, gain: 0.40, color: '#DDE9F8', preco: 63.10 },
+      { id: 'QLBR11', alvo: 20, real: 16.5, rel: 0.25, ext: false, gain: 0.05, color: '#A9D9B6', preco: 123.62 },
+      { id: 'LFTS11', alvo: 10, real: 10.6, rel: 0.25, ext: false, gain: 0.25, color: '#C6E8CF', preco: 160.79 },
+      { id: 'B5MB11', alvo: 15, real: 12.5, rel: 0.25, ext: false, gain: 0.20, color: '#C6E8CF', preco: 137.07 }
+    ];
+    var COR_BLOCO = { ext: '#BCD5F1', alt: '#DDE9F8', acb: '#A9D9B6', rf: '#C6E8CF' };
+    s.novos.forEach(function (x) { assets.push({ id: x.cod, alvo: x.alvo, real: 0, rel: 0.25, ext: x.mercado === 'exterior', gain: 0, color: COR_BLOCO[x.bloco] || '#E3E8ED', preco: 0 }); });
+    var by = {}; assets.forEach(function (a) { a.val = a.real / 100 * total; a.half = Math.min(5, a.alvo * a.rel); by[a.id] = a; });
+    function brl(v) { return (v < 0 ? '−' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function brl0(v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+    function pct(v) { return v.toFixed(1).replace('.', ',') + '%'; }
+    function set(k) { return function (e) { var u = {}; u[k] = e.target.type === 'number' ? Number(e.target.value) : e.target.value; self.setState(u); }; }
+
+    function num2(v) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function parseBr(t) { var c = String(t || '').replace(/[^0-9,]/g, ''); var i = c.indexOf(','); if (i >= 0) c = c.slice(0, i + 1) + c.slice(i + 1).replace(/,/g, ''); return Number(c.replace(',', '.')) || 0; }
+    function moeda(k) { return function (e) { var t = e.target.value.replace(/[^0-9.,]/g, ''); var u = {}; u[k + 'Txt'] = t; u[k] = parseBr(t); self.setState(u); }; }
+    function fmtMoeda(k) { return function () { var u = {}; u[k + 'Txt'] = num2(self.state[k]); self.setState(u); }; }
+    function bandStatus(a, p) {
+      var d = p - a.alvo;
+      if (Math.abs(d) <= a.half) return { t: 'Dentro', ink: '#4A5A6B' };
+      return { t: d > 0 ? 'Acima da banda' : 'Abaixo da banda', ink: '#B42318' };
+    }
+    function effect(deltas, focus) {
+      var newTotal = total; Object.keys(deltas).forEach(function (k) { newTotal += deltas[k]; });
+      return assets.map(function (a) {
+        var after = (a.val + (deltas[a.id] || 0)) / newTotal * 100;
+        var bs0 = bandStatus(a, a.real), bs1 = bandStatus(a, after);
+        var hit = focus.indexOf(a.id) >= 0;
+        return {
+          id: a.id, color: a.color, alvo: pct(a.alvo), antes: pct(a.real), depois: pct(after),
+          antesInk: bs0.ink === '#B42318' ? '#B42318' : '#4A5A6B', depoisInk: bs1.ink === '#B42318' ? '#B42318' : '#15202B',
+          status: (bs0.t !== bs1.t ? bs0.t + ' → ' : '') + bs1.t, statusInk: bs1.ink,
+          bg: hit ? '#EEF3F8' : 'transparent', weight: hit ? '700' : '500'
+        };
+      });
+    }
+    var DOLAR = 5.01, CORR = { brPct: 0, brMin: 0, extPct: 0.20, extMin: 2 };
+    function corret(ext, v) { return ext ? Math.max(v * CORR.extPct / 100, CORR.extMin * DOLAR) : Math.max(v * CORR.brPct / 100, CORR.brMin); }
+    function corrNota(ext, v) { if (!ext) return CORR.brPct || CORR.brMin ? pctN(CORR.brPct) + ' da ordem' : 'isenta na B3'; var c = corret(true, v); return (CORR.extPct.toFixed(2).replace('.', ',') + '%') + ' da ordem, mínimo US$ ' + CORR.extMin.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + (v > 0 ? ' · efetivo ' + (c / v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%' : ''); }
+    function saleLines(a, v) {
+      var ir = IR * a.gain * v, corr = corret(a.ext, v), cambio = a.ext ? (v - corr) * (SPREAD + IOF_VOLTA) : 0;
+      return { ir: ir, corr: corr, cambio: cambio, liq: v - ir - corr - cambio };
+    }
+
+    var opts = assets.map(function (a) { return { id: a.id, label: a.id }; });
+    var sugAporte = assets.slice().sort(function (x, y) { return x.real / x.alvo - y.real / y.alvo; })[0];
+    var sugVenda = assets.filter(function (a) { return !a.ext; }).sort(function (x, y) { return y.real / y.alvo - x.real / x.alvo; })[0];
+
+    var tabsDef = [['compra', 'Compra'], ['venda', 'Venda'], ['provento', 'Provento']];
+    var tabs = tabsDef.map(function (t) {
+      var on = s.tab === t[0];
+      return { label: t[1], on: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', ink: on ? '#15202B' : '#4A5A6B', go: function () { self.setState({ tab: t[0] }); } };
+    });
+
+    var form, lines, eff;
+    if (s.tab === 'compra') {
+      var a = by[s.apEtf], v = Math.max(0, s.apVal || 0);
+      form = { title: 'Registrar compra', hint: 'A regra do plano sugere comprar o ativo mais abaixo do alvo. Você pode escolher outro.', sugTitle: 'Sugestão: ' + sugAporte.id, sugDetail: 'É o ativo mais abaixo do alvo (' + pct(sugAporte.real) + ' para ' + pct(sugAporte.alvo) + '). Faltam ' + brl0((sugAporte.alvo - sugAporte.real) / 100 * total) + '.', cta: 'Registrar compra' };
+      var custoRem = a.ext ? v * (SPREAD + IOF_IDA) : 0;
+      var corretagemC = v > 0 ? corret(a.ext, v - custoRem) : 0;
+      lines = [
+        { label: 'Valor da compra', value: brl(v), size: '14px', weight: '500', ink: '#15202B' },
+        { label: a.ext ? 'Custos da remessa (spread ' + pctN(s.spread) + ' + IOF ' + pctN(s.iofIda) + ')' : 'Custos de câmbio', value: a.ext ? '− ' + brl(custoRem) : '—', size: '14px', weight: '500', ink: '#4A5A6B' },
+        { label: 'Corretagem (' + corrNota(a.ext, v - custoRem) + ')', value: corretagemC > 0 ? '− ' + brl(corretagemC) : '—', size: '14px', weight: '500', ink: '#4A5A6B' },
+        { label: 'Valor investido', value: brl(v - custoRem - corretagemC), size: '15px', weight: '700', ink: '#15202B' }
+      ];
+      var d = {}; d[a.id] = v - custoRem - corretagemC; eff = effect(d, [a.id]);
+    } else if (s.tab === 'venda') {
+      var b = by[s.rtEtf], w = Math.max(0, s.rtVal || 0), sl = saleLines(b, w);
+      var excesso = Math.max(0, (b.real - (b.alvo + b.half)) / 100 * total);
+      form = { title: 'Registrar venda', hint: 'Venda só quando um ativo sair da banda, e apenas até a borda dela, ou para a retirada do mês. O valor vendido sai do patrimônio da carteira até ser reinvestido.', sugTitle: 'Sugestão: vender ' + sugVenda.id, sugDetail: 'É o ativo negociado no Brasil mais acima do alvo (' + pct(sugVenda.real) + ' para ' + pct(sugVenda.alvo) + '), sem custo de câmbio.', cta: 'Registrar venda' };
+      lines = [
+        { label: 'Valor da venda', value: brl(w), size: '14px', weight: '500', ink: '#15202B' },
+        { label: 'Imposto de renda estimado (15% sobre ' + Math.round(b.gain * 100) + '% de ganho)', value: '− ' + brl(sl.ir), size: '14px', weight: '500', ink: '#4A5A6B' },
+        { label: 'Corretagem (' + corrNota(b.ext, w) + ')', value: sl.corr > 0 ? '− ' + brl(sl.corr) : '—', size: '14px', weight: '500', ink: '#4A5A6B' },
+        { label: b.ext ? 'Câmbio no retorno (spread ' + pctN(s.spread) + ' + IOF ' + pctN(s.iofVolta) + ')' : 'Custos de câmbio', value: b.ext ? '− ' + brl(sl.cambio) : '—', size: '14px', weight: '500', ink: '#4A5A6B' },
+        { label: 'Valor líquido na conta', value: brl(sl.liq), size: '15px', weight: '700', ink: '#15202B' }
+      ];
+      var d2 = {}; d2[b.id] = -w; eff = effect(d2, [b.id]);
+      var vdHint = excesso > 0 ? b.id + ' está acima da banda: uma venda de ' + brl0(excesso) + ' o traz de volta à borda.' : b.id + ' está dentro da banda.';
+    } else {
+      var pa = by[s.pvEtf] || assets[0], pb = Math.max(0, s.pvBruto || 0), pir = Math.min(pb, Math.max(0, s.pvIr || 0));
+      form = { title: 'Registrar provento', hint: 'Dividendos, JCP e rendimentos caem na conta e saem do patrimônio da carteira até serem reinvestidos por uma compra, como uma venda. Eles contam como rendimento da carteira.', sugTitle: 'Para reinvestir: ' + sugAporte.id, sugDetail: 'É o ativo mais abaixo do alvo (' + pct(sugAporte.real) + ' para ' + pct(sugAporte.alvo) + '). Registre a compra na aba Compra.', cta: 'Registrar provento' };
+      lines = [
+        { label: 'Valor bruto', value: brl(pb), size: '14px', weight: '500', ink: '#15202B' },
+        { label: 'IR retido na fonte', value: pir > 0 ? '− ' + brl(pir) : '—', size: '14px', weight: '500', ink: '#4A5A6B' },
+        { label: 'Valor líquido na conta', value: brl(pb - pir), size: '15px', weight: '700', ink: '#15202B' }
+      ];
+      eff = effect({}, [pa.id]);
+      var pvHint = s.pvTipo === 'jcp' ? 'JCP tem IR retido na fonte (preenchido com 15% do valor bruto; ajuste se for diferente).' : (s.pvTipo === 'rendimento' ? 'Rendimentos de FII costumam ser isentos de IR para pessoa física.' : 'Informe o IR retido apenas se constar no extrato da corretora.') + ' O provento não muda a quantidade de cotas.';
+    }
+
+    var hist = [
+      { d: '2026-10-02', tipo: 'compra', ativos: ['B5MB11'], nome: 'B5MB11', preco: 137.07, qtd: 36 },
+      { d: '2026-09-01', tipo: 'compra', ativos: ['QLBR11'], nome: 'QLBR11', preco: 123.62, qtd: 40 },
+      { d: '2026-08-15', tipo: 'compra', ativos: ['IWVL'], nome: 'IWVL', ext: true, cambio: 5.42, preco: 325.50, qtd: 45 },
+      { d: '2026-08-01', tipo: 'compra', ativos: ['QLBR11'], nome: 'QLBR11', preco: 123.40, qtd: 40 },
+      { d: '2026-07-14', tipo: 'compra', ativos: ['LFTS11'], nome: 'LFTS11', preco: 159.40, qtd: 16, nota: 'Reinvestimento da venda de HODL11 feita em 10/07.' },
+      { d: '2026-07-10', tipo: 'venda', ativos: ['HODL11'], nome: 'HODL11', ir: 168.30, preco: 62.33, qtd: 45, nota: 'Rebalanceamento: HODL11 acima da banda. Venda até a borda; valor reinvestido em LFTS11.' },
+      { d: '2026-07-01', tipo: 'compra', ativos: ['LFTS11'], nome: 'LFTS11', preco: 158.90, qtd: 30 },
+      { d: '2026-06-02', tipo: 'compra', ativos: ['QLBR11'], nome: 'QLBR11', preco: 121.30, qtd: 41 },
+      { d: '2026-05-15', tipo: 'compra', ativos: ['VALU'], nome: 'VALU', ext: true, cambio: 5.45, preco: 795.60, qtd: 18 },
+      { d: '2026-05-04', tipo: 'compra', ativos: ['QLBR11'], nome: 'QLBR11', preco: 120.90, qtd: 41 },
+      { d: '2026-04-01', tipo: 'compra', ativos: ['GOLD11'], nome: 'GOLD11', preco: 21.40, qtd: 230 },
+      { d: '2026-03-02', tipo: 'compra', ativos: ['B5MB11'], nome: 'B5MB11', preco: 133.90, qtd: 37 },
+      { d: '2026-02-14', tipo: 'compra', ativos: ['VALU'], nome: 'VALU', ext: true, cambio: 5.38, preco: 790.00, qtd: 18 },
+      { d: '2026-01-05', tipo: 'compra', ativos: ['HODL11'], nome: 'HODL11', preco: 61.20, qtd: 80 }
+    ];
+    function r2(v) { return Math.round(v * 100) / 100; }
+    var EMOL = 0.0003; // emolumentos B3 (negociação + liquidação)
+    hist.forEach(function (h) {
+      if (h.tipo === 'provento') { h.valor = h.bruto; h.corretagem = 0; h.spreadR = 0; h.iofR = 0; h.emol = 0; h.irR = h.irRet || 0; h.taxas = h.irR; return; }
+      h.valor = r2(h.preco * h.qtd);
+      h.corretagem = h.ext ? r2(Math.max(h.valor * CORR.extPct / 100, CORR.extMin * h.cambio)) : 0;
+      if (h.ext) {
+        h.spreadR = r2(h.valor * s.spread / 100);
+        h.iofR = r2((h.valor + h.spreadR) * s.iofIda / 100);
+        h.emol = 0; h.irR = 0;
+      } else {
+        h.spreadR = 0; h.iofR = 0;
+        h.emol = r2(h.valor * EMOL);
+        h.irR = h.ir || 0;
+      }
+      h.taxas = r2(h.spreadR + h.iofR + h.emol + h.corretagem + h.irR);
+    });
+    function fmtD(iso) { var q = iso.split('-'); return q[2] + '/' + q[1] + '/' + q[0]; }
+    var filt = hist.filter(function (h) {
+      if (s.hDe && h.d < s.hDe) return false;
+      if (s.hAte && h.d > s.hAte) return false;
+      if (s.hAtivo !== 'todos' && h.ativos.indexOf(s.hAtivo) < 0) return false;
+      if (s.hOp !== 'todos' && h.tipo !== s.hOp) return false;
+      if (s.hCorr !== 'todos' && (h.corretora || 'Banco Inter') !== s.hCorr) return false;
+      return true;
+    });
+    function notaDe(h) { var k = h.d + h.nome; return Object.prototype.hasOwnProperty.call(s.notas, k) ? s.notas[k] : (h.nota || ''); }
+    var hs = hist.filter(function (h) { return h.d + h.nome === s.hSel; })[0];
+    var det = false;
+    if (hs) {
+      var opN = hs.tipo === 'compra' ? 'Compra' : (hs.tipo === 'venda' ? 'Venda' : 'Provento');
+      var hInk = hs.tipo === 'compra' ? '#2E6B3F' : (hs.tipo === 'venda' ? '#B42318' : '#1A4A82');
+      function it(k, v, nota, forte, cor) { return { k: k, v: v, nota: nota || '', fw: forte ? 600 : 400, ink: cor || '#15202B' }; }
+      var hGr = [];
+      if (hs.tipo === 'provento') {
+        hGr.push({ titulo: 'Provento', itens: [it('Tipo', hs.provNome), it('Valor bruto', brl(hs.bruto)), it('IR retido na fonte', brl(hs.irR)), it('Valor líquido na conta', brl(r2(hs.bruto - hs.irR)), 'sai do patrimônio até ser reinvestido', true, '#1A4A82')] });
+      } else if (hs.ext) {
+        var usd = hs.valor / hs.cambio;
+        hGr.push({ titulo: 'Operação', itens: [it('Quantidade de cotas', hs.qtd.toLocaleString('pt-BR')), it('Valor da cota', 'US$ ' + (hs.preco / hs.cambio).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '≈ ' + brl(hs.preco)), it('Valor investido', 'US$ ' + usd.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '≈ ' + brl(hs.valor), true)] });
+        hGr.push({ titulo: 'Câmbio', itens: [it('Cotação comercial do dólar', 'R$ ' + hs.cambio.toLocaleString('pt-BR', { minimumFractionDigits: 4 })), it('Cotação efetiva com spread', 'R$ ' + (hs.cambio * (1 + s.spread / 100)).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })), it('Valor remetido em reais', brl(hs.valor + hs.taxas), 'investido + taxas')] });
+      } else {
+        hGr.push({ titulo: 'Operação', itens: [it('Quantidade de cotas', hs.qtd.toLocaleString('pt-BR')), it('Valor da cota', brl(hs.preco)), it(hs.tipo === 'venda' ? 'Valor bruto da venda' : 'Valor investido', brl(hs.valor), '', true)] });
+      }
+      var hTx = [];
+      if (hs.tipo !== 'provento') {
+      hTx.push(it('Corretagem', brl(hs.corretagem), hs.ext ? (CORR.extPct.toFixed(2).replace('.', ',') + '%') + ' da ordem, mín. US$ ' + CORR.extMin.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : 'isenta na B3'));
+      if (hs.ext) {
+        hTx.push(it('Spread cambial', brl(hs.spreadR), s.spread.toLocaleString('pt-BR') + '%'));
+        hTx.push(it('IOF de câmbio', brl(hs.iofR), s.iofIda.toLocaleString('pt-BR') + '% na remessa'));
+      } else {
+        hTx.push(it('Emolumentos B3', brl(hs.emol), '0,03%'));
+      }
+      if (hs.tipo === 'venda') hTx.push(it('IR sobre o ganho', brl(hs.irR), '15%'));
+      hTx.push(it('Total de taxas', brl(hs.taxas), (hs.taxas / hs.valor * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '% da operação', true, '#8A5A00'));
+      hGr.push({ titulo: 'Taxas e impostos', itens: hTx });
+      if (hs.tipo === 'venda') hGr.push({ titulo: 'Resumo', itens: [it('Valor líquido na conta', brl(r2(hs.valor - hs.taxas)), 'sai do patrimônio da carteira', true, '#B42318')] });
+      }
+      if (hs.tipo === 'compra') hGr.push({ titulo: 'Resumo', itens: [it('Desembolso total', brl(hs.valor + hs.taxas)), it('Valor que entra na carteira', brl(hs.valor), '', true, '#2E6B3F')] });
+      det = { nota: notaDe(hs), op: opN, ink: hInk, ativo: hs.nome, date: fmtD(hs.d), corretora: hs.corretora || 'Banco Inter', grupos: hGr };
+    }
+    var history = filt.map(function (h) {
+      return { temNota: !!notaDe(h), abrir: function () { self.setState({ hSel: h.d + h.nome }); }, taxas: brl(h.taxas), date: fmtD(h.d), ativo: h.nome, corretora: h.corretora || 'Banco Inter', op: h.tipo === 'compra' ? 'Compra' : (h.tipo === 'venda' ? 'Venda' : 'Provento'), preco: h.tipo === 'provento' ? '—' : brl(h.preco), qtd: h.tipo === 'provento' ? '—' : h.qtd.toLocaleString('pt-BR'), value: (h.tipo === 'compra' ? '+ ' : (h.tipo === 'venda' ? '− ' : '')) + brl(h.tipo === 'compra' ? h.valor : r2(h.valor - h.taxas)), ink: h.tipo === 'compra' ? '#2E6B3F' : (h.tipo === 'venda' ? '#B42318' : '#1A4A82') };
+    });
+    function soma(tipo) { var l = filt.filter(function (h) { return h.tipo === tipo; }); return { v: l.reduce(function (acc, h) { return acc + h.valor; }, 0), n: l.length }; }
+    var sc = soma('compra'), sv = soma('venda'), sp = soma('provento');
+    function qtd(n) { return n + (n === 1 ? ' operação' : ' operações'); }
+    var hTot = [
+      { label: 'Compras', value: brl(sc.v), sub: qtd(sc.n), ink: '#2E6B3F' },
+      { label: 'Vendas', value: brl(sv.v), sub: qtd(sv.n), ink: '#B42318' },
+      { label: 'Proventos', value: brl(sp.v), sub: qtd(sp.n) + ' (valor bruto)', ink: '#1A4A82' },
+      { label: 'Saldo investido no período', value: brl(sc.v - sv.v - sp.v), sub: 'compras − vendas − proventos', ink: '#15202B' }
+    ];
+    function mkOpt(k, o) { var on = s[k] === o.id; return { id: o.id, label: o.label, bg: on ? '#E7EEF7' : 'transparent', fw: on ? 600 : 400, go: function () { var u = { hOpen: '' }; u[k] = o.id; self.setState(u); } }; }
+    var hOpts = [{ id: 'todos', label: 'Todos os ativos' }].concat(assets.map(function (a) { return { id: a.id, label: a.id }; })).map(function (o) { return mkOpt('hAtivo', o); });
+    var opNomes = { compra: 'Compra', venda: 'Venda', provento: 'Provento' };
+    var hOpOpts = [{ id: 'todos', label: 'Todas' }, { id: 'compra', label: 'Compra' }, { id: 'venda', label: 'Venda' }, { id: 'provento', label: 'Provento' }].map(function (o) { return mkOpt('hOp', o); });
+    function tg(k) { return function () { self.setState({ hOpen: s.hOpen === k ? '' : k }); }; }
+    function dCurta(iso) { var q = iso.split('-'); return q[2] + '/' + q[1] + '/' + q[0].slice(2); }
+    var hTxtData = (s.hDe || s.hAte) ? (s.hDe ? dCurta(s.hDe) : '…') + ' – ' + (s.hAte ? dCurta(s.hAte) : '…') : '';
+    var hTxtAtivo = s.hAtivo !== 'todos' ? s.hAtivo : '';
+    var hTxtOp = s.hOp !== 'todos' ? opNomes[s.hOp] : '';
+    var corrNomes = []; hist.forEach(function (h) { var c = h.corretora || 'Banco Inter'; if (corrNomes.indexOf(c) < 0) corrNomes.push(c); });
+    var hCorrOpts = [{ id: 'todos', label: 'Todas' }].concat(corrNomes.map(function (c) { return { id: c, label: c }; })).map(function (o) { return mkOpt('hCorr', o); });
+    var hTxtCorr = s.hCorr !== 'todos' ? s.hCorr : '';
+
+    var anual = [
+      { ano: 2019, bruto: 60000, spread: 1.5, iof: 0.38, corr: 0 }, { ano: 2020, bruto: 60000, spread: 1.5, iof: 0.38, corr: 0 },
+      { ano: 2021, bruto: 60000, spread: 1.5, iof: 0.38, corr: 0 }, { ano: 2022, bruto: 60000, spread: 1.4, iof: 0.38, corr: 0 },
+      { ano: 2023, bruto: 60000, spread: 1.4, iof: 0.38, corr: 0 }, { ano: 2024, bruto: 60000, spread: 1.3, iof: 0.38, corr: 0 },
+      { ano: 2025, bruto: 60000, spread: 1.25, iof: 1.1, corr: 0 }, { ano: 2026, bruto: 50000, spread: 1.25, iof: 1.1, corr: 0 }
+    ];
+    var sel = s.ano === 'todos' ? anual : anual.filter(function (r) { return String(r.ano) === String(s.ano); });
+    var tot = { bruto: 0, spread: 0, iof: 0, corr: 0 };
+    sel.forEach(function (r) { var ext = r.bruto * 0.5; tot.bruto += r.bruto; tot.spread += ext * r.spread / 100; tot.iof += ext * r.iof / 100; tot.corr += r.corr; });
+    var liq = tot.bruto - tot.spread - tot.iof - tot.corr;
+    function pctOf(v) { return (tot.bruto ? v / tot.bruto * 100 : 0).toFixed(2).replace('.', ',') + '%'; }
+    var slices = [
+      { label: 'Investido líquido', v: liq, color: '#A3ACB6' },
+      { label: 'Spread cambial', v: tot.spread, color: '#E2A33B' },
+      { label: 'IOF', v: tot.iof, color: '#C4532F' },
+      { label: 'Corretagem', v: tot.corr, color: '#7A4E9C' }
+    ];
+    var ang = 0, pie = [];
+    slices.forEach(function (sl) {
+      if (sl.v <= 0 || !tot.bruto) return;
+      var a0 = ang, a1 = ang + sl.v / tot.bruto * 360; ang = a1;
+      var r = 92, cx = 100, cy = 100;
+      function pt(deg) { var rad = (deg - 90) * Math.PI / 180; return (cx + r * Math.cos(rad)).toFixed(2) + ' ' + (cy + r * Math.sin(rad)).toFixed(2); }
+      var d = (a1 - a0) >= 359.99 ? 'M 100 8 A 92 92 0 1 1 99.99 8 Z' : 'M 100 100 L ' + pt(a0) + ' A 92 92 0 ' + ((a1 - a0) > 180 ? 1 : 0) + ' 1 ' + pt(a1) + ' Z';
+      pie.push({ d: d, color: sl.color });
+    });
+    var res = {
+      bruto: brl(tot.bruto), liquido: brl(liq), pctLiq: (tot.bruto ? liq / tot.bruto * 100 : 0).toFixed(1).replace('.', ',') + '%', lblLeft: (50 + 27 * Math.sin((liq / (tot.bruto || 1) * 180) * Math.PI / 180)).toFixed(1) + '%', lblTop: (50 - 27 * Math.cos((liq / (tot.bruto || 1) * 180) * Math.PI / 180)).toFixed(1) + '%',
+      rows: slices.slice(1).map(function (sl) { return { label: sl.label, value: '− ' + brl(sl.v), pct: pctOf(sl.v), color: sl.color }; })
+    };
+    var anos = [{ v: 'todos', label: 'Todos os anos' }].concat(anual.slice().reverse().map(function (r) { return { v: String(r.ano), label: String(r.ano) }; }));
+
+    return {
+      ano: s.ano, onAno: set('ano'), anos: anos, pie: pie, res: res,
+      tabs: tabs, form: form, lines: lines, effect: eff, history: history, opts: opts,
+      hDe: s.hDe, hAte: s.hAte, hAtivo: s.hAtivo, onHDe: set('hDe'), onHAte: set('hAte'), onHAtivo: set('hAtivo'), hOpts: hOpts, hOpOpts: hOpOpts, det: det, onNota: function (e) { var n = Object.assign({}, s.notas); n[s.hSel] = e.target.value; self.setState({ notas: n }); }, fecharDet: function () { self.setState({ hSel: '' }); }, apCorr: s.apCorr, onApCorr: set('apCorr'), corrOpts: [{ id: 'inter', label: 'Banco Inter' }],
+      hOpenData: s.hOpen === 'data', hOpenAtivo: s.hOpen === 'ativo', hOpenOp: s.hOpen === 'op', hOpenCorr: s.hOpen === 'corr', hTgCorr: tg('corr'), hCorrOpts: hCorrOpts, hTxtCorr: hTxtCorr, hInkCorr: hTxtCorr ? '#1A4A82' : '#4A5A6B', hAnyOpen: s.hOpen !== '',
+      hTgData: tg('data'), hTgAtivo: tg('ativo'), hTgOp: tg('op'), hFechar: function () { self.setState({ hOpen: '' }); },
+      hLimpData: function () { self.setState({ hDe: '', hAte: '', hOpen: '' }); },
+      hTxtData: hTxtData, hTxtAtivo: hTxtAtivo, hTxtOp: hTxtOp,
+      hInkData: hTxtData ? '#1A4A82' : '#4A5A6B', hInkAtivo: hTxtAtivo ? '#1A4A82' : '#4A5A6B', hInkOp: hTxtOp ? '#1A4A82' : '#4A5A6B', hTot: hTot, hVazio: history.length === 0,
+      hLimpar: function () { self.setState({ hDe: '', hAte: '', hAtivo: 'todos', hOp: 'todos', hCorr: 'todos', hOpen: '' }); },
+      cotaHora: s.cotaHora, cotaBtn: s.cotaLoad ? 'Atualizando…' : '↻ Atualizar',
+      atualizarCota: function () { self.setState({ cotaLoad: true }); setTimeout(function () { var d = new Date(), pr = Math.round((self.state.apPreco || 0) * (1 + (Math.random() - 0.5) * 0.004) * 100) / 100; self.setState({ cotaLoad: false, apPreco: pr, apPrecoTxt: pr.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cotaHora: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') }); }, 600); },
+      resumoAberto: s.resumoAberto, resumoSeta: s.resumoAberto ? '▴' : '▾', tgResumo: function () { self.setState({ resumoAberto: !s.resumoAberto }); },
+      isCompra: s.tab === 'compra', isVenda: s.tab === 'venda', isProv: s.tab === 'provento', pvEtf: s.pvEtf, pvTipo: s.pvTipo, pvBrutoTxt: s.pvBrutoTxt, pvIrTxt: s.pvIrTxt, pvHint: pvHint || '',
+      onPvEtf: set('pvEtf'), onPvTipo: function (e) { var v = e.target.value, u = { pvTipo: v }; if (v === 'jcp') { u.pvIr = Math.round((s.pvBruto || 0) * 15) / 100; u.pvIrTxt = num2(u.pvIr); } else if (s.pvTipo === 'jcp') { u.pvIr = 0; u.pvIrTxt = ''; } self.setState(u); },
+      onPvBruto: function (e) { moeda('pvBruto')(e); if (s.pvTipo === 'jcp') { var b = parseBr(e.target.value); self.setState({ pvIr: Math.round(b * 15) / 100, pvIrTxt: num2(Math.round(b * 15) / 100) }); } }, fmtPvBruto: fmtMoeda('pvBruto'), onPvIr: moeda('pvIr'), fmtPvIr: fmtMoeda('pvIr'), vdHint: vdHint || '',
+      apEtf: s.apEtf, apValTxt: s.apValTxt, onApEtf: function (e) { var id = e.target.value; if (id === '__novo') { self.setState({ nv: Object.assign({}, s.nv, { aberto: true, erro: '' }) }); return; } var pr = by[id].preco; self.setState({ apEtf: id, apPreco: pr, apPrecoTxt: num2(pr), nv: Object.assign({}, s.nv, { aberto: false }) }); },
+      novo: (function () {
+        var nv = s.nv;
+        function f(k) { return function (e) { var v = e.target.value; self.setState(function (st) { var o = Object.assign({}, st.nv); o[k] = k === 'cod' ? v.toUpperCase().trim() : v; o.erro = ''; if (k === 'mercado' && v === 'exterior' && o.bloco !== 'ext' && o.bloco !== 'alt') o.bloco = 'ext'; return { nv: o }; }); }; }
+        var alvoN = parseBr(nv.alvo);
+        return {
+          aberto: nv.aberto, cod: nv.cod, tipo: nv.tipo, mercado: nv.mercado, bloco: nv.bloco, alvo: nv.alvo, erro: nv.erro,
+          tipos: [{ id: 'acao', nome: 'Ação' }, { id: 'etf_acoes', nome: 'ETF de ações' }, { id: 'etf_rf', nome: 'ETF de renda fixa' }, { id: 'etf_outros', nome: 'ETF de ouro, cripto ou outros' }, { id: 'fii', nome: 'FII' }, { id: 'bdr', nome: 'BDR' }, { id: 'tesouro', nome: 'Título público' }, { id: 'cdb', nome: 'CDB, LC ou RDB' }],
+          blocos: [{ id: 'ext', nome: 'Ações globais' }, { id: 'alt', nome: 'Alternativos' }, { id: 'acb', nome: 'Ações Brasil' }, { id: 'rf', nome: 'Renda fixa' }],
+          aviso: alvoN > 0 ? 'Com alvo de ' + String(alvoN).replace('.', ',') + '%, a soma dos alvos passa de 100%. Reduza o alvo de outros ativos em Configurações para fechar a conta.' : 'Com alvo de 0%, o ativo entra na carteira mas aparece fora da banda até você definir o alvo em Configurações.',
+          onCod: f('cod'), onTipo: f('tipo'), onMercado: f('mercado'), onBloco: f('bloco'), onAlvo: f('alvo'),
+          cancelar: function () { self.setState({ nv: Object.assign({}, s.nv, { aberto: false, erro: '' }) }); },
+          salvar: function () {
+            var cod = (s.nv.cod || '').trim();
+            if (!cod) { self.setState({ nv: Object.assign({}, s.nv, { erro: 'Informe o código do ativo.' }) }); return; }
+            if (by[cod]) { self.setState({ nv: Object.assign({}, s.nv, { erro: cod + ' já está cadastrado. Escolha-o na lista de ativos.' }) }); return; }
+            self.setState({ novos: s.novos.concat([{ cod: cod, tipo: s.nv.tipo, mercado: s.nv.mercado, bloco: s.nv.bloco, alvo: parseBr(s.nv.alvo) }]), apEtf: cod, apPreco: 0, apPrecoTxt: '', nv: { aberto: false, cod: '', tipo: 'etf_acoes', mercado: 'brasil', bloco: 'acb', alvo: '', erro: '' } });
+          }
+        };
+      })(), apPrecoTxt: s.apPrecoTxt, onApPreco: moeda('apPreco'), fmtApPreco: fmtMoeda('apPreco'), onApVal: moeda('apVal'), fmtApVal: fmtMoeda('apVal'),
+      apCotas: (s.apPreco > 0 ? Math.floor((s.apVal || 0) / s.apPreco) : 0).toLocaleString('pt-BR') + ' cotas',
+      apExterior: !!by[s.apEtf].ext,
+      rtEtf: s.rtEtf, rtValTxt: s.rtValTxt, onRtEtf: set('rtEtf'), onRtVal: moeda('rtVal'), fmtRtVal: fmtMoeda('rtVal'), metaMensal: brl0(total * 0.035 / 12),
+      spread: s.spread, iofIda: s.iofIda, iofVolta: s.iofVolta,
+      onSpread: set('spread'), onIofIda: set('iofIda'), onIofVolta: set('iofVolta'),
+      spreadTxt: pctN(s.spread), iofIdaTxt: pctN(s.iofIda), iofVoltaTxt: pctN(s.iofVolta)
+    };
+  }
+}
+</script>
+</body>
+</html>

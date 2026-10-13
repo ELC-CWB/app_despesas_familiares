@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Carteira Perpétua — Configurações</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F3F5F7}
+a{color:#2F4A66}a:hover{color:#1C2F43}
+button,input,select{font:inherit}
+input,select{min-height:44px;box-sizing:border-box;border:1px solid #C9D1D9;border-radius:10px;padding:0 12px;background:#FFFFFF;color:#15202B;width:100%}
+@media (max-width: 640px){.pg{padding:20px 12px 32px !important}.pg section{padding:16px !important;border-radius:14px !important}.pg h1{font-size:24px !important}}
+.atv-f{display:flex;flex-direction:column;gap:4px;min-width:0}.atv-lbl{display:none}
+@media (max-width: 860px){.atv-head{display:none !important}.atv-row{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:10px 12px !important;padding:14px !important;margin-top:10px;border:1px solid #E3E8ED !important;border-radius:12px;position:relative}.atv-lbl{display:block}.atv-cod{grid-column:1/2}.atv-tipo{grid-column:1/-1}.atv-rm{position:absolute;top:6px;right:6px}}
+.nav-top a{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:9px;font-size:14px;font-weight:600;text-decoration:none;color:#4A5A6B}.nav-top a:hover{background:#E3E8ED;color:#15202B}.nav-top a[aria-current="page"]{background:#1F3247;color:#FFFFFF}.nav-bot{display:none}
+@media (max-width: 640px){.nav-top .nav-links{display:none !important}.pg{padding-bottom:96px !important}.nav-bot{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#FFFFFF;border-top:1px solid #E3E8ED;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}.nav-bot a{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center;font-size:11px;font-weight:600;text-decoration:none;color:#6B7885;border-radius:10px}.nav-bot a[aria-current="page"]{color:#1F3247;background:#EAF1F9}}
+@media (max-width: 860px){.blc-head{display:none !important}.blc-row{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:10px 12px !important;padding:14px !important;margin-top:10px;border:1px solid #E3E8ED !important;border-radius:12px;position:relative}.blc-sw{position:absolute;top:14px;left:14px;width:10px !important;height:10px !important}.blc-nome{grid-column:1/-1;padding-left:18px}}
+</style>
+</helmet>
+<div class="pg" style="min-height: 100vh; background: #F3F5F7; color: #15202B; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box; padding: 32px 20px 48px">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; position: relative">
+<nav class="nav-bot" aria-label="Navegação principal">
+<a href="Main.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"></path><path d="M14.5 2.5a8 8 0 0 1 7 7h-7z"></path></svg><span>Visão geral</span></a>
+<a href="Plano.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"></path><path d="M4 16l5-5 4 3 7-8"></path></svg><span>Plano</span></a>
+<a href="Movimentacoes.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v14"></path><path d="M3 14l4 4 4-4"></path><path d="M17 20V6"></path><path d="M13 10l4-4 4 4"></path></svg><span>Movimentações</span></a>
+<a href="Configuracoes.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg><span>Configurações</span></a>
+</nav>
+<nav class="nav-top" aria-label="Navegação principal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1F3247">Carteira Perpétua</div>
+<div class="nav-links" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E3E8ED">
+<a href="Main.dc.html">Visão geral</a>
+<a href="Plano.dc.html">Plano</a>
+<a href="Movimentacoes.dc.html">Movimentações</a>
+<a href="Configuracoes.dc.html" aria-current="page">Configurações</a>
+</div>
+<div title="Dólar comercial de hoje (08/10/2026), usado para converter os ativos no exterior. As projeções mantêm o câmbio real constante." style="font-size: 11px; color: #6B7885; white-space: nowrap">US$ 1 = <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #33414F">R$ 5,01</span></div>
+</nav>
+
+<header style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.01em">Configurações da conta</h1>
+<div style="font-size: 13px; color: #4A5A6B">Corretoras, ativos, custos e impostos usados nas estimativas de compras e vendas</div>
+</header>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" onClick="{{tgCor}}" aria-expanded="{{abCor}}" style="display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; font-size: 17px; font-weight: 600; color: #15202B; cursor: pointer; text-align: left">Corretoras <span aria-hidden="true" style="font-size: 13px; color: #6B7885">{{setaCor}}</span></button>
+<sc-if value="{{abCor}}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; color: #4A5A6B">Os campos de câmbio aparecem para corretoras que operam no exterior.</div></sc-if>
+</div>
+<sc-if value="{{abCor}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{addCorretora}}" style="min-height: 44px; padding: 0 16px; border: 1px solid #1F3247; border-radius: 10px; background: #FFFFFF; color: #1F3247; font-size: 14px; font-weight: 600; cursor: pointer">+ Adicionar corretora</button></sc-if>
+</div>
+<sc-if value="{{abCor}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{corretoras}}" as="c" hint-placeholder-count="1">
+<div style="border: 1px solid #E3E8ED; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idNome}}" style="font-size: 13px; font-weight: 500; color: #33414F">Nome da corretora</label>
+<input id="{{c.idNome}}" type="text" value="{{c.nome}}" onChange="{{c.onNome}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idMerc}}" style="font-size: 13px; font-weight: 500; color: #33414F">Opera em</label>
+<select id="{{c.idMerc}}" value="{{c.mercado}}" onChange="{{c.onMercado}}">
+<option value="brasil">Brasil (B3)</option>
+<option value="exterior">Exterior</option>
+<option value="ambos">Brasil e exterior</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idCust}}" style="font-size: 13px; font-weight: 500; color: #33414F">Custódia (% ao ano)</label>
+<input id="{{c.idCust}}" type="number" min="0" step="0.01" value="{{c.custodia}}" onChange="{{c.onCustodia}}">
+</div>
+</div>
+<sc-if value="{{c.temBr}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; background: #F3F5F7">
+<div style="font-size: 13px; font-weight: 600; color: #33414F">Corretagem na B3</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idBrPct}}" style="font-size: 12px; font-weight: 500; color: #33414F">Percentual da ordem (%)</label>
+<input id="{{c.idBrPct}}" type="number" min="0" step="0.01" value="{{c.corrBrPct}}" onChange="{{c.onCorrBrPct}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idBrMin}}" style="font-size: 12px; font-weight: 500; color: #33414F">Mínimo por ordem (R$)</label>
+<input id="{{c.idBrMin}}" type="number" min="0" step="0.5" value="{{c.corrBrMin}}" onChange="{{c.onCorrBrMin}}">
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{c.temCambio}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; background: #F3F5F7">
+<div style="font-size: 13px; font-weight: 600; color: #33414F">Exterior: câmbio e corretagem</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idSpread}}" style="font-size: 12px; font-weight: 500; color: #33414F">Spread cambial (%)</label>
+<input id="{{c.idSpread}}" type="number" min="0" step="0.05" value="{{c.spread}}" onChange="{{c.onSpread}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idIofIda}}" style="font-size: 12px; font-weight: 500; color: #33414F">IOF na remessa (%)</label>
+<input id="{{c.idIofIda}}" type="number" min="0" step="0.01" value="{{c.iofIda}}" onChange="{{c.onIofIda}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idIofVolta}}" style="font-size: 12px; font-weight: 500; color: #33414F">IOF no retorno (%)</label>
+<input id="{{c.idIofVolta}}" type="number" min="0" step="0.01" value="{{c.iofVolta}}" onChange="{{c.onIofVolta}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idExtPct}}" style="font-size: 12px; font-weight: 500; color: #33414F">Corretagem (% da ordem)</label>
+<input id="{{c.idExtPct}}" type="number" min="0" step="0.01" value="{{c.corrExtPct}}" onChange="{{c.onCorrExtPct}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="{{c.idExtMin}}" style="font-size: 12px; font-weight: 500; color: #33414F">Corretagem mínima por ordem (US$)</label>
+<input id="{{c.idExtMin}}" type="number" min="0" step="0.5" value="{{c.corrExtMin}}" onChange="{{c.onCorrExtMin}}">
+</div>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<div style="font-size: 12px; color: #4A5A6B">{{c.ativosTxt}}</div>
+<button type="button" onClick="{{c.remove}}" style="min-height: 40px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #B42318; font-size: 13px; font-weight: 600; cursor: pointer">Remover</button>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px; max-width: 760px">
+<button type="button" onClick="{{tgGeo}}" aria-expanded="{{abGeo}}" style="display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; font-size: 17px; font-weight: 600; color: #15202B; cursor: pointer; text-align: left">Geografias e blocos <span aria-hidden="true" style="font-size: 13px; color: #6B7885">{{setaGeo}}</span></button>
+<sc-if value="{{abGeo}}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; color: #4A5A6B; line-height: 1.5">A estrutura do gráfico da tela inicial: cada <strong style="font-weight: 600; color: #33414F">geografia</strong> agrupa blocos, e cada <strong style="font-weight: 600; color: #33414F">bloco</strong> agrupa ativos. A cor é escolhida na geografia; blocos e ativos recebem tons dela automaticamente.</div></sc-if>
+</div>
+<sc-if value="{{abGeo}}" hint-placeholder-val="{{ false }}">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #33414F">Geografias</h3>
+<button type="button" onClick="{{addGeo}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #1F3247; border-radius: 10px; background: #FFFFFF; color: #1F3247; font-size: 13px; font-weight: 600; cursor: pointer">+ Adicionar geografia</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px">
+<sc-for list="{{geos}}" as="g" hint-placeholder-count="2">
+<div style="border: 1px solid #E3E8ED; border-left: 6px solid {{g.cor}}; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 8px; align-items: flex-end">
+<label style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px; min-width: 0"><span style="font-size: 12px; font-weight: 500; color: #33414F">Nome</span><input type="text" value="{{g.nome}}" onChange="{{g.onNome}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; font-weight: 600"></label>
+<button type="button" onClick="{{g.remove}}" aria-label="Remover geografia" title="{{g.rmTitle}}" style="width: 36px; height: 40px; border: 0; border-radius: 8px; background: transparent; color: {{g.rmInk}}; font-size: 18px; cursor: {{g.rmCursor}}">×</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 500; color: #33414F">Cor</span>
+<div role="radiogroup" aria-label="Cor da geografia" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{g.paleta}}" as="c" hint-placeholder-count="8">
+<button type="button" role="radio" aria-checked="{{c.on}}" aria-label="{{c.nome}}" title="{{c.nome}}" onClick="{{c.go}}" style="width: 28px; height: 28px; border-radius: 50%; background: {{c.hex}}; border: 2px solid {{c.ring}}; box-shadow: 0 0 0 2px {{c.ring2}}; cursor: pointer; padding: 0"></button>
+</sc-for>
+</div>
+</div>
+<div style="font-size: 12px; color: #4A5A6B">{{g.resumo}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #33414F">Blocos</h3>
+<button type="button" onClick="{{addBloco}}" style="min-height: 40px; padding: 0 14px; border: 1px solid #1F3247; border-radius: 10px; background: #FFFFFF; color: #1F3247; font-size: 13px; font-weight: 600; cursor: pointer">+ Adicionar bloco</button>
+</div>
+<div style="display: flex; flex-direction: column">
+<div class="blc-head" style="display: grid; grid-template-columns: 28px minmax(150px, 1.6fr) minmax(110px, 1fr) minmax(130px, 1.2fr) 70px 90px 36px; gap: 8px; padding: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; border-bottom: 1px solid #D9DFE5">
+<div></div><div>Nome</div><div>Nome no gráfico</div><div>Geografia</div><div style="text-align: right">Alvo</div><div style="text-align: right">Ativos</div><div></div>
+</div>
+<sc-for list="{{blocosV}}" as="b" hint-placeholder-count="4">
+<div class="blc-row" style="display: grid; grid-template-columns: 28px minmax(150px, 1.6fr) minmax(110px, 1fr) minmax(130px, 1.2fr) 70px 90px 36px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #EEF1F4">
+<span class="blc-sw" aria-hidden="true" style="width: 22px; height: 22px; border-radius: 6px; background: {{b.cor}}; border: 1px solid rgba(21,32,43,0.08)"></span>
+<label class="atv-f blc-nome"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Nome</span><input type="text" aria-label="Nome do bloco" value="{{b.nome}}" onChange="{{b.onNome}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; font-weight: 600"></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Nome no gráfico</span><input type="text" aria-label="Nome curto no gráfico" placeholder="{{b.nome}}" value="{{b.curto}}" onChange="{{b.onCurto}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Geografia</span><select aria-label="Geografia do bloco" value="{{b.geo}}" onChange="{{b.onGeo}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"><sc-for list="{{geoOpts}}" as="o" hint-placeholder-count="2"><option value="{{o.id}}">{{o.nome}}</option></sc-for></select></label>
+<div class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Alvo</span><div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600">{{b.alvo}}</div></div>
+<div class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Ativos</span><div style="text-align: right; font-size: 13px; color: #4A5A6B">{{b.nAtivos}}</div></div>
+<button type="button" class="atv-rm" onClick="{{b.remove}}" aria-label="Remover bloco" title="{{b.rmTitle}}" style="width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: {{b.rmInk}}; font-size: 18px; cursor: {{b.rmCursor}}">×</button>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</section>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px; max-width: 720px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 600">Ativos</h2>
+<div style="font-size: 13px; color: #4A5A6B; line-height: 1.5">Tipo define impostos e custos; bloco define o lugar no gráfico e nas bandas.</div>
+</div>
+<button type="button" onClick="{{addAtivo}}" style="min-height: 44px; padding: 0 16px; border: 1px solid #1F3247; border-radius: 10px; background: #FFFFFF; color: #1F3247; font-size: 14px; font-weight: 600; cursor: pointer">+ Adicionar ativo</button>
+</div>
+<div style="display: flex; flex-direction: column">
+<div class="atv-head" style="display: grid; grid-template-columns: 90px minmax(140px, 1.5fr) 104px 72px minmax(120px, 1.2fr) 64px 64px 68px minmax(110px, 1fr) 36px; gap: 8px; padding: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4A5A6B; border-bottom: 1px solid #D9DFE5">
+<div>Código</div><div>Tipo</div><div>Mercado</div><div>Moeda</div><div>Bloco</div><div style="text-align: right">Alvo %</div><div style="text-align: right">Banda ±</div><div style="text-align: right">Taxa a.a.</div><div>Corretora</div><div></div>
+</div>
+<sc-for list="{{ativos}}" as="a" hint-placeholder-count="8">
+<div class="atv-row" style="display: grid; grid-template-columns: 90px minmax(140px, 1.5fr) 104px 72px minmax(120px, 1.2fr) 64px 64px 68px minmax(110px, 1fr) 36px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #EEF1F4">
+<label class="atv-f atv-cod"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Código</span><input type="text" aria-label="Código" value="{{a.cod}}" onChange="{{a.onCod}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase"></label>
+<label class="atv-f atv-tipo"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Tipo</span><select aria-label="Tipo de ativo" value="{{a.tipo}}" onChange="{{a.onTipo}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"><sc-for list="{{tipos}}" as="t" hint-placeholder-count="12"><option value="{{t.id}}">{{t.nome}}</option></sc-for></select></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Mercado</span><select aria-label="Mercado" value="{{a.mercado}}" onChange="{{a.onMercado}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"><option value="brasil">Brasil</option><option value="exterior">Exterior</option></select></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Moeda</span><select aria-label="Moeda" value="{{a.moeda}}" onChange="{{a.onMoeda}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"><option value="BRL">BRL</option><option value="USD">USD</option><option value="EUR">EUR</option></select></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Bloco</span><select aria-label="Bloco" value="{{a.bloco}}" onChange="{{a.onBloco}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"><sc-for list="{{blocos}}" as="b" hint-placeholder-count="4"><option value="{{b.id}}">{{b.nome}}</option></sc-for></select></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Alvo %</span><input type="text" inputmode="decimal" aria-label="Alvo em porcentagem" value="{{a.alvoTxt}}" onChange="{{a.onAlvo}}" onBlur="{{a.fmtAlvo}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-align: right; font-family: 'IBM Plex Mono', monospace"></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Banda ± p.p.</span><input type="text" inputmode="decimal" aria-label="Banda em pontos percentuais" value="{{a.bandaTxt}}" onChange="{{a.onBanda}}" onBlur="{{a.fmtBanda}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-align: right; font-family: 'IBM Plex Mono', monospace"></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Taxa de administração (% a.a.)</span><input type="text" inputmode="decimal" aria-label="Taxa de administração ao ano" value="{{a.taxaTxt}}" onChange="{{a.onTaxa}}" onBlur="{{a.fmtTaxa}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-align: right; font-family: 'IBM Plex Mono', monospace"></label>
+<label class="atv-f"><span class="atv-lbl" style="font-size: 12px; font-weight: 500; color: #33414F">Corretora</span><select aria-label="Corretora" value="{{a.corretora}}" onChange="{{a.onCorretora}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px"><sc-for list="{{opcoesCorretora}}" as="o" hint-placeholder-count="2"><option value="{{o.id}}">{{o.nome}}</option></sc-for></select></label>
+<button type="button" class="atv-rm" onClick="{{a.remove}}" aria-label="Remover ativo" style="width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: #B42318; font-size: 18px; cursor: pointer">×</button>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 14px; border-radius: 12px; background: {{somaBg}}; font-size: 13px">
+<div style="font-weight: 600; color: {{somaInk}}">Soma dos alvos: <span style="font-family: 'IBM Plex Mono', monospace">{{somaTxt}}</span></div>
+<div style="color: #33414F">Taxa média ponderada: <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600">{{custoTxt}}</span></div>
+<sc-for list="{{somaBlocos}}" as="b" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 6px; color: #33414F"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{b.cor}}"></span>{{b.nome}} <span style="font-family: 'IBM Plex Mono', monospace">{{b.v}}</span></div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid #E3E8ED">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 14px; font-weight: 600">Colchão de liquidez</div>
+<div style="font-size: 12px; color: #4A5A6B; line-height: 1.5">De onde sai o saque quando nenhum ativo está acima do alvo.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end">
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Ativo usado como colchão</span>
+<select value="{{colchao}}" onChange="{{onColchao}}"><option value="">Nenhum</option><sc-for list="{{colchaoOpts}}" as="o" hint-placeholder-count="8"><option value="{{o.id}}">{{o.nome}}</option></sc-for></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 500; color: #33414F">Cobertura mínima desejada (meses)</span>
+<input type="number" min="0" step="1" value="{{colchaoMin}}" onChange="{{onColchaoMin}}"></label>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: {{cob.bg}}">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: {{cob.ink}}; white-space: nowrap">{{cob.meses}}</div>
+<div style="font-size: 13px; color: #33414F; line-height: 1.5">{{cob.texto}}</div>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border-radius: 16px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" onClick="{{tgImp}}" aria-expanded="{{abImp}}" style="display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; font-size: 17px; font-weight: 600; color: #15202B; cursor: pointer; text-align: left">Impostos <span aria-hidden="true" style="font-size: 13px; color: #6B7885">{{setaImp}}</span></button>
+<sc-if value="{{abImp}}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; color: #4A5A6B; line-height: 1.5">Imposto de renda sobre o ganho na venda, por tipo de ativo. Aparecem os tipos usados na sua carteira. Os valores iniciais seguem a legislação brasileira para pessoa física residente; ajuste se as regras mudarem ou se a sua situação fiscal for outra.</div></sc-if>
+</div>
+<sc-if value="{{abImp}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{impostos}}" as="i" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid #EEF1F4">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label for="{{i.idIn}}" style="font-size: 14px; font-weight: 600">{{i.nome}} <span style="font-weight: 400; font-size: 12px; color: #4A5A6B">· {{i.usados}}</span></label>
+<div style="font-size: 12px; color: #4A5A6B">{{i.nota}}</div>
+</div>
+<div style="display: flex; align-items: center; gap: 6px">
+<input id="{{i.idIn}}" type="number" min="0" max="100" step="0.5" value="{{i.aliq}}" onChange="{{i.on}}" style="text-align: right">
+<span style="font-size: 14px; color: #4A5A6B">%</span>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+<div style="display: flex; justify-content: flex-end">
+<button type="button" style="min-height: 48px; padding: 0 22px; border: 0; border-radius: 10px; background: #1F3247; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">Salvar configurações</button>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      nextId: 2,
+      corretoras: [{ id: 'c1', nome: 'Banco Inter', mercado: 'ambos', corrBrPct: 0, corrBrMin: 0, corrExtPct: 0.2, corrExtMin: 2, custodia: 0, spread: 1.25, iofIda: 1.1, iofVolta: 0.38 }],
+      ativos: [
+        { id: 'a1', cod: 'VALU', tipo: 'etf_acoes', mercado: 'exterior', moeda: 'USD', bloco: 'ext', alvo: 30, banda: 5, taxa: 0.07, corretora: 'c1' },
+        { id: 'a2', cod: 'IWVL', tipo: 'etf_acoes', mercado: 'exterior', moeda: 'USD', bloco: 'ext', alvo: 10, banda: 2.5, taxa: 0.25, corretora: 'c1' },
+        { id: 'a9', cod: 'IWQU', tipo: 'etf_acoes', mercado: 'exterior', moeda: 'USD', bloco: 'ext', alvo: 10, banda: 2.5, taxa: 0.25, corretora: 'c1' },
+        { id: 'a3', cod: 'GOLD11', tipo: 'etf_outros', mercado: 'brasil', moeda: 'BRL', bloco: 'alt', alvo: 2.5, banda: 1.25, taxa: 0.55, corretora: 'c1' },
+        { id: 'a4', cod: 'HODL11', tipo: 'etf_outros', mercado: 'brasil', moeda: 'BRL', bloco: 'alt', alvo: 2.5, banda: 1.25, taxa: 0.4, corretora: 'c1' },
+        { id: 'a6', cod: 'QLBR11', tipo: 'etf_acoes', mercado: 'brasil', moeda: 'BRL', bloco: 'acb', alvo: 20, banda: 5, taxa: 0.5, corretora: 'c1' },
+        { id: 'a7', cod: 'LFTS11', tipo: 'etf_rf', mercado: 'brasil', moeda: 'BRL', bloco: 'rf', alvo: 10, banda: 2.5, taxa: 0.19, corretora: 'c1' },
+        { id: 'a8', cod: 'B5MB11', tipo: 'etf_rf', mercado: 'brasil', moeda: 'BRL', bloco: 'rf', alvo: 15, banda: 3.75, taxa: 0.2, corretora: 'c1' }
+      ],
+      abCor: false, abGeo: false, abImp: false,
+      colchao: 'a7', colchaoMin: 12,
+      txt: {}, nextAtivo: 10, nextGeo: 3, nextBloco: 1,
+      geos: [{ id: 'gl', nome: 'Global', cor: 'azul' }, { id: 'br', nome: 'Brasil', cor: 'verde' }],
+      blocos: [
+        { id: 'ext', nome: 'Ações globais', curto: 'Ações', geo: 'gl' },
+        { id: 'alt', nome: 'Alternativos', curto: 'Altern.', geo: 'gl' },
+        { id: 'acb', nome: 'Ações Brasil', curto: 'Ações', geo: 'br' },
+        { id: 'rf', nome: 'Renda fixa', curto: '', geo: 'br' }
+      ],
+      impostos: { acao: 15, etf_acoes: 15, etf_rf: 15, etf_outros: 15, fii: 20, bdr: 15, tesouro: 15, cdb: 15, lci: 0, debenture: 15, fundo: 15, cripto: 15, exterior: 15 }
+    };
+    try { var sv = JSON.parse(window.localStorage.getItem('cp-estrutura') || 'null'); if (sv && sv.geos && sv.blocos) { this.state.geos = sv.geos; this.state.blocos = sv.blocos; this.state.nextGeo = sv.geos.length + 10; this.state.nextBloco = sv.blocos.length + 10; } } catch (e) {}
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    function brl(v) { return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    var TIPOS = [
+      { id: 'acao', nome: 'Ação', nota: 'Vendas de até R$ 20 mil no mês são isentas; acima disso, 15% sobre o ganho.' },
+      { id: 'etf_acoes', nome: 'ETF de ações', nota: 'Toda venda com ganho é tributada; ETFs não têm a isenção de R$ 20 mil mensais das ações.' },
+      { id: 'etf_rf', nome: 'ETF de renda fixa', nota: 'Alíquota depende do prazo médio da carteira do ETF; 15% para os de prazo longo.' },
+      { id: 'etf_outros', nome: 'ETF de ouro, cripto ou outros', nota: 'Tributados como ETFs de renda variável na B3.' },
+      { id: 'fii', nome: 'Fundo imobiliário (FII)', nota: 'Ganho na venda tributado a 20%; rendimentos mensais em regra isentos para pessoa física.' },
+      { id: 'bdr', nome: 'BDR', nota: 'Ganho na venda tributado como renda variável, sem isenção mensal.' },
+      { id: 'tesouro', nome: 'Título público (Tesouro)', nota: 'Tabela regressiva de 22,5% a 15% conforme o prazo; use a alíquota esperada no resgate.' },
+      { id: 'cdb', nome: 'CDB, LC ou RDB', nota: 'Tabela regressiva de 22,5% a 15% conforme o prazo.' },
+      { id: 'lci', nome: 'LCI, LCA, CRI ou CRA', nota: 'Isentos de IR para pessoa física.' },
+      { id: 'debenture', nome: 'Debênture', nota: 'Comuns seguem a tabela regressiva; incentivadas são isentas.' },
+      { id: 'fundo', nome: 'Fundo de investimento', nota: 'Depende da classe do fundo; pode haver come-cotas.' },
+      { id: 'cripto', nome: 'Criptoativo (direto)', nota: 'Regras próprias; confira a legislação vigente.' }
+    ];
+    var tipoNome = {}; TIPOS.forEach(function (t) { tipoNome[t.id] = t.nome; });
+    var PALETA = [
+      { id: 'azul', nome: 'Azul', hex: '#8EB6E3' }, { id: 'verde', nome: 'Verde', hex: '#8DCB9F' },
+      { id: 'laranja', nome: 'Laranja', hex: '#F2B880' }, { id: 'roxo', nome: 'Roxo', hex: '#C3A8E0' },
+      { id: 'rosa', nome: 'Rosa', hex: '#EBA6B9' }, { id: 'turquesa', nome: 'Turquesa', hex: '#85CFCB' },
+      { id: 'amarelo', nome: 'Amarelo', hex: '#E8D27A' }, { id: 'cinza', nome: 'Cinza', hex: '#A9B8C6' }
+    ];
+    var palHex = {}; PALETA.forEach(function (c) { palHex[c.id] = c.hex; });
+    try { window.localStorage.setItem('cp-estrutura', JSON.stringify({ geos: s.geos, blocos: s.blocos })); } catch (e) {}
+    function mixW(hex, t) { var r = [1, 3, 5].map(function (i) { var v = parseInt(hex.slice(i, i + 2), 16); return Math.round(v + (255 - v) * t).toString(16).padStart(2, '0'); }); return '#' + r.join(''); }
+    var corBloco = {};
+    s.geos.forEach(function (g) {
+      var bs = s.blocos.filter(function (b) { return b.geo === g.id; });
+      bs.forEach(function (b, i) { corBloco[b.id] = mixW(palHex[g.cor] || '#A9B8C6', bs.length > 1 ? 0.3 + 0.4 * i / (bs.length - 1) : 0.4); });
+    });
+    var BLOCOS = s.blocos.map(function (b) { return { id: b.id, nome: b.nome || 'Sem nome', cor: corBloco[b.id] || '#E3E8ED' }; });
+    function alvoDe(filtro) { return s.ativos.filter(filtro).reduce(function (acc, x) { return acc + (x.alvo || 0); }, 0); }
+    function updL(key, id, field) { return function (e) { var v = e.target.value; self.setState(function (st) { var o = {}; o[key] = st[key].map(function (x) { if (x.id !== id) return x; var n = Object.assign({}, x); n[field] = v; return n; }); return o; }); }; }
+    var geosV = s.geos.map(function (g) {
+      var bs = s.blocos.filter(function (b) { return b.geo === g.id; });
+      var vazio = bs.length === 0;
+      var alvoG = alvoDe(function (x) { return bs.some(function (b) { return b.id === x.bloco; }); });
+      return {
+        nome: g.nome, cor: palHex[g.cor], onNome: updL('geos', g.id, 'nome'),
+        resumo: 'Alvo ' + (alvoG || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '% · ' + bs.length + (bs.length === 1 ? ' bloco' : ' blocos') + (bs.length ? ': ' + bs.map(function (b) { return b.nome; }).join(', ') : ''),
+        paleta: PALETA.map(function (c) { var on = c.id === g.cor; return { nome: c.nome, hex: c.hex, on: on ? 'true' : 'false', ring: on ? '#FFFFFF' : 'transparent', ring2: on ? '#1F3247' : 'transparent', go: function () { self.setState(function (st) { return { geos: st.geos.map(function (x) { return x.id === g.id ? Object.assign({}, x, { cor: c.id }) : x; }) }; }); } }; }),
+        rmTitle: vazio ? 'Remover geografia' : 'Mova ou remova os blocos desta geografia antes', rmInk: vazio ? '#B42318' : '#C9D1D9', rmCursor: vazio ? 'pointer' : 'not-allowed',
+        remove: function () { if (!vazio || s.geos.length <= 1) return; self.setState(function (st) { return { geos: st.geos.filter(function (x) { return x.id !== g.id; }) }; }); }
+      };
+    });
+    var geoOpts = s.geos.map(function (g) { return { id: g.id, nome: g.nome || 'Sem nome' }; });
+    var blocosV = s.blocos.map(function (b) {
+      var n = s.ativos.filter(function (x) { return x.bloco === b.id; });
+      var vazio = n.length === 0;
+      return {
+        nome: b.nome, curto: b.curto, geo: b.geo, cor: corBloco[b.id],
+        onNome: updL('blocos', b.id, 'nome'), onCurto: updL('blocos', b.id, 'curto'), onGeo: updL('blocos', b.id, 'geo'),
+        alvo: alvoDe(function (x) { return x.bloco === b.id; }).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + '%',
+        nAtivos: n.length ? n.map(function (x) { return x.cod; }).join(', ') : 'nenhum',
+        rmTitle: vazio ? 'Remover bloco' : 'Mova os ativos deste bloco antes de removê-lo', rmInk: vazio ? '#B42318' : '#C9D1D9', rmCursor: vazio ? 'pointer' : 'not-allowed',
+        remove: function () { if (!vazio) return; self.setState(function (st) { return { blocos: st.blocos.filter(function (x) { return x.id !== b.id; }) }; }); }
+      };
+    });
+    function num(v, d) { return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: 2 }); }
+    function parseBr(t) { var c = String(t || '').replace(/[^0-9,]/g, ''); var i = c.indexOf(','); if (i >= 0) c = c.slice(0, i + 1) + c.slice(i + 1).replace(/,/g, ''); return Number(c.replace(',', '.')) || 0; }
+    function updA(id, key, isNum) {
+      return function (e) {
+        var raw = e.target.value;
+        self.setState(function (st) {
+          var out = { ativos: st.ativos.map(function (x) { if (x.id !== id) return x; var n = Object.assign({}, x); n[key] = isNum ? parseBr(raw) : (key === 'cod' ? raw.toUpperCase() : raw); if (key === 'mercado') { n.moeda = raw === 'exterior' ? (x.moeda === 'BRL' ? 'USD' : x.moeda) : 'BRL'; } return n; }) };
+          if (isNum) { var t = Object.assign({}, st.txt); t[id + key] = raw; out.txt = t; }
+          return out;
+        });
+      };
+    }
+    function fmtA(id, key) { return function () { self.setState(function (st) { var t = Object.assign({}, st.txt); delete t[id + key]; return { txt: t }; }); }; }
+    var ativosV = s.ativos.map(function (x) {
+      return {
+        cod: x.cod, tipo: x.tipo, mercado: x.mercado, moeda: x.moeda, bloco: x.bloco, corretora: x.corretora,
+        alvoTxt: s.txt[x.id + 'alvo'] != null ? s.txt[x.id + 'alvo'] : num(x.alvo, 1),
+        bandaTxt: s.txt[x.id + 'banda'] != null ? s.txt[x.id + 'banda'] : num(x.banda, 1),
+        taxaTxt: s.txt[x.id + 'taxa'] != null ? s.txt[x.id + 'taxa'] : (x.taxa || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), onTaxa: updA(x.id, 'taxa', true), fmtTaxa: fmtA(x.id, 'taxa'),
+        onCod: updA(x.id, 'cod'), onTipo: updA(x.id, 'tipo'), onMercado: updA(x.id, 'mercado'), onMoeda: updA(x.id, 'moeda'), onBloco: updA(x.id, 'bloco'), onCorretora: updA(x.id, 'corretora'),
+        onAlvo: updA(x.id, 'alvo', true), fmtAlvo: fmtA(x.id, 'alvo'), onBanda: updA(x.id, 'banda', true), fmtBanda: fmtA(x.id, 'banda'),
+        remove: function () { self.setState(function (st) { return { ativos: st.ativos.filter(function (y) { return y.id !== x.id; }) }; }); }
+      };
+    });
+    var soma = s.ativos.reduce(function (acc, x) { return acc + (x.alvo || 0); }, 0);
+    var somaOk = Math.abs(soma - 100) < 0.001;
+    // Colchão de liquidez: cobertura em meses de saque (dados fictícios do protótipo)
+    var PATRIMONIO = 850000, REAL = { VALU: 33.6, IWVL: 11.2, IWQU: 8.5, GOLD11: 3.0, HODL11: 4.1, QLBR11: 16.5, LFTS11: 10.6, B5MB11: 12.5 }, SAQUE_MES = PATRIMONIO * 0.035 / 12;
+    var colAt = s.ativos.filter(function (x) { return x.id === s.colchao; })[0], cob;
+    if (!colAt) cob = { meses: '—', texto: 'Sem colchão: quando nenhum ativo estiver acima do alvo, o saque sai do ativo mais perto do alvo, que é o menos prejudicado pela venda.', bg: '#F3F5F7', ink: '#4A5A6B' };
+    else {
+      var vCol = (REAL[colAt.cod] || 0) / 100 * PATRIMONIO, m = vCol / SAQUE_MES, ok = m >= (s.colchaoMin || 0);
+      cob = { meses: Math.floor(m) + (Math.floor(m) === 1 ? ' mês' : ' meses'), texto: (colAt.cod || 'O ativo') + ' tem R$ ' + Math.round(vCol).toLocaleString('pt-BR') + ', o que cobre ' + Math.floor(m) + ' meses de saques de R$ ' + Math.round(SAQUE_MES).toLocaleString('pt-BR') + '. ' + (ok ? 'Acima do mínimo de ' + s.colchaoMin + ' meses.' : 'Abaixo do mínimo de ' + s.colchaoMin + ' meses: considere aumentar o alvo do colchão.'), bg: ok ? '#EEF6F0' : '#FDECEA', ink: ok ? '#2E6B3F' : '#B42318' };
+    }
+    try { window.localStorage.setItem('cp-colchao', colAt ? colAt.cod : ''); } catch (e) {}
+    var custoMedio = soma > 0 ? s.ativos.reduce(function (acc, x) { return acc + (x.alvo || 0) * (x.taxa || 0); }, 0) / soma : 0;
+    var somaBlocos = BLOCOS.map(function (b) { var v = s.ativos.filter(function (x) { return x.bloco === b.id; }).reduce(function (acc, x) { return acc + (x.alvo || 0); }, 0); return { nome: b.nome, cor: b.cor, v: num(v, 1) + '%' }; });
+    function updC(id, key, isNum) {
+      return function (e) {
+        var v = isNum ? Number(e.target.value) : e.target.value;
+        self.setState(function (st) {
+          return { corretoras: st.corretoras.map(function (c) { if (c.id !== id) return c; var n = Object.assign({}, c); n[key] = v; return n; }) };
+        });
+      };
+    }
+    function exCorr(p, m, cur, vals) {
+      return vals.map(function (v) { var c = Math.max(v * (p || 0) / 100, m || 0); return 'ordem de ' + cur + v.toLocaleString('pt-BR') + ' paga ' + cur + c.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (' + (v ? c / v * 100 : 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%)'; }).join('; ') + '.';
+    }
+    var corretoras = s.corretoras.map(function (c) {
+      var n = s.ativos.filter(function (a) { return a.corretora === c.id; }).map(function (a) { return a.cod; });
+      var temCambio = c.mercado !== 'brasil';
+      return {
+        nome: c.nome, mercado: c.mercado, corrBrPct: c.corrBrPct, corrBrMin: c.corrBrMin, corrExtPct: c.corrExtPct, corrExtMin: c.corrExtMin, temBr: c.mercado !== 'exterior',
+        idBrPct: c.id + '-brp', idBrMin: c.id + '-brm', idExtPct: c.id + '-exp', idExtMin: c.id + '-exm',
+        onCorrBrPct: updC(c.id, 'corrBrPct', true), onCorrBrMin: updC(c.id, 'corrBrMin', true), onCorrExtPct: updC(c.id, 'corrExtPct', true), onCorrExtMin: updC(c.id, 'corrExtMin', true),
+        exBr: exCorr(c.corrBrPct, c.corrBrMin, 'R$ ', [1000, 10000]),
+        exCorr: exCorr(c.corrExtPct, c.corrExtMin, 'US$ ', [500, 3000]), custodia: c.custodia, spread: c.spread, iofIda: c.iofIda, iofVolta: c.iofVolta,
+        idNome: c.id + '-nome', idMerc: c.id + '-merc', idCorr: c.id + '-corr', idCust: c.id + '-cust', idSpread: c.id + '-spr', idIofIda: c.id + '-iofi', idIofVolta: c.id + '-iofv',
+        onNome: updC(c.id, 'nome'), onMercado: updC(c.id, 'mercado'), onCustodia: updC(c.id, 'custodia', true),
+        onSpread: updC(c.id, 'spread', true), onIofIda: updC(c.id, 'iofIda', true), onIofVolta: updC(c.id, 'iofVolta', true),
+        temCambio: temCambio,
+        exIda: brl(10000 * ((c.spread || 0) + (c.iofIda || 0)) / 100), exVolta: brl(10000 * ((c.spread || 0) + (c.iofVolta || 0)) / 100),
+        ativosTxt: n.length ? 'Ativos nesta corretora: ' + n.join(', ') : 'Nenhum ativo vinculado',
+        remove: function () {
+          self.setState(function (st) {
+            if (st.corretoras.length <= 1) return {};
+            var rest = st.corretoras.filter(function (x) { return x.id !== c.id; });
+            var atv = st.ativos.map(function (a) { return a.corretora === c.id ? Object.assign({}, a, { corretora: rest[0].id }) : a; });
+            return { corretoras: rest, ativos: atv };
+          });
+        }
+      };
+    });
+    var opcoesCorretora = s.corretoras.map(function (c) { return { id: c.id, nome: c.nome || 'Sem nome' }; });
+    var usadosPor = {};
+    s.ativos.forEach(function (x) { var k = x.mercado === 'exterior' ? 'exterior' : x.tipo; (usadosPor[k] = usadosPor[k] || []).push(x.cod); });
+    var defs = TIPOS.map(function (t) { return { k: t.id, nome: t.nome + ' (Brasil)', nota: t.nota }; }).concat([{ k: 'exterior', nome: 'Qualquer ativo no exterior', nota: 'Ganho apurado em reais, incluindo a variação cambial; declarado no ajuste anual (Lei 14.754/2023).' }]);
+    defs = defs.filter(function (d) { return usadosPor[d.k]; });
+    var impostos = defs.map(function (d) {
+      return {
+        nome: d.nome, nota: d.nota, usados: usadosPor[d.k].join(', '), aliq: s.impostos[d.k], idIn: 'imp-' + d.k,
+        on: function (e) { var v = Number(e.target.value); self.setState(function (st) { var n = Object.assign({}, st.impostos); n[d.k] = v; return { impostos: n }; }); }
+      };
+    });
+    return {
+      corretoras: corretoras, opcoesCorretora: opcoesCorretora, impostos: impostos,
+      ativos: ativosV, tipos: TIPOS, blocos: BLOCOS, somaBlocos: somaBlocos, geos: geosV, geoOpts: geoOpts, blocosV: blocosV,
+      addGeo: function () { self.setState(function (st) { var usadas = st.geos.map(function (g) { return g.cor; }); var livre = PALETA.filter(function (c) { return usadas.indexOf(c.id) < 0; })[0] || PALETA[0]; return { nextGeo: st.nextGeo + 1, geos: st.geos.concat([{ id: 'g' + st.nextGeo, nome: 'Nova geografia', cor: livre.id }]) }; }); },
+      addBloco: function () { self.setState(function (st) { return { nextBloco: st.nextBloco + 1, blocos: st.blocos.concat([{ id: 'b' + st.nextBloco, nome: 'Novo bloco', curto: '', geo: st.geos[0].id }]) }; }); },
+      somaTxt: num(soma, 1) + '%' + (somaOk ? ' ✓' : (soma < 100 ? ' · faltam ' + num(100 - soma, 1) + ' p.p.' : ' · sobram ' + num(soma - 100, 1) + ' p.p.')),
+      custoTxt: custoMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '% a.a.',
+      abCor: s.abCor, setaCor: s.abCor ? '▴' : '▾', tgCor: function () { self.setState({ abCor: !s.abCor }); },
+      abGeo: s.abGeo, setaGeo: s.abGeo ? '▴' : '▾', tgGeo: function () { self.setState({ abGeo: !s.abGeo }); },
+      abImp: s.abImp, setaImp: s.abImp ? '▴' : '▾', tgImp: function () { self.setState({ abImp: !s.abImp }); },
+      colchao: s.colchao, colchaoMin: s.colchaoMin, colchaoOpts: s.ativos.map(function (x) { return { id: x.id, nome: x.cod || 'Sem código' }; }),
+      onColchao: function (e) { self.setState({ colchao: e.target.value }); }, onColchaoMin: function (e) { self.setState({ colchaoMin: Number(e.target.value) || 0 }); },
+      cob: cob,
+      somaBg: somaOk ? '#EEF6F0' : '#FDECEA', somaInk: somaOk ? '#2E6B3F' : '#B42318',
+      addAtivo: function () { self.setState(function (st) { return { nextAtivo: st.nextAtivo + 1, ativos: st.ativos.concat([{ id: 'a' + st.nextAtivo, cod: '', tipo: 'etf_acoes', mercado: 'brasil', moeda: 'BRL', bloco: BLOCOS[0].id, alvo: 0, banda: 0, taxa: 0, corretora: st.corretoras[0].id }]) }; }); },
+      addCorretora: function () {
+        self.setState(function (st) {
+          var id = 'c' + st.nextId;
+          return { nextId: st.nextId + 1, corretoras: st.corretoras.concat([{ id: id, nome: 'Nova corretora', mercado: 'brasil', corrBrPct: 0, corrBrMin: 0, corrExtPct: 0.2, corrExtMin: 2, custodia: 0, spread: 1.0, iofIda: 1.1, iofVolta: 0.38 }]) };
+        });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

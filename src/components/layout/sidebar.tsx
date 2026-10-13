@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, House, PieChart, Target, ChevronDown, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, ChevronDown, type LucideIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type NavLeaf = { href: string; label: string; icon: LucideIcon; exact?: boolean };
@@ -24,7 +24,14 @@ const EXPENSES_NAV: NavItem[] = [
 const INVESTMENTS_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/investments", label: "Visão geral", icon: PieChart, exact: true },
-  { href: "/investments/settings", label: "Configurações", icon: Settings },
+  { href: "/investments/plano", label: "Plano", icon: LineChart },
+  { href: "/investments/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+  {
+    label: "Configurações", icon: Settings, children: [
+      { href: "/investments/settings/carteira", label: "Carteira", icon: Wallet },
+      { href: "/investments/settings/acessos", label: "Acessos", icon: Users },
+    ],
+  },
 ];
 
 const GOALS_NAV: NavItem[] = [
@@ -97,7 +104,7 @@ export function Sidebar({ profile }: SidebarProps) {
             if ("children" in item) {
               const Icon = item.icon;
               const groupActive = item.children.some((c) => isNavActive(pathname, c.href));
-              const isOpen = openGroups[item.label] ?? false;
+              const isOpen = openGroups[item.label] ?? groupActive;
               return (
                 <div key={item.label}>
                   <button

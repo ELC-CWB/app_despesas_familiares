@@ -192,10 +192,10 @@ export function InvestmentSettingsClient({
   }
 
   return (
-    <div className="space-y-6 w-full max-w-2xl">
+    <div className="space-y-4 w-full">
       {/* Pending investment group invites for me */}
       {myInvites.length > 0 && (
-        <Card style={{ borderColor: `${ACCENT}4d`, backgroundColor: `${ACCENT}0d` }}>
+        <Card className="rounded-2xl" style={{ borderColor: `${ACCENT}4d`, backgroundColor: `${ACCENT}0d` }}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Mail className="h-4 w-4" style={{ color: ACCENT }} />
@@ -226,7 +226,7 @@ export function InvestmentSettingsClient({
       )}
 
       {/* Profile */}
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base">Perfil</CardTitle>
           <CardDescription>Suas informações pessoais</CardDescription>
@@ -264,7 +264,7 @@ export function InvestmentSettingsClient({
 
       {/* Investment Group */}
       {group ? (
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Users className="h-4 w-4" style={{ color: ACCENT }} />
@@ -393,7 +393,7 @@ export function InvestmentSettingsClient({
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle className="text-base">Criar grupo de investimentos</CardTitle>
             <CardDescription>Crie um grupo para compartilhar investimentos com sua família</CardDescription>
@@ -425,7 +425,7 @@ export function InvestmentSettingsClient({
 
       {/* Access Management (admin only) */}
       {isAdmin && accessProfiles.length > 0 && (
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ShieldCheck className="h-4 w-4" style={{ color: ACCENT }} />

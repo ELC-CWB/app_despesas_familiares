@@ -30,8 +30,15 @@ Esgotamento: primeiro ano em que v[t] − W ≤ 0
 - **Retirada máxima perpétua:** `r / (1 + r)`, porque o saque sai no início do ano. Com r = 3%, o máximo é 2,91% a.a.
 - **Veredito:** retirada ≤ máx. pessimista → verde; ≤ máx. otimista → amarelo; acima → vermelho.
 - **Patrimônio a preservar (perpétuo):** `v_pess[anosAporte]`, desenhado como linha horizontal no túnel.
-- **Patrimônio real no gráfico:** série anual com o patrimônio em 31/12 (ou hoje, no ano corrente). Deve sair de snapshots (`DADOS.md`).
-- **Comparação real × plano:** são valores reais, então para comparar é preciso deflacionar o patrimônio nominal pelo IPCA acumulado desde o início do plano. **A definir na implementação:** usar a série do IPCA do BCB (SGS 433).
+- **Patrimônio no gráfico:** série anual com o patrimônio em 31/12 (ou hoje, no ano corrente), em reais nominais. Deve sair de snapshots (`DADOS.md`).
+- **Comparação patrimônio × plano (DECIDIDO):** o usuário vê **um único valor de patrimônio em todas as telas** (o nominal, o mesmo da Visão geral). Quem é corrigido pela inflação é o **plano**, não o patrimônio:
+  - Cada ano do túnel é multiplicado pelo IPCA acumulado desde o início do plano até aquele ano (fator `F`). Para anos passados e o corrente usa-se o IPCA realizado (SGS 433, tabela `mercado_ipca`); para anos futuros, o plano segue em valores reais, sem inflação futura (nenhuma premissa nova).
+  - O mesmo vale para a retirada mensal estimada, a retirada máxima perpétua em R$/mês, o patrimônio a preservar e as demais cifras do Plano: aparecem em **reais de hoje**, com o rótulo "em reais de hoje".
+  - Matematicamente é idêntico a deflacionar o patrimônio (`patrimônio / F` contra o plano): o status Dentro/Abaixo/Acima do túnel não muda; muda só o que o usuário lê.
+  - **Texto da interface:** não usar "patrimônio real". Usar "Patrimônio hoje". Nota no rodapé do Plano: "Valores em reais de hoje. O plano foi criado em mm/aaaa e a inflação acumulada desde então é de X%; as faixas já estão corrigidas por ela."
+  - O patrimônio inicial do plano é mostrado como "R$ 450.000 em mm/aaaa (R$ 480.000 em reais de hoje)".
+  - O pico da proteção nas quedas (§4) e a correção anual do saque (§3) já usam o IPCA e seguem a mesma lógica.
+  - Implementação: Fase 5 (Plano). Antes dela, nenhuma tela mostra "patrimônio real" nem faz essa correção.
 - **Barras por ano:** investido líquido acumulado (cinza) + ganho (verde).
 
 ## 3. Saque mensal (usufruto)

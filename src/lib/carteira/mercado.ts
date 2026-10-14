@@ -97,6 +97,23 @@ export async function lerMovimentacoes(supabase: SupabaseClient, profileId: stri
   }));
 }
 
+// PTAX do dia da operação (para o IR): a do dia ou a última anterior, até 7 dias antes.
+// Usa a tabela; se faltar, consulta o BCB na hora (não precisa da chave service_role).
+export async function ptaxDoDia(supabase: SupabaseClient, data: string): Promise<{ compra: number; venda: number } | null> {
+  const { data: linha } = await supabase
+    .from("mercado_ptax")
+    .select("compra, venda")
+    .lte("data", data)
+    .gte("data", diasAntes(data, 7))
+    .order("data", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (linha) return { compra: Number(linha.compra), venda: Number(linha.venda) };
+  const bcb = await fetchPtaxPeriodo(diasAntes(data, 7), data);
+  const ultima = bcb?.filter((p) => p.data <= data).sort((a, b) => a.data.localeCompare(b.data)).at(-1);
+  return ultima ? { compra: ultima.compra, venda: ultima.venda } : null;
+}
+
 // ── Rotina diária ──────────────────────────────────────────────────────────────
 
 // Fotos do patrimônio de todas as carteiras com movimentações, na data dada

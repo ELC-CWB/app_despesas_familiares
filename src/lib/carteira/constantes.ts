@@ -45,6 +45,12 @@ export const PALETA = [
   { id: "cinza", nome: "Cinza", hex: "#A9B8C6" },
 ] as const;
 
+// Tom escuro de cada cor, para textos sobre o pastel (gráfico e tabela Real x planejado)
+export const COR_TINTA = {
+  azul: "#1A4A82", verde: "#1C6436", laranja: "#8A4B0F", roxo: "#4E2C7A",
+  rosa: "#8A2846", turquesa: "#145C58", amarelo: "#6B5500", cinza: "#33414F",
+} as const;
+
 export type CorPaleta = typeof PALETA[number]["id"];
 export const COR_IDS = PALETA.map((c) => c.id) as CorPaleta[];
 export const COR_HEX: Record<CorPaleta, string> = Object.fromEntries(PALETA.map((c) => [c.id, c.hex])) as Record<CorPaleta, string>;

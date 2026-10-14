@@ -53,13 +53,19 @@ export function taxaMediaPonderada(ativos: { alvo_pct: number; taxa_adm_pct: num
 
 // ── Cores ──────────────────────────────────────────────────────────────────────
 
-// Clareia uma cor hex em direção ao branco (t = 0 → igual, 1 → branco)
-export function clarear(hex: string, t: number): string {
+// Mistura duas cores hex (t = 0 → a, 1 → b)
+export function misturar(a: string, b: string, t: number): string {
   const canais = [1, 3, 5].map((i) => {
-    const v = parseInt(hex.slice(i, i + 2), 16);
-    return Math.round(v + (255 - v) * t).toString(16).padStart(2, "0");
+    const va = parseInt(a.slice(i, i + 2), 16);
+    const vb = parseInt(b.slice(i, i + 2), 16);
+    return Math.round(va + (vb - va) * t).toString(16).padStart(2, "0");
   });
   return `#${canais.join("")}`;
+}
+
+// Clareia uma cor hex em direção ao branco (t = 0 → igual, 1 → branco)
+export function clarear(hex: string, t: number): string {
+  return misturar(hex, "#ffffff", t);
 }
 
 // Tons dos blocos a partir da cor da geografia (como no protótipo)

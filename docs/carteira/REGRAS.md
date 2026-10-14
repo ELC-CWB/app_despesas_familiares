@@ -35,7 +35,8 @@ Esgotamento: primeiro ano em que v[t] − W ≤ 0
   - Cada ano do túnel é multiplicado pelo IPCA acumulado desde o início do plano até aquele ano (fator `F`). Para anos passados e o corrente usa-se o IPCA realizado (SGS 433, tabela `mercado_ipca`); para anos futuros, o plano segue em valores reais, sem inflação futura (nenhuma premissa nova).
   - O mesmo vale para a retirada mensal estimada, a retirada máxima perpétua em R$/mês, o patrimônio a preservar e as demais cifras do Plano: aparecem em **reais de hoje**, com o rótulo "em reais de hoje".
   - Matematicamente é idêntico a deflacionar o patrimônio (`patrimônio / F` contra o plano): o status Dentro/Abaixo/Acima do túnel não muda; muda só o que o usuário lê.
-  - **Texto da interface:** não usar "patrimônio real". Usar "Patrimônio hoje". Nota no rodapé do Plano: "Valores em reais de hoje. O plano foi criado em mm/aaaa e a inflação acumulada desde então é de X%; as faixas já estão corrigidas por ela."
+  - **Texto da interface:** não usar "patrimônio real". Usar "Patrimônio hoje". Nota no rodapé do Plano: "Valores em reais de hoje. O plano começa em AAAA e a inflação acumulada desde então é de X%; as faixas já estão corrigidas por ela."
+  - **Base da correção (implementado):** 1º de janeiro do "ano de início" do plano, campo editável nas premissas. O IPCA vem do BCB (SGS 433) na hora, com a tabela `mercado_ipca` como reserva; só meses inteiros já encerrados entram. Sem IPCA disponível, o Plano avisa que as faixas estão sem correção.
   - O patrimônio inicial do plano é mostrado como "R$ 450.000 em mm/aaaa (R$ 480.000 em reais de hoje)".
   - O pico da proteção nas quedas (§4) e a correção anual do saque (§3) já usam o IPCA e seguem a mesma lógica.
   - Implementação: Fase 5 (Plano). Antes dela, nenhuma tela mostra "patrimônio real" nem faz essa correção.

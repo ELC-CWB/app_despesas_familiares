@@ -5,6 +5,7 @@ import {
   avaliarCarteira, investidoLiquido, quantidadesPorAtivo, tickersNecessarios,
   type Cotacao, type MovimentacaoBase,
 } from "@/lib/carteira/patrimonio";
+import type { IpcaMes } from "@/lib/carteira/plano";
 
 // Dados de mercado da Carteira (DADOS.md, "Fontes"). Gravação com o cliente service_role;
 // leitura com qualquer cliente logado. A tela sempre usa a última cotação válida salva.
@@ -112,6 +113,26 @@ export async function ptaxDoDia(supabase: SupabaseClient, data: string): Promise
   const bcb = await fetchPtaxPeriodo(diasAntes(data, 7), data);
   const ultima = bcb?.filter((p) => p.data <= data).sort((a, b) => a.data.localeCompare(b.data)).at(-1);
   return ultima ? { compra: ultima.compra, venda: ultima.venda } : null;
+}
+
+// IPCA mensal desde janeiro de anoInicio. Tenta o BCB na hora (público, sem chave; cache de 6 h) e, se
+// falhar, usa a tabela mercado_ipca que a rotina diária mantém.
+export async function lerIpca(supabase: SupabaseClient, anoInicio: number): Promise<{ meses: IpcaMes[]; fonte: "bcb" | "banco" | null }> {
+  const ate = hojeSP();
+  const bcb = await fetchSgsRange(SGS_IPCA_MENSAL, `${anoInicio}-01-01`, ate, { timeoutMs: 7000, tentativas: 2 }).catch(() => null);
+  if (bcb?.length) return { meses: bcb.map((p) => ({ competencia: p.date, variacao_pct: p.valor })), fonte: "bcb" };
+  const { data } = await supabase
+    .from("mercado_ipca").select("competencia, variacao_pct").gte("competencia", `${anoInicio}-01-01`).order("competencia");
+  const meses = (data ?? []).map((m) => ({ competencia: String(m.competencia), variacao_pct: Number(m.variacao_pct) }));
+  return { meses, fonte: meses.length ? "banco" : null };
+}
+
+// Fotos diárias do patrimônio (alimentam o gráfico do túnel e as barras por ano)
+export async function lerSnapshots(supabase: SupabaseClient, profileId: string): Promise<{ data: string; patrimonio: number; investido: number }[]> {
+  const { data, error } = await supabase
+    .from("carteira_snapshots").select("data, patrimonio_brl, investido_liquido").eq("profile_id", profileId).order("data").range(0, 9999);
+  if (error) return []; // sem a tabela (migration da Fase 2 pendente), o plano abre sem histórico
+  return (data ?? []).map((r) => ({ data: String(r.data), patrimonio: Number(r.patrimonio_brl), investido: Number(r.investido_liquido) }));
 }
 
 // ── Rotina diária ──────────────────────────────────────────────────────────────

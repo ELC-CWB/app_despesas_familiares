@@ -59,6 +59,11 @@ export function Sidebar({ profile }: SidebarProps) {
 
   const isInvestments = pathname.startsWith("/investments");
   const isGoals = pathname.startsWith("/goals");
+  // Carteira usa a barra lateral clara; os demais módulos mantêm a escura
+  const claro = isInvestments;
+  const cInativo = claro ? "text-muted-foreground hover:text-foreground hover:bg-muted" : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted";
+  const cBorda = claro ? "border-border" : "border-sidebar-border";
+  const cTexto = claro ? "text-foreground" : "text-sidebar-fg";
   const accentColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : EXPENSES_COLOR;
 
   async function handleLogout() {
@@ -69,9 +74,9 @@ export function Sidebar({ profile }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-sidebar-bg min-h-screen fixed left-0 top-0 z-20">
+    <aside className={cn("hidden lg:flex flex-col w-64 min-h-screen fixed left-0 top-0 z-20", claro ? "bg-card border-r border-border" : "bg-sidebar-bg")}>
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-sidebar-border">
+      <div className={cn("px-6 py-5 border-b", cBorda)}>
         <div className="flex items-center gap-3">
           <div
             className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300"
@@ -81,7 +86,7 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
           <div>
             <span
-              className="text-sidebar-fg font-semibold text-base leading-tight block transition-all duration-300"
+              className={cn("font-semibold text-base leading-tight block transition-all duration-300", cTexto)}
               style={{ fontFamily: "Sora, sans-serif" }}
             >
               {isInvestments ? "Investimentos" : isGoals ? "Metas" : "Despesas"}
@@ -114,7 +119,7 @@ export function Sidebar({ profile }: SidebarProps) {
                       "flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer",
                       groupActive
                         ? "text-white shadow-sm"
-                        : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
+                        : cInativo
                     )}
                     style={groupActive ? { backgroundColor: accentColor } : undefined}
                   >
@@ -123,7 +128,7 @@ export function Sidebar({ profile }: SidebarProps) {
                     <ChevronDown className={cn("h-4 w-4 flex-shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
                   </button>
                   {isOpen && (
-                    <div className="mt-1 ml-4 pl-3 border-l border-sidebar-border space-y-1">
+                    <div className={cn("mt-1 ml-4 pl-3 border-l space-y-1", cBorda)}>
                       {item.children.map((child) => {
                         const active = isNavActive(pathname, child.href);
                         return (
@@ -134,7 +139,7 @@ export function Sidebar({ profile }: SidebarProps) {
                               "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150",
                               active
                                 ? "text-white shadow-sm"
-                                : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
+                                : cInativo
                             )}
                             style={active ? { backgroundColor: accentColor } : undefined}
                           >
@@ -159,7 +164,7 @@ export function Sidebar({ profile }: SidebarProps) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                   active
                     ? "text-white shadow-sm"
-                    : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted"
+                    : cInativo
                 )}
                 style={active ? { backgroundColor: accentColor } : undefined}
               >
@@ -171,22 +176,22 @@ export function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* User */}
-      <div className="border-t border-sidebar-border px-4 py-4">
+      <div className={cn("border-t px-4 py-4", cBorda)}>
         <div className="flex items-center gap-3 mb-3">
           <Avatar className="h-9 w-9">
             <AvatarImage src={profile?.avatar_url ?? undefined} />
-            <AvatarFallback className="text-xs bg-sidebar-muted text-sidebar-fg">
+            <AvatarFallback className={cn("text-xs", claro ? "bg-muted text-foreground" : "bg-sidebar-muted text-sidebar-fg")}>
               {profile?.name ? getInitials(profile.name) : "?"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sidebar-fg text-sm font-medium truncate">{profile?.name ?? "Usuário"}</p>
-            <p className="text-slate-500 text-xs truncate">{profile?.email}</p>
+            <p className={cn("text-sm font-medium truncate", cTexto)}>{profile?.name ?? "Usuário"}</p>
+            <p className={cn("text-xs truncate", claro ? "text-muted-foreground" : "text-slate-500")}>{profile?.email}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+          className={cn("flex w-full items-center gap-2 px-3 py-2 rounded-lg text-sm hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer", claro ? "text-muted-foreground" : "text-slate-400")}
         >
           <LogOut className="h-4 w-4" />
           Sair

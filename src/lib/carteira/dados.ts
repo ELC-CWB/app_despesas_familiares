@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveInvestmentTarget } from "@/lib/investments/investment-group";
 import { COLCHAO_MIN_MESES_PADRAO } from "@/lib/carteira/constantes";
 import type { Ativo, Bloco, ConfigCarteira, Corretora, Estrutura, Geografia, Plano } from "@/lib/carteira/tipos";
+import type { VersaoPlano } from "@/lib/carteira/plano";
 
 export type CarteiraDados = {
   targetProfileId: string;
@@ -89,4 +90,17 @@ export async function getCarteira(supabase: SupabaseClient, userId: string): Pro
   };
 
   return { targetProfileId, isReadOnly, ownerName, config: configCarteira, estrutura, plano: planoEmUso };
+}
+
+// Todas as versões do plano, da mais recente para a mais antiga
+export async function getVersoesPlano(supabase: SupabaseClient, profileId: string): Promise<VersaoPlano[]> {
+  const { data, error } = await supabase
+    .from("carteira_planos").select("*").eq("profile_id", profileId).order("versao", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((p) => ({
+    id: p.id, versao: p.versao, em_uso: p.em_uso, criado_em: p.created_at, atualizado_em: p.updated_at,
+    ano_inicio: p.ano_inicio, patrimonio_inicial: Number(p.patrimonio_inicial), aporte_mensal: Number(p.aporte_mensal),
+    anos_aporte: p.anos_aporte, perpetuo: p.perpetuo, anos_usufruto: p.anos_usufruto,
+    retirada_pct: Number(p.retirada_pct), rent_pess_pct: Number(p.rent_pess_pct), rent_otim_pct: Number(p.rent_otim_pct),
+  }));
 }

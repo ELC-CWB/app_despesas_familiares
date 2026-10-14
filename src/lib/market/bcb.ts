@@ -146,11 +146,11 @@ type RangeCacheEntry = { dataInicial: string; dataFinal: string; series: SgsPoin
 const rangeCache = new Map<number, RangeCacheEntry>();
 const RANGE_TTL_MS = 6 * 60 * 60 * 1000;
 
-async function fetchSgsRangeRaw(code: number, dataInicialIso: string, dataFinalIso: string): Promise<SgsPoint[] | null> {
+async function fetchSgsRangeRaw(code: number, dataInicialIso: string, dataFinalIso: string, timeoutMs = 15000): Promise<SgsPoint[] | null> {
   try {
     const res = await fetch(
       `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code}/dados?dataInicial=${isoToBr(dataInicialIso)}&dataFinal=${isoToBr(dataFinalIso)}&formato=json`,
-      { signal: AbortSignal.timeout(15000) },
+      { signal: AbortSignal.timeout(timeoutMs) },
     );
     if (!res.ok) return null;
 
@@ -174,7 +174,12 @@ async function fetchSgsRangeRaw(code: number, dataInicialIso: string, dataFinalI
 // Caches per series code, expanding the cached window as needed; falls back to
 // stale cached data (rather than null) if a refetch fails, so a transient BCB
 // outage never blanks out a value that was previously known.
-export async function fetchSgsRange(code: number, dataInicialIso: string, dataFinalIso: string): Promise<SgsPoint[] | null> {
+// A API do BCB oscila (às vezes 502 depois de muitos segundos): o chamador pode limitar o tempo de cada
+// tentativa e pedir mais de uma.
+export async function fetchSgsRange(
+  code: number, dataInicialIso: string, dataFinalIso: string,
+  opcoes: { timeoutMs?: number; tentativas?: number } = {},
+): Promise<SgsPoint[] | null> {
   const cached = rangeCache.get(code);
   const cacheCoversRange = cached && cached.dataInicial <= dataInicialIso && cached.dataFinal >= dataFinalIso;
 
@@ -185,7 +190,10 @@ export async function fetchSgsRange(code: number, dataInicialIso: string, dataFi
   const fetchInicial = cached && cached.dataInicial < dataInicialIso ? cached.dataInicial : dataInicialIso;
   const fetchFinal = cached && cached.dataFinal > dataFinalIso ? cached.dataFinal : dataFinalIso;
 
-  const fresh = await fetchSgsRangeRaw(code, fetchInicial, fetchFinal);
+  let fresh: SgsPoint[] | null = null;
+  for (let i = 0; i < (opcoes.tentativas ?? 1) && !fresh; i++) {
+    fresh = await fetchSgsRangeRaw(code, fetchInicial, fetchFinal, opcoes.timeoutMs);
+  }
   if (fresh) {
     rangeCache.set(code, { dataInicial: fetchInicial, dataFinal: fetchFinal, series: fresh, expiresAt: Date.now() + RANGE_TTL_MS });
     return fresh.filter(p => p.date >= dataInicialIso && p.date <= dataFinalIso);

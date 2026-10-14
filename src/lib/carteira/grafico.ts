@@ -99,3 +99,11 @@ export function calcularSetores(nos: NoAlocacao[]): Setor[] {
   }
   return setores;
 }
+
+// Limite "redondo" para o eixo vertical: 1, 2, 2.5, 5 ou 10 × potência de dez
+export function valorMaximoBonito(m: number): number {
+  if (!(m > 0)) return 1;
+  const p = 10 ** Math.floor(Math.log10(m));
+  const n = m / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+}

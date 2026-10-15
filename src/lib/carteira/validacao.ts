@@ -42,6 +42,8 @@ export function validarEstrutura(e: Estrutura): string | null {
   if (e.ativos.some((a) => !naoNegativo(a.alvo_pct) || a.alvo_pct > 100)) return "Os alvos precisam estar entre 0% e 100%.";
   if (e.ativos.some((a) => a.banda_pp != null && !naoNegativo(a.banda_pp))) return "A banda dos ativos não pode ser negativa.";
   if (e.ativos.some((a) => !naoNegativo(a.taxa_adm_pct))) return "A taxa de administração não pode ser negativa.";
+  if (e.ativos.some((a) => (a.sede ?? "").length > 60)) return "A sede do ativo pode ter no máximo 60 caracteres.";
+  if (e.ativos.some((a) => a.aliquota_ir_pct != null && !(a.aliquota_ir_pct >= 0 && a.aliquota_ir_pct <= 100))) return "A alíquota de IR do ativo precisa estar entre 0% e 100%.";
 
   const { colchao_ativo_id, colchao_min_meses, aliquotas } = e.config;
   if (colchao_ativo_id != null && !e.ativos.some((a) => a.id === colchao_ativo_id)) {

@@ -72,7 +72,8 @@ export async function getCarteira(supabase: SupabaseClient, userId: string): Pro
     ativos: (ativos.data ?? []).map((x): Ativo => ({
       id: x.id, codigo: x.codigo, ticker_cotacao: x.ticker_cotacao, tipo: x.tipo, mercado: x.mercado,
       moeda: x.moeda, bloco_id: x.bloco_id, corretora_id: x.corretora_id, gestora: x.gestora,
-      alvo_pct: num(x.alvo_pct), banda_pp: numOuNull(x.banda_pp), taxa_adm_pct: num(x.taxa_adm_pct), ordem: x.ordem,
+      alvo_pct: num(x.alvo_pct), banda_pp: numOuNull(x.banda_pp), taxa_adm_pct: num(x.taxa_adm_pct),
+      aliquota_ir_pct: numOuNull(x.aliquota_ir_pct), sede: x.sede ?? null, ordem: x.ordem,
     })),
     config: {
       colchao_ativo_id: configCarteira?.colchao_ativo_id ?? null,

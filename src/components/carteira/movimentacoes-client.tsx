@@ -111,7 +111,7 @@ export function MovimentacoesClient({
   const movsDoAtivo = ativo ? movs.filter((m) => m.ativo_id === ativo.id) : [];
   const pm = precoMedio(movsDoAtivo, data).pm;
   const chaveAliq: ChaveAliquota | null = ativo ? (exterior ? "exterior" : ativo.tipo) : null;
-  const aliquota = chaveAliq ? aliquotas[chaveAliq] ?? 15 : 15;
+  const aliquota = ativo?.aliquota_ir_pct ?? (chaveAliq ? aliquotas[chaveAliq] ?? 15 : 15);
   const cotasVenda = ativo && aba === "venda" && (preco ?? 0) > 0 && cambioEfetivo > 0
     ? (ativo.moeda === "BRL"
       ? Math.floor((valor ?? 0) / (preco ?? 1))
@@ -420,7 +420,7 @@ export function MovimentacoesClient({
                       <td className="px-2 py-1.5 text-right tabular-nums" style={{ color: l.statusAntes !== "dentro" ? VERMELHO : undefined }}>{pct1(l.antes)}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums font-semibold" style={{ color: fora ? VERMELHO : undefined }}>{pct1(l.depois)}</td>
                       <td className="px-3 py-1.5 hidden sm:table-cell" style={{ color: fora ? VERMELHO : "var(--muted-foreground)" }}>
-                        {l.statusAntes !== l.statusDepois ? `${STATUS_TXT[l.statusAntes]} → ` : ""}{STATUS_TXT[l.statusDepois]}
+                        {STATUS_TXT[l.statusDepois]}
                       </td>
                     </tr>
                   );

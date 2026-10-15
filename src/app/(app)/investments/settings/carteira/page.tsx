@@ -8,7 +8,7 @@ import { getCarteira, temEstrutura } from "@/lib/carteira/dados";
 import { lerCotacoes, lerMovimentacoes } from "@/lib/carteira/mercado";
 import { avaliarCarteira, quantidadesPorAtivo, tickersNecessarios, type Cotacao } from "@/lib/carteira/patrimonio";
 
-// Configurações › Carteira (docs/carteira/SPEC.md §4.5): corretoras, geografias e blocos, ativos e impostos.
+// Configurações › Carteira (docs/carteira/SPEC.md §4.5): corretoras, geografias e blocos, ativos (com o IR de cada um).
 export default async function ConfiguracoesCarteiraPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -33,7 +33,7 @@ export default async function ConfiguracoesCarteiraPage() {
 
   return (
     <div>
-      <Header title="Carteira" subtitle="Corretoras, ativos, custos e impostos usados nas estimativas de compras e vendas" profile={profile} acessorio={<CotacaoDolar />} />
+      <Header title="Carteira" subtitle="Corretoras, ativos, custos e IR usados nas estimativas de compras e vendas" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="p-5 lg:p-8 space-y-4">
         {!carteira.isReadOnly && !temEstrutura(carteira) && (
           <p className="text-sm text-muted-foreground">

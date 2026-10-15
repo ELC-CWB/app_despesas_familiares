@@ -1,12 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  ALIQUOTA_EXTERIOR, ALIQUOTAS_PADRAO, CORRETORA_PADRAO, TIPOS_ATIVO, type ChaveAliquota,
-} from "@/lib/carteira/constantes";
+import { CORRETORA_PADRAO } from "@/lib/carteira/constantes";
 import { novoId } from "@/lib/carteira/ids";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import type { Estrutura } from "@/lib/carteira/tipos";
@@ -99,21 +97,6 @@ export function ConfiguracoesClient({
     }
   };
 
-  // Impostos: só os tipos usados na carteira (+ exterior, se houver ativo no exterior)
-  const chavesImposto = useMemo(() => {
-    const usados: Partial<Record<ChaveAliquota, string[]>> = {};
-    for (const a of e.ativos) {
-      const k: ChaveAliquota = a.mercado === "exterior" ? "exterior" : a.tipo;
-      (usados[k] ??= []).push(a.codigo || "—");
-    }
-    const defs = [
-      ...TIPOS_ATIVO.map((t) => ({ k: t.id as ChaveAliquota, nome: `${t.nome} (Brasil)`, nota: t.nota })),
-      { k: ALIQUOTA_EXTERIOR.id as ChaveAliquota, nome: ALIQUOTA_EXTERIOR.nome, nota: ALIQUOTA_EXTERIOR.nota },
-    ];
-    return defs.filter((d) => usados[d.k]).map((d) => ({ ...d, usados: usados[d.k]!.join(", ") }));
-  }, [e.ativos]);
-
-  const aliquota = (k: ChaveAliquota) => e.config.aliquotas[k] ?? ALIQUOTAS_PADRAO[k];
   const colchao = e.ativos.find((a) => a.id === e.config.colchao_ativo_id);
 
   return (
@@ -204,29 +187,6 @@ export function ConfiguracoesClient({
           </div>
         </Secao>
 
-        <Secao titulo="Impostos" recolhivel
-          descricao="Imposto de renda sobre o ganho na venda, por tipo de ativo. Aparecem os tipos usados na sua carteira. Os valores iniciais seguem a legislação brasileira para pessoa física residente; ajuste se as regras mudarem ou se a sua situação fiscal for outra.">
-          {chavesImposto.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Cadastre ativos para ver as alíquotas.</p>
-          ) : (
-            <div className="divide-y divide-border">
-              {chavesImposto.map((d) => (
-                <div key={d.k} className="flex items-start gap-3 py-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{d.nome} <span className="font-normal text-muted-foreground">· {d.usados}</span></p>
-                    <p className="text-[11px] text-muted-foreground leading-snug">{d.nota}</p>
-                  </div>
-                  <div className="flex items-center gap-1 w-24 flex-shrink-0">
-                    <DecimalInput value={aliquota(d.k)} ariaLabel={`Alíquota de ${d.nome}`}
-                      onValue={(v) => set("config", { ...e.config, aliquotas: { ...e.config.aliquotas, [d.k]: v ?? 0 } })} />
-                    <span className="text-sm text-muted-foreground">%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <p className="text-[11px] text-muted-foreground mt-3">O app estima o imposto e não substitui um contador.</p>
-        </Secao>
       </fieldset>
 
       {/* Barra de salvar: fixa no rodapé (acima da barra de navegação no celular) */}

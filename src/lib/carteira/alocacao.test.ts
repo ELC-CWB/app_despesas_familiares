@@ -16,7 +16,7 @@ const blocos: Bloco[] = [
 ];
 const ativo = (id: string, bloco_id: string, alvo_pct: number, banda_pp: number | null, ordem: number): Ativo => ({
   id, codigo: id, ticker_cotacao: null, tipo: "etf_acoes", mercado: "brasil", moeda: "BRL", bloco_id,
-  corretora_id: null, gestora: null, alvo_pct, banda_pp, taxa_adm_pct: 0, ordem,
+  corretora_id: null, gestora: null, alvo_pct, banda_pp, taxa_adm_pct: 0, aliquota_ir_pct: null, sede: null, ordem,
 });
 const ativos: Ativo[] = [
   ativo("VALU", "ext", 30, null, 0), ativo("IWVL", "ext", 10, null, 1), ativo("IWQU", "ext", 10, null, 2),

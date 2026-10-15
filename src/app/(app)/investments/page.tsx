@@ -8,6 +8,8 @@ import { BotaoAtualizar } from "@/components/carteira/botao-atualizar";
 import { AlocacaoView, type AcaoVisaoGeral } from "@/components/carteira/alocacao-view";
 import { IniciarUsufruto, UsufrutoCard } from "@/components/carteira/usufruto-card";
 import { carregarUsufruto } from "@/lib/carteira/usufruto-dados";
+import { carregarIR } from "@/lib/carteira/ir-dados";
+import { darfsPendentes } from "@/lib/carteira/ir";
 import { getCarteira, temEstrutura } from "@/lib/carteira/dados";
 import { hojeSP, lerCotacoes, lerMovimentacoes } from "@/lib/carteira/mercado";
 import { avaliarCarteira, investidoLiquido, quantidadesPorAtivo, tickersNecessarios, type Cotacao } from "@/lib/carteira/patrimonio";
@@ -23,6 +25,9 @@ const fmtData = (iso: string) => { const [y, m, d] = iso.split("-"); return `${d
 
 // Visão geral da Carteira (docs/carteira/SPEC.md §4.2). Abre sempre, mesmo sem dados.
 // Faixa de status, patrimônio, gráfico de rosca em 3 anéis, Real x planejado e sugestão de aporte.
+// Sede informada no ativo; sem ela, ativo negociado no Brasil mostra Brasil
+const sedeDoAtivo = (a?: { sede: string | null; mercado: string }) => a?.sede ?? (a?.mercado === "brasil" ? "Brasil" : "—");
+
 export default async function InvestmentsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -62,6 +67,9 @@ export default async function InvestmentsPage() {
     : dataPrecos ? `Preços de fechamento de ${fmtData(dataPrecos)}` : "Sem cotações salvas ainda";
 
   // Cartão de ação conforme a fase (SPEC §4.2): só dados, a tela desenha o cartão
+  // Aviso de DARF (REGRAS §7): vencido ou vencendo em até 10 dias e ainda não marcado como pago
+  const ir = await carregarIR(supabase, carteira).catch(() => null);
+  const darfs = ir ? darfsPendentes(ir.meses, new Set(ir.pagos), hojeSP()) : [];
   const usufruto = carteira.config?.fase === "usufruto";
   const estadoUsufruto = usufruto ? (await carregarUsufruto(supabase, carteira, { total, valores })).estado : null;
   const acao: AcaoVisaoGeral | undefined = !usufruto && sugestao && !alocacao.semPosicoes
@@ -123,6 +131,14 @@ export default async function InvestmentsPage() {
               </div>
             )}
 
+            {darfs.length > 0 && (
+              <div className="rounded-lg px-3 py-1.5 text-xs" style={{ color: "#8A5A00", backgroundColor: "rgba(138,90,0,0.10)" }}>
+                <strong>DARF de imposto de renda: </strong>
+                {darfs.map((d) => `${fmtBRL(d.darf)} de ${d.competencia.slice(5, 7)}/${d.competencia.slice(0, 4)} (${d.vencimento < hojeSP() ? "venceu" : "vence"} em ${d.vencimento.split("-").reverse().join("/")})`).join("; ")}.{" "}
+                <Link href="/investments/movimentacoes" className="underline">Ver em Movimentações</Link>
+              </div>
+            )}
+
             {/* Patrimônio, investido líquido e ganho: três colunas iguais; Atualizar e a data das cotações à direita */}
             <div className="rounded-2xl border border-border bg-card px-4 py-2.5 shadow-sm">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -175,6 +191,8 @@ export default async function InvestmentsPage() {
                     <thead className="bg-secondary/30">
                       <tr className="border-b border-border text-left text-xs font-bold text-muted-foreground">
                         <th className="px-4 py-1">Ativo</th>
+                        <th className="px-4 py-1">Sede</th>
+                        <th className="px-4 py-1">Gestora</th>
                         <th className="px-4 py-1 text-right">Cotas</th>
                         <th className="px-4 py-1 text-right">Cotação</th>
                         <th className="px-4 py-1 text-right">Valor</th>
@@ -187,6 +205,8 @@ export default async function InvestmentsPage() {
                             <span className="font-bold text-foreground">{i.codigo}</span>
                             {i.aviso && <span className="block text-[11px] font-medium" style={{ color: VERMELHO }}>{i.aviso}</span>}
                           </td>
+                          <td className="px-4 py-1 whitespace-nowrap text-muted-foreground">{sedeDoAtivo(ativos.find((a) => a.id === i.ativo_id))}</td>
+                          <td className="px-4 py-1 whitespace-nowrap text-muted-foreground">{ativos.find((a) => a.id === i.ativo_id)?.gestora ?? "—"}</td>
                           <td className="px-4 py-1 text-right tabular-nums">{fmtNum(i.quantidade, 0, 8)}</td>
                           <td className="px-4 py-1 text-right tabular-nums whitespace-nowrap">
                             {i.preco != null ? `${i.moedaPreco === "BRL" ? "R$" : i.moedaPreco} ${fmtNum(i.preco, 2, 4)}` : "—"}

@@ -8,6 +8,8 @@ import { hojeSP, lerCotacoes } from "@/lib/carteira/mercado";
 import { avaliarCarteira, cambiosDasCotacoes, quantidadesPorAtivo, tickersNecessarios, type Cotacao } from "@/lib/carteira/patrimonio";
 import { ALIQUOTAS_PADRAO } from "@/lib/carteira/constantes";
 import { tonsDosBlocos } from "@/lib/carteira/regras";
+import { IrSection } from "@/components/carteira/ir-section";
+import { carregarIR } from "@/lib/carteira/ir-dados";
 
 // Movimentações (docs/carteira/SPEC.md §4.4): Compra, Venda e Provento, efeito na carteira,
 // custos de aquisição e histórico. Aceita ?op=compra&ativo=X ou ?op=venda&ativo=X&valor=Y.
@@ -54,13 +56,14 @@ export default async function MovimentacoesPage({ searchParams }: { searchParams
     return [a.id, c ? { preco: c.fechamento, moeda: c.moeda ?? a.moeda, data: c.data } : null];
   }));
 
+  const ir = await carregarIR(supabase, carteira).catch(() => null);
   const ativoInicial = ativos.find((a) => a.codigo === (qs.ativo ?? "").toUpperCase());
   const op = qs.op === "venda" || qs.op === "provento" ? qs.op : "compra";
 
   return (
     <div>
       <Header title="Movimentações" subtitle="Compras, vendas e proventos" profile={profile} acessorio={<CotacaoDolar />} />
-      <div className="p-5 lg:p-8">
+      <div className="p-5 lg:p-8 space-y-4">
         <MovimentacoesClient
           isReadOnly={carteira.isReadOnly}
           ownerName={carteira.ownerName}
@@ -77,6 +80,10 @@ export default async function MovimentacoesPage({ searchParams }: { searchParams
           movs={movs}
           inicial={{ op, ativoId: ativoInicial?.id ?? null, valor: qs.valor ? Number(qs.valor) : null }}
         />
+        {ir && (
+          <IrSection meses={ir.meses} anosExterior={ir.anosExterior} fonte={ir.fonte} avisos={ir.avisos} pagos={ir.pagos}
+            hoje={hojeSP()} podeEditar={!carteira.isReadOnly} />
+        )}
       </div>
     </div>
   );

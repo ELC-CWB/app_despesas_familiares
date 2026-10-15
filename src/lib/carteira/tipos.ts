@@ -42,6 +42,8 @@ export type Ativo = {
   alvo_pct: number;
   banda_pp: number | null; // null = sugerida pela regra 5/25
   taxa_adm_pct: number;
+  aliquota_ir_pct: number | null; // IR próprio do ativo; null = o padrão do tipo
+  sede: string | null;            // sede do ativo (ex.: Brasil, Irlanda), só informativa
   ordem: number;
 };
 

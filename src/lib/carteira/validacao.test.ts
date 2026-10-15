@@ -6,7 +6,7 @@ import { validarEstrutura, validarOnboarding, validarPlano } from "@/lib/carteir
 function ativo(id: string, codigo: string, bloco_id: string, alvo_pct: number): Ativo {
   return {
     id, codigo, ticker_cotacao: null, tipo: "etf_acoes", mercado: "brasil", moeda: "BRL", bloco_id,
-    corretora_id: "c1", gestora: null, alvo_pct, banda_pp: null, taxa_adm_pct: 0, ordem: 0,
+    corretora_id: "c1", gestora: null, alvo_pct, banda_pp: null, taxa_adm_pct: 0, aliquota_ir_pct: null, sede: null, ordem: 0,
   };
 }
 

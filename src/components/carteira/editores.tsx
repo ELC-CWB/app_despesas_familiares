@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import {
-  COR_HEX, COR_IDS, MERCADO_CORRETORA_NOME, MERCADO_NOME, MOEDAS, TIPOS_ATIVO,
+  ALIQUOTAS_PADRAO, COR_HEX, COR_IDS, MERCADO_CORRETORA_NOME, MERCADO_NOME, MOEDAS, TIPOS_ATIVO,
   type Mercado, type MercadoCorretora, type Moeda, type TipoAtivo,
 } from "@/lib/carteira/constantes";
 import { fmtNum } from "@/lib/carteira/numeros";
@@ -182,7 +182,7 @@ export function BlocosEditor({
 export function novoAtivo(blocoId: string, corretoraId: string | null, ordem: number): Ativo {
   return {
     id: novoId(), codigo: "", ticker_cotacao: null, tipo: "etf_acoes", mercado: "brasil", moeda: "BRL",
-    bloco_id: blocoId, corretora_id: corretoraId, gestora: null, alvo_pct: 0, banda_pp: null, taxa_adm_pct: 0, ordem,
+    bloco_id: blocoId, corretora_id: corretoraId, gestora: null, alvo_pct: 0, banda_pp: null, taxa_adm_pct: 0, aliquota_ir_pct: null, sede: "Brasil", ordem,
   };
 }
 
@@ -283,6 +283,11 @@ export function AtivosEditor({
                       <DecimalInput value={a.taxa_adm_pct} disabled={disabled} ariaLabel="Taxa de administração ao ano"
                         onValue={(v) => onChange(atualizar(ativos, a.id, { taxa_adm_pct: v ?? 0 }))} />
                     </Campo>
+                    <Campo label="IR % na venda">
+                      <DecimalInput value={a.aliquota_ir_pct} disabled={disabled} ariaLabel="Alíquota de imposto de renda própria do ativo"
+                        placeholder={`padrão ${pp(ALIQUOTAS_PADRAO[a.mercado === "exterior" ? "exterior" : a.tipo])}`}
+                        onValue={(v) => onChange(atualizar(ativos, a.id, { aliquota_ir_pct: v }))} />
+                    </Campo>
                     <Campo label="Corretora">
                       <select className={inputCls} value={a.corretora_id ?? ""} disabled={disabled}
                         onChange={(e) => onChange(atualizar(ativos, a.id, { corretora_id: e.target.value || null }))}>
@@ -294,6 +299,10 @@ export function AtivosEditor({
                       <input className={inputCls} value={a.ticker_cotacao ?? ""} disabled={disabled}
                         placeholder={a.mercado === "exterior" ? "ex.: VALU.L" : tickerSugerido(a.codigo || "XXXX11", "brasil") ?? ""}
                         onChange={(e) => onChange(atualizar(ativos, a.id, { ticker_cotacao: e.target.value.toUpperCase() || null }))} />
+                    </Campo>
+                    <Campo label="Sede do ativo">
+                      <input className={inputCls} value={a.sede ?? ""} placeholder="ex.: Brasil, Irlanda" disabled={disabled}
+                        onChange={(e) => onChange(atualizar(ativos, a.id, { sede: e.target.value || null }))} />
                     </Campo>
                     <Campo label="Gestora" className="col-span-2 sm:col-span-1">
                       <input className={inputCls} value={a.gestora ?? ""} placeholder="opcional" disabled={disabled}

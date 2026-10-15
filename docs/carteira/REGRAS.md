@@ -130,12 +130,13 @@ Regras gerais (as alíquotas por tipo ficam em Configurações › Impostos, edi
   - Prejuízo compensável dentro da mesma categoria.
   - Resultado apurado em reais.
 - **Proventos:** o IR informado pelo usuário (JCP tem 15% retido na fonte).
-- **Verificar antes de implementar** (nada disso foi validado ainda):
-  - Na Lei 14.754/2023, a regra de conversão cambial (qual PTAX, compra ou venda, em qual data) para custo e venda.
-  - Se o IR dos ETFs de renda fixa na B3 é mesmo retido na fonte em todas as corretoras.
-  - Se houve mudança recente na tributação de ETFs.
-  - O app **estima** o imposto e não substitui um contador; a tela deve dizer isso de forma discreta.
-- **Estimativa de IR no protótipo:** o protótipo usa uma fração de ganho fictícia por ativo. No app, usar o preço médio real.
+- **Decisões da Fase 7 (parte 1), conferidas por pesquisa na web em 14/10/2026 e a confirmar com o contador:**
+  - **Alíquotas editáveis, por tipo e por ativo.** Padrão: 15% para ETFs de renda variável na B3 (há fontes divergentes sobre 17,5% em 2026) e para o exterior. O campo "IR % (se diferente do tipo)" no ativo tem prioridade sobre o do tipo.
+  - **ETFs de renda fixa:** o IR é retido na fonte e não gera DARF. Fontes indicam 25% para o LFTS11 (reenquadrado em fev/2024 pelo prazo médio) e 15% para o B5MB11; o usuário define a alíquota de cada ativo.
+  - **Exterior (Lei 14.754/2023):** 15% sobre o resultado anual, pago na declaração, sem DARF. Conversão adotada até confirmação do contador: PTAX de compra do dia da compra para o custo e PTAX de venda do dia da venda para a receita. Corretagem e taxas entram no cálculo; spread e IOF de câmbio não são abatidos (estimativa conservadora). Sem PTAX gravada, usa o câmbio da operação e avisa.
+  - **B3 (ações, ETFs e BDRs, FII):** categorias separadas para compensar prejuízo (ações, ETFs/BDRs, FII). Apuração mensal; dedo-duro de 0,005% abatido (não se aplica a FII); DARF abaixo de R$ 10 acumula para o mês seguinte; vencimento no último dia útil do mês seguinte (feriados nacionais fixos; os móveis não entram).
+  - O app **estima** o imposto e não substitui um contador; a tela diz isso de forma discreta.
+- **Estimativa de IR no formulário de venda:** usa o preço médio real da posição e a alíquota do ativo (ou do tipo). A apuração mensal e o DARF ficam na seção "Imposto de renda" em Movimentações.
 
 ## 8. Salvaguardas (alertas na Visão geral)
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Filter, Loader2, X } from "lucide-react";
+import { ChevronDown, Filter, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import type { Ativo, Corretora } from "@/lib/carteira/tipos";
@@ -39,6 +39,7 @@ export function HistoricoMovimentacoes({
   const [opF, setOpF] = useState<"todos" | MovCompleta["tipo"]>("todos");
   const [corrF, setCorrF] = useState("todos");
   const [aberto, setAberto] = useState<Filtro>(null);
+  const [recolhido, setRecolhido] = useState(false);
   const [selecionada, setSelecionada] = useState<string | null>(null);
 
   const codigo = (id: string) => ativos.find((a) => a.id === id)?.codigo ?? "—";
@@ -90,8 +91,13 @@ export function HistoricoMovimentacoes({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-border bg-card shadow-sm">
-        <div className="px-4 py-3 border-b border-border flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-bold text-foreground" style={{ fontFamily: "Sora, sans-serif" }}>Histórico de movimentações</h2>
+        <div className={`px-4 py-3 flex flex-wrap items-center justify-between gap-2${recolhido ? "" : " border-b border-border"}`}>
+          <button type="button" aria-expanded={!recolhido} onClick={() => { setAberto(null); setRecolhido((r) => !r); }}
+            className="flex items-center gap-2 text-left">
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform${recolhido ? " -rotate-90" : ""}`} aria-hidden />
+            <h2 className="text-base font-bold text-foreground" style={{ fontFamily: "Sora, sans-serif" }}>Histórico de movimentações</h2>
+            {recolhido && <span className="text-xs text-muted-foreground">{movs.length} {movs.length === 1 ? "registro" : "registros"}</span>}
+          </button>
           {temFiltro && (
             <button type="button" className="text-xs font-semibold" style={{ color: ACCENT }}
               onClick={() => { setDe(""); setAte(""); setAtivoF("todos"); setOpF("todos"); setCorrF("todos"); }}>
@@ -100,6 +106,7 @@ export function HistoricoMovimentacoes({
           )}
         </div>
 
+        {!recolhido && (<>
         {/* Totais das linhas visíveis (acompanham os filtros) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-4 border-b border-border">
           <Total rotulo="Compras" valor={compras.v} sub={operacoes(compras.n)} cor={VERDE} />
@@ -134,8 +141,10 @@ export function HistoricoMovimentacoes({
                   {movs.length ? "Nenhuma movimentação com esses filtros." : "Nenhuma movimentação registrada."}
                 </td></tr>
               )}
-              {filtradas.map((x) => (
-                <tr key={x.id} onClick={() => setSelecionada(x.id)} className="cursor-pointer hover:bg-secondary/30 transition-colors">
+              {filtradas.map((x, i) => (
+                <tr key={x.id} onClick={() => setSelecionada(x.id)} className="cursor-pointer hover:bg-secondary/30 transition-colors"
+                  // linha mais grossa quando o ano muda em relação à movimentação de cima
+                  style={i > 0 && x.data.slice(0, 4) !== filtradas[i - 1].data.slice(0, 4) ? { borderTopWidth: 3 } : undefined}>
                   <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{fmtData(x.data)}</td>
                   <td className="px-4 py-2.5 font-bold text-foreground">
                     {codigo(x.ativo_id)}{x.observacoes && <span title="Tem observações" className="ml-1 text-muted-foreground">•</span>}
@@ -182,6 +191,7 @@ export function HistoricoMovimentacoes({
             </div>
           </div>
         )}
+        </>)}
       </div>
 
       {m && (

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveInvestmentTarget } from "@/lib/investments/investment-group";
 import { COLCHAO_MIN_MESES_PADRAO } from "@/lib/carteira/constantes";
 import type { Ativo, Bloco, ConfigCarteira, Corretora, Estrutura, Geografia, Plano } from "@/lib/carteira/tipos";
-import type { VersaoPlano } from "@/lib/carteira/plano";
+import type { Revisao, VersaoPlano } from "@/lib/carteira/plano";
 
 export type CarteiraDados = {
   targetProfileId: string;
@@ -98,10 +98,21 @@ export async function getVersoesPlano(supabase: SupabaseClient, profileId: strin
   const { data, error } = await supabase
     .from("carteira_planos").select("*").eq("profile_id", profileId).order("versao", { ascending: false });
   if (error) throw new Error(error.message);
+  // Revisões de cada versão; sem a tabela (migration pendente), os planos abrem sem revisões
+  const { data: revs } = await supabase
+    .from("carteira_plano_revisoes").select("plano_id, ano, aporte_mensal, rent_pess_pct, rent_otim_pct, retirada_pct, fim_aporte, created_at, atualizado_em")
+    .eq("profile_id", profileId).order("ano");
+  const revisoesDe = (planoId: string): Revisao[] => (revs ?? []).filter((r) => r.plano_id === planoId).map((r) => ({
+    ano: r.ano, aporte_mensal: numOuNull(r.aporte_mensal), rent_pess_pct: numOuNull(r.rent_pess_pct),
+    rent_otim_pct: numOuNull(r.rent_otim_pct), retirada_pct: numOuNull(r.retirada_pct),
+    fim_aporte: r.fim_aporte == null ? null : Number(r.fim_aporte),
+    criado_em: r.created_at, atualizado_em: r.atualizado_em ?? r.created_at,
+  }));
   return (data ?? []).map((p) => ({
     id: p.id, versao: p.versao, em_uso: p.em_uso, criado_em: p.created_at, atualizado_em: p.updated_at,
     ano_inicio: p.ano_inicio, patrimonio_inicial: Number(p.patrimonio_inicial), aporte_mensal: Number(p.aporte_mensal),
     anos_aporte: p.anos_aporte, perpetuo: p.perpetuo, anos_usufruto: p.anos_usufruto,
     retirada_pct: Number(p.retirada_pct), rent_pess_pct: Number(p.rent_pess_pct), rent_otim_pct: Number(p.rent_otim_pct),
+    revisoes: revisoesDe(p.id),
   }));
 }

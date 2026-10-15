@@ -40,6 +40,12 @@ Esgotamento: primeiro ano em que v[t] − W ≤ 0
   - O patrimônio inicial do plano é mostrado como "R$ 450.000 em mm/aaaa (R$ 480.000 em reais de hoje)".
   - O pico da proteção nas quedas (§4) e a correção anual do saque (§3) já usam o IPCA e seguem a mesma lógica.
   - Implementação: Fase 5 (Plano). Antes dela, nenhuma tela mostra "patrimônio real" nem faz essa correção.
+- **Revisões do plano (a partir de um ano):** cada versão do plano pode ter revisões. A partir do início do ano da revisão, os campos preenchidos (aporte mensal, retirada, rentabilidades pessimista e otimista, último ano de aporte) passam a valer; os vazios continuam como estavam.
+  - Valem as revisões já iniciadas no ano t; a pessimista continua limitada a otimista − 0,5.
+  - Retirada revista: a base vira `patrimônio do ano da revisão × nova retirada%` (no usufruto) ou vale a partir do início do usufruto (se a revisão for antes dele).
+  - Último ano de aporte revisto: a revisão pode prolongar ou encerrar os aportes ("aportar até o ano X"); o início do usufruto e o horizonte se ajustam sozinhos, mesmo que a revisão seja datada depois do início do usufruto das premissas (a projeção é futura: o usufruto passa a começar depois do último ano de aporte). O ano não pode ser anterior ao da revisão menos um. Vale a última revisão que define esse ano.
+  - O prazo do usufruto (anos ou perpétuo) e o patrimônio inicial não são revisáveis: para mudá-los, altere as premissas ou crie uma nova versão.
+  - Regras: ano depois do início do plano e dentro do horizonte, uma revisão por ano, ao menos um campo preenchido, pessimista < otimista em vigor.
 - **Barras por ano:** investido líquido acumulado (cinza) + ganho (verde).
 
 ## 3. Saque mensal (usufruto)

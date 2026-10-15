@@ -2,6 +2,7 @@
 // Devolve a primeira mensagem de erro, no texto do protótipo, ou null.
 
 import { ALIQUOTAS_PADRAO, COR_IDS, MOEDAS, TIPO_IDS, type ChaveAliquota } from "@/lib/carteira/constantes";
+import { ANOS_PERPETUO, type Revisao } from "@/lib/carteira/plano";
 import { alvosFecham100, somaAlvos } from "@/lib/carteira/regras";
 import type { Estrutura, OnboardingEntrada, PlanoEntrada } from "@/lib/carteira/tipos";
 
@@ -67,6 +68,42 @@ export function validarPlano(p: PlanoEntrada): string | null {
   }
   if (p.retirada_pct <= 0) return "A retirada anual precisa ser maior que zero.";
   if (p.rent_pess_pct >= p.rent_otim_pct) return "A rentabilidade pessimista precisa ser menor que a otimista.";
+  return validarRevisoes(p);
+}
+
+// Revisões (a partir de um ano): ano dentro do plano e sem repetição; valores válidos; pessimista < otimista em
+// vigor; o último ano de aporte revisto não pode ser anterior ao ano da revisão menos um
+export function validarRevisoes(p: PlanoEntrada & { revisoes?: Revisao[] }): string | null {
+  const ordenadas = [...(p.revisoes ?? [])].sort((a, b) => a.ano - b.ano);
+  const usufruto = p.perpetuo ? ANOS_PERPETUO : p.anos_usufruto ?? 0;
+  const anos = new Set<number>();
+  let aporte = p.anos_aporte;
+  let pess = p.rent_pess_pct, otim = p.rent_otim_pct;
+  for (const r of ordenadas) {
+    const fim = p.ano_inicio + aporte + usufruto;
+    if (!Number.isInteger(r.ano) || r.ano <= p.ano_inicio || r.ano > fim) {
+      return `O ano de cada revisão precisa estar entre ${p.ano_inicio + 1} e ${fim}.`;
+    }
+    if (anos.has(r.ano)) return `Há duas revisões para ${r.ano}. Junte os ajustes em uma só.`;
+    anos.add(r.ano);
+    const valores = [r.aporte_mensal, r.rent_pess_pct, r.rent_otim_pct, r.retirada_pct, r.fim_aporte];
+    if (valores.every((v) => v == null)) return `A revisão de ${r.ano} não altera nada: preencha pelo menos um campo.`;
+    if (valores.some((v) => v != null && !Number.isFinite(v))) return `Preencha corretamente a revisão de ${r.ano}.`;
+    if (r.aporte_mensal != null && r.aporte_mensal < 0) return `O aporte da revisão de ${r.ano} não pode ser negativo.`;
+    if (r.retirada_pct != null && r.retirada_pct <= 0) return `A retirada da revisão de ${r.ano} precisa ser maior que zero.`;
+    if (r.fim_aporte != null) {
+      if (!Number.isInteger(r.fim_aporte)) return `O último ano de aporte da revisão de ${r.ano} precisa ser um número inteiro.`;
+      if (r.fim_aporte < r.ano - 1) return `Na revisão de ${r.ano}, o último ano de aporte não pode ser anterior a ${r.ano - 1}.`;
+      aporte = r.fim_aporte - p.ano_inicio + 1;
+    }
+    pess = r.rent_pess_pct ?? pess;
+    otim = r.rent_otim_pct ?? otim;
+    if (pess >= otim) return `Na revisão de ${r.ano}, a rentabilidade pessimista precisa ser menor que a otimista.`;
+  }
+  // se uma revisão encurtou o plano, nenhuma revisão pode ficar depois do fim
+  const fimFinal = p.ano_inicio + aporte + usufruto;
+  const fora = ordenadas.find((r) => r.ano > fimFinal);
+  if (fora) return `A revisão de ${fora.ano} ficou depois do fim do plano (${fimFinal}).`;
   return null;
 }
 

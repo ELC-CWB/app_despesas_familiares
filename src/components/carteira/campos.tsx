@@ -94,7 +94,7 @@ export function Paleta({
             className="w-7 h-7 rounded-full transition-transform hover:scale-110 disabled:hover:scale-100"
             style={{
               backgroundColor: c.hex,
-              boxShadow: on ? "0 0 0 2px var(--card), 0 0 0 4px #1F3247" : undefined,
+              boxShadow: on ? "0 0 0 2px hsl(var(--card)), 0 0 0 4px #1F3247" : undefined,
             }}
           />
         );

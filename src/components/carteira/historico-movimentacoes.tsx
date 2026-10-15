@@ -221,7 +221,7 @@ function Total({ rotulo, valor, sub, cor }: { rotulo: string; valor: number; sub
   return (
     <div className="rounded-xl bg-secondary/30 px-3 py-2.5">
       <p className="text-xs text-muted-foreground font-medium">{rotulo}</p>
-      <p className="text-base font-bold mt-1 tabular-nums" style={{ color: cor ?? "var(--foreground)" }}>{fmtBRL(valor)}</p>
+      <p className="text-base font-bold mt-1 tabular-nums" style={{ color: cor ?? "hsl(var(--foreground))" }}>{fmtBRL(valor)}</p>
       <p className="text-[11px] text-muted-foreground">{sub}</p>
     </div>
   );

@@ -212,7 +212,7 @@ export function PrimeirosPassosClient() {
         <div className="flex gap-1.5">
           {ETAPAS.map((nome, i) => (
             <div key={nome} className="flex-1 min-w-0">
-              <div className="h-1.5 rounded-full" style={{ backgroundColor: i < etapa ? "#1F3247" : i === etapa ? ACCENT : "var(--border)" }} />
+              <div className="h-1.5 rounded-full" style={{ backgroundColor: i < etapa ? "#1F3247" : i === etapa ? ACCENT : "hsl(var(--border))" }} />
               <p className={`hidden md:block text-[11px] mt-1.5 truncate ${i === etapa ? "font-bold text-foreground" : "text-muted-foreground"}`}>{nome}</p>
             </div>
           ))}
@@ -236,7 +236,7 @@ export function PrimeirosPassosClient() {
               return (
                 <button key={id} type="button" role="radio" aria-checked={on} onClick={() => escolherOrigem(id)}
                   className="text-left rounded-xl border-2 p-4 transition-colors hover:bg-secondary/30"
-                  style={{ borderColor: on ? ACCENT : "var(--border)", backgroundColor: on ? `${ACCENT}0d` : undefined }}>
+                  style={{ borderColor: on ? ACCENT : "hsl(var(--border))", backgroundColor: on ? `${ACCENT}0d` : undefined }}>
                   <p className="text-sm font-bold text-foreground flex items-center gap-2">
                     {on && <Check className="h-4 w-4" style={{ color: ACCENT }} />}{t}
                   </p>
@@ -268,7 +268,7 @@ export function PrimeirosPassosClient() {
                 <button key={rot} type="button" role="radio" aria-checked={plano.perpetuo === v}
                   onClick={() => setPlano((p) => ({ ...p, perpetuo: v }))}
                   className="px-4 py-1.5 rounded-md text-sm font-semibold transition-colors"
-                  style={plano.perpetuo === v ? { backgroundColor: "var(--card)", color: "var(--foreground)", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" } : { color: "var(--muted-foreground)" }}>
+                  style={plano.perpetuo === v ? { backgroundColor: "hsl(var(--card))", color: "hsl(var(--foreground))", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" } : { color: "hsl(var(--muted-foreground))" }}>
                   {rot}
                 </button>
               ))}

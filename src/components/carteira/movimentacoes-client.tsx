@@ -228,7 +228,7 @@ export function MovimentacoesClient({
               {(["compra", "venda", "provento"] as const).map((t) => (
                 <button key={t} type="button" role="tab" aria-selected={aba === t} onClick={() => trocarAba(t)}
                   className="px-4 py-1.5 rounded-md text-sm font-semibold transition-colors"
-                  style={aba === t ? { backgroundColor: "var(--card)", color: "var(--foreground)", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" } : { color: "var(--muted-foreground)" }}>
+                  style={aba === t ? { backgroundColor: "hsl(var(--card))", color: "hsl(var(--foreground))", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" } : { color: "hsl(var(--muted-foreground))" }}>
                   {t === "compra" ? "Compra" : t === "venda" ? "Venda" : "Provento"}
                 </button>
               ))}
@@ -419,7 +419,7 @@ export function MovimentacoesClient({
                       <td className="px-2 py-1.5 text-right tabular-nums">{pct1(l.alvo)}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums" style={{ color: l.statusAntes !== "dentro" ? VERMELHO : undefined }}>{pct1(l.antes)}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums font-semibold" style={{ color: fora ? VERMELHO : undefined }}>{pct1(l.depois)}</td>
-                      <td className="px-3 py-1.5 hidden sm:table-cell" style={{ color: fora ? VERMELHO : "var(--muted-foreground)" }}>
+                      <td className="px-3 py-1.5 hidden sm:table-cell" style={{ color: fora ? VERMELHO : "hsl(var(--muted-foreground))" }}>
                         {STATUS_TXT[l.statusDepois]}
                       </td>
                     </tr>
@@ -548,10 +548,10 @@ function CustosAquisicao({ movs }: { movs: MovCompleta[] }) {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={fatias} dataKey="valor" nameKey="nome" innerRadius={52} outerRadius={80} startAngle={90} endAngle={-270} isAnimationActive={false}>
-                      {fatias.map((f) => <Cell key={f.nome} fill={f.cor} stroke="var(--card)" strokeWidth={2} />)}
+                      {fatias.map((f) => <Cell key={f.nome} fill={f.cor} stroke="hsl(var(--card))" strokeWidth={2} />)}
                     </Pie>
                     <Tooltip formatter={(v: unknown, n: unknown) => [`${fmtBRL(Number(v))} (${pctDe(Number(v))})`, String(n)]}
-                      contentStyle={{ borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--popover)", fontSize: 12 }} />
+                      contentStyle={{ borderRadius: 10, border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--popover))", fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

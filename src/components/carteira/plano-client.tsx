@@ -2,15 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import {
-  ANOS_PERPETUO, anosDesde, barrasPorAno, corrigir, descreverMudancas, dinheiroCurto, fatorIpcaAte, fatoresPorAno,
-  horizonte, interpolar, projetarTunel, rentPessEfetiva, resumoPremissas, serieNominal, statusTunel,
-  textoVeredito, vereditoPerpetuidade, type FotoPatrimonio, type IpcaMes, type Premissas, type VersaoPlano,
+  ANOS_PERPETUO, anosAporteEfetivo, anosDesde, descreverRevisao, barrasPorAno, corrigir, descreverMudancas, dinheiroCurto, fatorIpcaAte, fatoresPorAno,
+  horizonte, interpolar, parametrosDoAno, projetarTunel, temposDasRevisoes, rentPessEfetiva, resumoPremissas, serieNominal, statusTunel,
+  textoVeredito, vereditoPerpetuidade, type FotoPatrimonio, type IpcaMes, type Premissas, type Revisao, type VersaoPlano,
 } from "@/lib/carteira/plano";
 import type { RegrasRetirada } from "@/app/api/carteira/regras/route";
+import { validarRevisoes } from "@/lib/carteira/validacao";
 import { ACCENT, DecimalInput, inputCls, VERMELHO } from "@/components/carteira/campos";
 import { BarrasChart, TunelChart } from "@/components/carteira/plano-graficos";
 
@@ -28,6 +29,7 @@ const premissasDe = (v: Premissas): Premissas => ({
   ano_inicio: v.ano_inicio, patrimonio_inicial: v.patrimonio_inicial, aporte_mensal: v.aporte_mensal, anos_aporte: v.anos_aporte,
   perpetuo: v.perpetuo, anos_usufruto: v.perpetuo ? null : v.anos_usufruto, retirada_pct: v.retirada_pct,
   rent_pess_pct: v.rent_pess_pct, rent_otim_pct: v.rent_otim_pct,
+  revisoes: [...(v.revisoes ?? [])].sort((a, b) => a.ano - b.ano),
 });
 
 export function PlanoClient({
@@ -52,7 +54,7 @@ export function PlanoClient({
 
   const [prem, setPrem] = useState<Premissas>(() => emUso ? premissasDe(emUso) : {
     ano_inicio: anoAtual, patrimonio_inicial: Math.round(patrimonioHoje / 1000) * 1000, aporte_mensal: 3000, anos_aporte: 20,
-    perpetuo: true, anos_usufruto: null, retirada_pct: 3.5, rent_pess_pct: 3, rent_otim_pct: 6,
+    perpetuo: true, anos_usufruto: null, retirada_pct: 3.5, rent_pess_pct: 3, rent_otim_pct: 6, revisoes: [],
   });
   const [ultimoPrazo, setUltimoPrazo] = useState(30); // volta a este prazo ao sair do infinito
   const [vendoId, setVendoId] = useState<string | null>(null);
@@ -72,7 +74,7 @@ export function PlanoClient({
 
   // ── Projeção, corrigida pela inflação ──
   const T = horizonte(prem);
-  const A = prem.anos_aporte;
+  const A = anosAporteEfetivo(prem); // com a revisão do último ano de aporte, se houver
   const tunel = useMemo(() => projetarTunel(prem), [prem]);
   const fatores = useMemo(() => fatoresPorAno(ipca, prem.ano_inicio, hoje, T), [ipca, prem.ano_inicio, hoje, T]);
   const pessC = useMemo(() => corrigir(tunel.pess.valores, fatores), [tunel, fatores]);
@@ -84,10 +86,15 @@ export function PlanoClient({
   const faixaHoje = noPeriodo ? { pess: interpolar(pessC, tHoje), otim: interpolar(otimC, tHoje) } : null;
   const status = statusTunel(patrimonioHoje, faixaHoje);
 
-  const ret = prem.retirada_pct / 100;
+  const efA = parametrosDoAno(prem, A); // valores em vigor no início do usufruto (com as revisões)
+  const ret = efA.retirada / 100;
   const pessMensal = (pessC[A] * ret) / 12;
-  const veredito = vereditoPerpetuidade(prem.retirada_pct, rentPessEfetiva(prem.rent_pess_pct, prem.rent_otim_pct), prem.rent_otim_pct);
-  const textoV = textoVeredito(veredito, prem, pessMensal);
+  const veredito = vereditoPerpetuidade(efA.retirada, rentPessEfetiva(efA.pess, efA.otim), efA.otim);
+  const textoV = textoVeredito(veredito, { ...prem, retirada_pct: efA.retirada, rent_pess_pct: efA.pess, rent_otim_pct: efA.otim }, pessMensal);
+  const fimPlano = prem.ano_inicio + T;
+  const revisoes = prem.revisoes ?? [];
+  const avisoRevisoes = validarRevisoes(prem as Parameters<typeof validarRevisoes>[0]); // o mesmo teste do servidor
+  const setRevisoes = (lista: Revisao[]) => { setErro(""); setPrem((p) => ({ ...p, revisoes: lista })); };
 
   const serie = serieNominal(snapshots, prem.ano_inicio, prem.patrimonio_inicial, hoje, patrimonioHoje);
   const barras = barrasPorAno(snapshots, anoAtual, patrimonioHoje, investidoHoje);
@@ -160,7 +167,19 @@ export function PlanoClient({
       )}
 
       <p className="text-xs text-muted-foreground">
-        {emUso ? <>Plano versão {emUso.versao} · criada em {mesAno(emUso.criado_em)} · valores em reais de hoje</> : "Nenhum plano salvo ainda. Ajuste as premissas e salve."}
+        {emUso ? (
+          <>
+            Plano versão {emUso.versao} · criado em {mesAno(emUso.criado_em)}
+            {/* só a revisão mais recente (a em uso); o detalhe de todas fica em Versões do plano */}
+            {(() => {
+              const lista = [...(emUso.revisoes ?? [])].sort((x, y) => x.ano - y.ano);
+              const ultima = lista.at(-1);
+              return ultima ? (
+                <span className="block">Revisão {lista.length} · criada em {ultima.criado_em ? mesAno(ultima.criado_em) : "—"}</span>
+              ) : null;
+            })()}
+          </>
+        ) : "Nenhum plano salvo ainda. Ajuste as premissas e salve."}
       </p>
 
       {/* ── Resumo, na largura inteira da página ── */}
@@ -175,7 +194,7 @@ export function PlanoClient({
       <div className="rounded-lg px-3 py-1.5 text-xs flex flex-wrap items-center gap-x-2"
         style={status.tipo === "abaixo" ? { backgroundColor: "rgba(180,35,24,0.10)", color: VERMELHO }
           : status.tipo === "acima" ? { backgroundColor: "rgba(46,107,63,0.10)", color: "#2E6B3F" }
-          : { backgroundColor: "rgba(31,50,71,0.08)", color: "var(--foreground)" }}>
+          : { backgroundColor: "rgba(31,50,71,0.08)", color: "hsl(var(--foreground))" }}>
         <strong>
           {status.tipo === "abaixo" ? "Abaixo do túnel" : status.tipo === "acima" ? "Acima do túnel" : status.tipo === "dentro" ? "Dentro do túnel" : "Fora do período do plano"}
         </strong>
@@ -188,31 +207,38 @@ export function PlanoClient({
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(300px,25%)_minmax(0,1fr)] gap-4 items-start">
         {/* ── Premissas do plano: veredito, sugestão de ajuste, salvar e versões ficam dentro do cartão ── */}
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-4">
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
           <h2 className="text-base font-bold text-foreground" style={{ fontFamily: "Sora, sans-serif" }}>Premissas do plano</h2>
 
           <Premissa rotulo="Início do plano (ano)" valor={prem.ano_inicio} casas={0} min={anoMinimo} max={anoAtual + 5} passo={1}
             onChange={(v) => set("ano_inicio", Math.min(anoAtual + 5, Math.max(anoMinimo, Math.round(v))))} />
-          <Premissa rotulo="Patrimônio inicial (R$)" valor={prem.patrimonio_inicial} casas={2} min={0}
+          <Premissa rotulo="Patrimônio inicial" prefixo="R$" valor={prem.patrimonio_inicial} casas={2} min={0}
             max={Math.max(500000, Math.ceil((prem.patrimonio_inicial * 1.5) / 100000) * 100000)} passo={10000}
             onChange={(v) => set("patrimonio_inicial", v)} />
-          <Premissa rotulo="Aporte mensal (R$)" valor={prem.aporte_mensal} casas={2} min={0}
+          <Premissa rotulo="Aporte mensal" prefixo="R$" valor={prem.aporte_mensal} casas={2} min={0}
             max={Math.max(30000, Math.ceil((prem.aporte_mensal * 1.5) / 5000) * 5000)} passo={500}
             onChange={(v) => set("aporte_mensal", v)} />
-          <Premissa rotulo="Anos de aporte" periodo={prem.anos_aporte > 0 ? `${prem.ano_inicio} a ${prem.ano_inicio + prem.anos_aporte - 1}` : "sem aportes"} valor={prem.anos_aporte} casas={0} min={0} max={50} passo={1}
+          <Premissa rotulo="Anos de aporte" periodo={`${A > 0 ? `${prem.ano_inicio} a ${prem.ano_inicio + A - 1}` : "sem aportes"}${A !== prem.anos_aporte ? " (revisado)" : ""}`} valor={prem.anos_aporte} casas={0} min={0} max={50} passo={1}
             onChange={(v) => set("anos_aporte", Math.round(v))} />
-          <PremissaUsufruto anoInicial={prem.ano_inicio + prem.anos_aporte} perpetuo={prem.perpetuo} anos={prem.anos_usufruto ?? ultimoPrazo}
+          <PremissaUsufruto anoInicial={prem.ano_inicio + A} perpetuo={prem.perpetuo} anos={prem.anos_usufruto ?? ultimoPrazo}
             onPrazo={(n) => { setUltimoPrazo(n); setErro(""); setPrem((p) => ({ ...p, perpetuo: false, anos_usufruto: n })); }}
             onPerpetuo={() => { setErro(""); setPrem((p) => ({ ...p, perpetuo: true, anos_usufruto: null })); }} />
-          <Premissa rotulo="Retirada anual bruta (%)" valor={prem.retirada_pct} casas={2} min={1} max={8} passo={0.25}
+          <Premissa rotulo="Retirada anual bruta" sufixo="%" valor={prem.retirada_pct} casas={2} min={1} max={8} passo={0.25}
             onChange={(v) => set("retirada_pct", v)} />
-          <Premissa rotulo="Rentabilidade real pessimista (% a.a.)" valor={prem.rent_pess_pct} casas={2} min={0} max={8} passo={0.5}
+          <Premissa rotulo="Rentab. real pessimista" sufixo="% a.a." valor={prem.rent_pess_pct} casas={2} min={0} max={8} passo={0.5}
             onChange={(v) => set("rent_pess_pct", v)} />
-          <Premissa rotulo="Rentabilidade real otimista (% a.a.)" valor={prem.rent_otim_pct} casas={2} min={1} max={10} passo={0.5}
+          <Premissa rotulo="Rentab. real otimista" sufixo="% a.a." valor={prem.rent_otim_pct} casas={2} min={1} max={10} passo={0.5}
             onChange={(v) => set("rent_otim_pct", v)} />
           {prem.rent_pess_pct >= prem.rent_otim_pct && (
             <p className="text-[11px]" style={{ color: VERMELHO }}>A pessimista precisa ser menor que a otimista; no gráfico ela é limitada a {pct(rentPessEfetiva(prem.rent_pess_pct, prem.rent_otim_pct), 1)}.</p>
           )}
+
+          <RevisoesPlano key={JSON.stringify(base?.revisoes ?? [])} aviso={avisoRevisoes} salvas={base?.revisoes ?? []} revisoes={revisoes} anoInicio={prem.ano_inicio} fim={fimPlano} anoAtual={anoAtual} disabled={isReadOnly}
+            onChange={setRevisoes}
+            vigenteAntes={(r) => {
+              const antes = { ...prem, revisoes: revisoes.filter((x) => x.ano < r.ano) };
+              return { ...parametrosDoAno(antes, r.ano - prem.ano_inicio), fimAporte: prem.ano_inicio + anosAporteEfetivo(antes) - 1 };
+            }} />
 
           {prem.perpetuo && (
             <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: `${corVeredito}14`, color: corVeredito }}>
@@ -289,10 +315,15 @@ export function PlanoClient({
                   <div key={v.id} className="py-2 flex items-start justify-between gap-2" style={vendoId === v.id ? { backgroundColor: "rgba(59,130,246,0.06)" } : undefined}>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-foreground">
-                        Versão {v.versao} · {mesAno(v.criado_em)}
-                        {v.atualizado_em.slice(0, 10) !== v.criado_em.slice(0, 10) && <span className="font-normal text-muted-foreground"> (atualizada em {mesAno(v.atualizado_em)})</span>}
+                        Versão {v.versao} · criada em {mesAno(v.criado_em)}
                       </p>
                       <p className="text-[11px] text-muted-foreground leading-snug">{resumoPremissas(v)}</p>
+                      {[...(v.revisoes ?? [])].sort((x, y) => x.ano - y.ano).map((r, i) => (
+                        <p key={r.ano} className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                          <span className="font-semibold text-foreground">Revisão {i + 1}</span>
+                          {r.atualizado_em ?? r.criado_em ? ` · atualizada em ${mesAno((r.atualizado_em ?? r.criado_em) as string)}` : ""} · a partir de {descreverRevisao(r)}
+                        </p>
+                      ))}
                     </div>
                     {v.em_uso ? (
                       <button type="button" onClick={() => carregar(v, null)} className="text-[11px] font-bold flex-none" style={{ color: "#2E6B3F" }}>em uso</button>
@@ -319,7 +350,7 @@ export function PlanoClient({
                   Faixa do plano ({faixaTxt})
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block flex-none" style={{ width: 16, height: 3, backgroundColor: "var(--foreground)" }} />Patrimônio
+                  <span className="inline-block flex-none" style={{ width: 16, height: 3, backgroundColor: "hsl(var(--foreground))" }} />Patrimônio
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="inline-block w-3.5 h-2.5 rounded-sm" style={{ backgroundColor: "rgba(217,58,50,0.10)", border: "1px solid rgba(217,58,50,0.30)" }} />
@@ -329,7 +360,8 @@ export function PlanoClient({
             </div>
             <TunelChart anoInicio={prem.ano_inicio} anosAporte={A} horizonte={T} pess={pessC} otim={otimC}
               esgota={tunel.pess.esgota} patrimonio={serie} hoje={tHoje > 0 && tHoje <= T ? { t: tHoje, v: patrimonioHoje } : null}
-              preservar={prem.perpetuo ? pessC[A] : null} />
+              preservar={prem.perpetuo ? pessC[A] : null}
+              revisoes={temposDasRevisoes(prem).map((t) => ({ t, ano: prem.ano_inicio + t }))} />
             <p className="text-[11px] text-muted-foreground leading-snug">
               Valores em reais de hoje.{" "}
               {ipcaFonte
@@ -390,23 +422,196 @@ export function PlanoClient({
 
 // ── Peças ──────────────────────────────────────────────────────────────────────
 
+// Caixa de número com a unidade dentro (prefixo à esquerda ou sufixo à direita), no lugar do (R$) ou (%) do rótulo
+function CaixaComUnidade({ prefixo, sufixo, largura, children }: { prefixo?: string; sufixo?: string; largura: string; children: React.ReactNode }) {
+  return (
+    <span className={`relative block flex-none ${largura}`}>
+      {prefixo && <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">{prefixo}</span>}
+      {children}
+      {sufixo && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none whitespace-nowrap">{sufixo}</span>}
+    </span>
+  );
+}
+const recuo = (prefixo?: string, sufixo?: string) => `${prefixo ? "pl-8" : ""} ${sufixo ? (sufixo.length > 1 ? "pr-14" : "pr-7") : ""}`;
+
 function Premissa({
-  rotulo, periodo, valor, casas, min, max, passo, onChange,
+  rotulo, periodo, prefixo, sufixo, valor, casas, min, max, passo, onChange,
 }: {
-  rotulo: string; periodo?: string; valor: number; casas: number; min: number; max: number; passo: number; onChange: (v: number) => void;
+  rotulo: string; periodo?: string; prefixo?: string; sufixo?: string; valor: number; casas: number; min: number; max: number; passo: number; onChange: (v: number) => void;
 }) {
   return (
-    <div className="space-y-1">
+    <div>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold text-muted-foreground leading-tight">
           {rotulo}
           {periodo && <span className="block text-[11px] font-medium tabular-nums">{periodo}</span>}
         </span>
-        <DecimalInput value={valor} casas={casas} ariaLabel={rotulo} className={`${inputCls} h-7 w-28 py-0 text-xs`} onValue={(v) => onChange(v ?? 0)} />
+        <CaixaComUnidade prefixo={prefixo} sufixo={sufixo} largura="w-[5.5rem]">
+          <DecimalInput value={valor} casas={casas} ariaLabel={rotulo} className={`${inputCls} h-6 w-full py-0 text-xs ${recuo(prefixo, sufixo)}`} onValue={(v) => onChange(v ?? 0)} />
+        </CaixaComUnidade>
       </div>
       <input type="range" min={min} max={Math.max(max, valor)} step={passo} value={Math.min(Math.max(valor, min), Math.max(max, valor))}
-        onChange={(e) => onChange(Number(e.target.value))} aria-label={rotulo} className="w-full h-1.5 cursor-pointer" style={{ accentColor: ACCENT }} />
+        onChange={(e) => onChange(Number(e.target.value))} aria-label={rotulo} className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT }} />
     </div>
+  );
+}
+
+// Revisões do plano: a partir do início de um ano, os campos preenchidos passam a valer (os vazios continuam como estavam)
+function RevisoesPlano({
+  revisoes, anoInicio, fim, anoAtual, disabled, onChange, vigenteAntes, aviso, salvas,
+}: {
+  aviso: string | null;
+  salvas: Revisao[];
+  revisoes: Revisao[]; anoInicio: number; fim: number; anoAtual: number; disabled: boolean;
+  onChange: (lista: Revisao[]) => void;
+  vigenteAntes: (r: Revisao) => { aporte: number; pess: number; otim: number; retirada: number; fimAporte: number };
+}) {
+  // Revisões já salvas aparecem como uma linha (ano e o que muda): para mudá-las é preciso clicar em Editar.
+  // Assim, "adicionar" uma revisão nunca sobrescreve uma que já existe.
+  const [editando, setEditando] = useState<number[]>([]);
+  // Fechar recolhe o cartão numa linha, mesmo com mudanças ainda não salvas (elas continuam valendo na tela)
+  const [fechadas, setFechadas] = useState<number[]>([]);
+  const [excluindo, setExcluindo] = useState<number | null>(null); // ano da revisão à espera de confirmação
+  const excluir = (ano: number) => {
+    onChange(revisoes.filter((x) => x.ano !== ano));
+    setFechadas((c) => c.filter((a) => a !== ano));
+    setEditando((e) => e.filter((a) => a !== ano));
+    setExcluindo(null);
+  };
+  const salvaIgual = (r: Revisao) => {
+    const s = salvas.find((x) => x.ano === r.ano);
+    return !!s && JSON.stringify(s) === JSON.stringify(r);
+  };
+  const atualizar = (i: number, parte: Partial<Revisao>) => onChange(revisoes.map((r, j) => (j === i ? { ...r, ...parte } : r)));
+  const adicionar = () => {
+    const usados = new Set(revisoes.map((r) => r.ano));
+    let ano = Math.min(fim, Math.max(anoInicio + 1, anoAtual + 1));
+    while (usados.has(ano) && ano < fim) ano++;
+    onChange([...revisoes, { ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null }]);
+  };
+  const campos: { k: "aporte_mensal" | "retirada_pct" | "rent_pess_pct" | "rent_otim_pct"; rotulo: string; casas: number; vigente: "aporte" | "retirada" | "pess" | "otim"; prefixo?: string; sufixo?: string }[] = [
+    { k: "aporte_mensal", rotulo: "Aporte mensal", casas: 2, vigente: "aporte", prefixo: "R$" },
+    { k: "retirada_pct", rotulo: "Retirada anual", casas: 2, vigente: "retirada", sufixo: "%" },
+    { k: "rent_pess_pct", rotulo: "Rent. pessimista", casas: 2, vigente: "pess", sufixo: "%" },
+    { k: "rent_otim_pct", rotulo: "Rent. otimista", casas: 2, vigente: "otim", sufixo: "%" },
+  ];
+  return (
+    <details className="group rounded-xl border border-border">
+      <summary className="px-3.5 py-3 cursor-pointer flex items-center gap-2 list-none [&::-webkit-details-marker]:hidden">
+        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform -rotate-90 group-open:rotate-0" aria-hidden />
+        <span className="text-xs font-semibold uppercase tracking-wide text-foreground">Revisões do plano</span>
+        {revisoes.length > 0 && <span className="text-[11px] text-muted-foreground">{revisoes.length}</span>}
+      </summary>
+      <div className="px-3.5 pb-3.5 space-y-2.5 border-t border-border pt-3">
+        <p className="text-[11px] text-muted-foreground">
+          Mude aporte, retirada, rentabilidades ou o último ano de aporte só a partir de um ano. O que ficar em branco continua como está.
+        </p>
+        {revisoes.map((r, i) => {
+          const antes = vigenteAntes(r);
+          if (fechadas.includes(r.ano) || (salvaIgual(r) && !editando.includes(r.ano))) {
+            return (
+              <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-border px-2.5 py-2">
+                <p className="text-xs text-foreground leading-snug min-w-0">
+                  <span className="font-semibold">A partir de {r.ano}:</span> {descreverRevisao(r).replace(/^\d+: /, "")}
+                  {!salvaIgual(r) && <span className="font-semibold" style={{ color: "#8A5A00" }}> · salve o plano para aplicar</span>}
+                </p>
+                {!disabled && (
+                  <span className="flex items-center gap-1 flex-none">
+                    <button type="button" onClick={() => { setFechadas((c) => c.filter((a) => a !== r.ano)); setEditando((e) => (e.includes(r.ano) ? e : [...e, r.ano])); }}
+                      className="text-[11px] font-semibold px-1.5 py-0.5 rounded-md hover:bg-secondary/50" style={{ color: ACCENT }}>Editar</button>
+                    <button type="button" aria-label={`Excluir a revisão de ${r.ano}`} onClick={() => setExcluindo(r.ano)}
+                      className="text-[11px] font-semibold px-1.5 py-0.5 rounded-md hover:bg-secondary/50" style={{ color: VERMELHO }}>Excluir</button>
+                  </span>
+                )}
+              </div>
+            );
+          }
+          // Estado do cartão: nova (ainda não salva), em edição (salva, sem mudanças) ou alterada (falta salvar o plano)
+          const salvaDoAno = salvas.find((x) => x.ano === r.ano);
+          const estado = !salvaDoAno ? "nova" : salvaIgual(r) ? "editando" : "alterada";
+          // o número segue a ordem dos anos, o mesmo "Revisão N" do cabeçalho do plano
+          const numero = [...revisoes].sort((x, y) => x.ano - y.ano).findIndex((x) => x === r) + 1;
+          const rotuloEstado = { nova: `Revisão ${numero}: salve o plano para aplicar`, editando: "Editando esta revisão", alterada: `Revisão ${numero}: salve o plano para aplicar` }[estado];
+          return (
+            <div key={i} className="rounded-xl border p-2.5 space-y-2" style={{ borderColor: estado === "alterada" ? "#8A5A00" : ACCENT }}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold" style={{ color: estado === "alterada" ? "#8A5A00" : ACCENT }}>{rotuloEstado}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground">
+                  A partir de
+                  <DecimalInput value={r.ano} casas={0} disabled={disabled || salvas.some((x) => x.ano === r.ano)} ariaLabel="Ano da revisão" className={`${inputCls} h-8 w-20 py-0 text-xs`}
+                    onValue={(v) => atualizar(i, { ano: Math.round(v ?? r.ano) })} />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {campos.map((c) => (
+                  <label key={c.k} className="block min-w-0">
+                    <span className="block text-[11px] font-semibold text-muted-foreground mb-1 truncate" title={c.rotulo}>{c.rotulo}</span>
+                    <CaixaComUnidade prefixo={c.prefixo} sufixo={c.sufixo} largura="w-full">
+                      <DecimalInput value={r[c.k]} casas={c.casas} disabled={disabled} ariaLabel={`${c.rotulo} a partir de ${r.ano}`}
+                        placeholder={fmtNum(antes[c.vigente], 0, 2)} className={`${inputCls} h-8 py-0 text-xs ${recuo(c.prefixo, c.sufixo)}`}
+                        onValue={(v) => atualizar(i, { [c.k]: v } as Partial<Revisao>)} />
+                    </CaixaComUnidade>
+                  </label>
+                ))}
+                <label className="block min-w-0 col-span-2">
+                  <span className="block text-[11px] font-semibold text-muted-foreground mb-1">Aportar até o ano (muda o início do usufruto)</span>
+                  <DecimalInput value={r.fim_aporte} casas={0} disabled={disabled} ariaLabel={`Último ano de aporte a partir de ${r.ano}`}
+                    placeholder={String(antes.fimAporte)} className={`${inputCls} h-8 py-0 text-xs`}
+                    onValue={(v) => atualizar(i, { fim_aporte: v == null ? null : Math.round(v) })} />
+                </label>
+              </div>
+              {!disabled && (
+                <div className="flex items-center justify-end gap-1 pt-1 border-t border-border">
+                  <button type="button" className="text-[11px] font-semibold px-2 py-1 rounded-md hover:bg-secondary/50" style={{ color: ACCENT }}
+                    onClick={() => { setEditando((e) => e.filter((a) => a !== r.ano)); setFechadas((c) => (c.includes(r.ano) ? c : [...c, r.ano])); }}>
+                    Fechar
+                  </button>
+                  <button type="button" className="text-[11px] font-semibold px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    onClick={() => {
+                      // salva: volta aos valores salvos; nova: esvazia os campos (o ano fica)
+                      const vazia: Revisao = { ano: r.ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null };
+                      onChange(revisoes.map((x, j) => (j === i ? (salvaDoAno ?? vazia) : x)));
+                      setEditando((e) => e.filter((a) => a !== r.ano));
+                    }}>
+                    Limpar
+                  </button>
+                  <button type="button" aria-label={`Excluir a revisão de ${r.ano}`} className="text-[11px] font-semibold px-2 py-1 rounded-md hover:bg-secondary/50"
+                    style={{ color: VERMELHO }} onClick={() => setExcluindo(r.ano)}>
+                    Excluir
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {excluindo != null && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setExcluindo(null)}>
+            <div role="dialog" aria-modal="true" aria-label="Confirmar exclusão da revisão"
+              className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-xl space-y-3" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-base font-bold text-foreground" style={{ fontFamily: "Sora, sans-serif" }}>Excluir a revisão de {excluindo}?</h3>
+              <p className="text-sm text-muted-foreground">
+                A revisão sai da lista agora e deixa de valer no plano quando você salvar. Para manter a anterior no histórico, salve o plano como uma nova versão.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setExcluindo(null)}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-secondary/50">Cancelar</button>
+                <button type="button" onClick={() => excluir(excluindo)}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: VERMELHO }}>Excluir</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {aviso && <p className="text-[11px] font-medium" style={{ color: VERMELHO }}>{aviso}</p>}
+        {!disabled && (
+          <button type="button" onClick={adicionar}
+            className="w-full py-1.5 rounded-lg text-xs font-semibold border border-dashed border-border hover:bg-secondary/40 flex items-center justify-center gap-1.5" style={{ color: ACCENT }}>
+            <Plus className="h-3.5 w-3.5" />Adicionar revisão
+          </button>
+        )}
+      </div>
+    </details>
   );
 }
 
@@ -419,7 +624,7 @@ function PremissaUsufruto({
   anoInicial: number; perpetuo: boolean; anos: number; onPrazo: (n: number) => void; onPerpetuo: () => void;
 }) {
   return (
-    <div className="space-y-1">
+    <div>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold text-muted-foreground leading-tight">
           Anos de usufruto
@@ -427,15 +632,15 @@ function PremissaUsufruto({
         </span>
         <span className="flex items-center gap-1">
           {perpetuo ? (
-            <span className={`${inputCls} h-7 w-[5.5rem] py-0 text-xs flex items-center justify-end text-muted-foreground`}>perpétuo</span>
+            <span className={`${inputCls} h-6 w-[5.5rem] py-0 text-xs flex items-center justify-end text-muted-foreground`}>perpétuo</span>
           ) : (
-            <DecimalInput value={anos} casas={0} ariaLabel="Anos de usufruto" className={`${inputCls} h-7 w-[5.5rem] py-0 text-xs`}
+            <DecimalInput value={anos} casas={0} ariaLabel="Anos de usufruto" className={`${inputCls} h-6 w-[5.5rem] py-0 text-xs`}
               onValue={(v) => onPrazo(Math.max(1, Math.round(v ?? 1)))} />
           )}
           <button type="button" aria-pressed={perpetuo} title="Usufruto perpétuo (infinito)"
             onClick={() => (perpetuo ? onPrazo(anos) : onPerpetuo())}
-            className="h-7 w-8 rounded-lg border text-base font-bold leading-none transition-colors"
-            style={perpetuo ? { backgroundColor: ACCENT, borderColor: ACCENT, color: "#fff" } : { borderColor: "var(--border)", color: "var(--muted-foreground)" }}>
+            className="h-6 w-7 rounded-lg border text-sm font-bold leading-none transition-colors"
+            style={perpetuo ? { backgroundColor: ACCENT, borderColor: ACCENT, color: "#fff" } : { borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
             ∞
           </button>
         </span>
@@ -443,8 +648,8 @@ function PremissaUsufruto({
       <input type="range" min={1} max={MAX_ANOS_USUFRUTO + 1} step={1} aria-label="Anos de usufruto (o fim da escala é o infinito)"
         value={perpetuo ? MAX_ANOS_USUFRUTO + 1 : Math.min(Math.max(anos, 1), MAX_ANOS_USUFRUTO)}
         onChange={(e) => { const v = Number(e.target.value); if (v > MAX_ANOS_USUFRUTO) onPerpetuo(); else onPrazo(v); }}
-        className="w-full h-1.5 cursor-pointer" style={{ accentColor: ACCENT }} />
-      <div className="flex justify-between text-[10px] text-muted-foreground"><span>1 ano</span><span>{MAX_ANOS_USUFRUTO} anos</span><span>∞</span></div>
+        className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT }} />
+      <div className="flex justify-between text-[10px] leading-none text-muted-foreground"><span>1 ano</span><span>{MAX_ANOS_USUFRUTO} anos</span><span>∞</span></div>
     </div>
   );
 }

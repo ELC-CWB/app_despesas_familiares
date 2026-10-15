@@ -110,3 +110,63 @@ describe("validarOnboarding", () => {
     expect(validarOnboarding(o)).toBe("Nas posições, quantidade, preço médio e custo precisam ser maiores que zero.");
   });
 });
+
+describe("validação das revisões do plano", () => {
+  const plano = {
+    ano_inicio: 2026, patrimonio_inicial: 100000, aporte_mensal: 3000, anos_aporte: 20, perpetuo: false, anos_usufruto: 30,
+    retirada_pct: 3.5, rent_pess_pct: 3, rent_otim_pct: 6,
+  };
+  const rev = (ano: number, o: object = {}) => ({ ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null, ...o });
+  const v = (revisoes: ReturnType<typeof rev>[]) => validarPlano({ ...plano, id: "x", versao: 1, em_uso: true, revisoes } as never);
+
+  it("aceita revisões válidas e plano sem revisões", () => {
+    expect(v([])).toBeNull();
+    expect(v([rev(2038, { aporte_mensal: 8000 }), rev(2050, { rent_otim_pct: 5, retirada_pct: 3 })])).toBeNull();
+  });
+  it("ano precisa estar depois do início e dentro do plano, sem repetir", () => {
+    expect(v([rev(2026, { aporte_mensal: 1 })])).toMatch(/entre 2027 e 2076/);
+    expect(v([rev(2077, { aporte_mensal: 1 })])).toMatch(/entre 2027 e 2076/);
+    expect(v([rev(2038, { aporte_mensal: 1 }), rev(2038, { aporte_mensal: 2 })])).toMatch(/duas revisões para 2038/);
+  });
+  it("exige ao menos um campo e valores válidos", () => {
+    expect(v([rev(2038)])).toMatch(/não altera nada/);
+    expect(v([rev(2038, { aporte_mensal: -1 })])).toMatch(/negativo/);
+    expect(v([rev(2038, { retirada_pct: 0 })])).toMatch(/maior que zero/);
+  });
+  it("a pessimista revista precisa continuar abaixo da otimista em vigor", () => {
+    expect(v([rev(2038, { rent_pess_pct: 7 })])).toMatch(/pessimista precisa ser menor/);
+    expect(v([rev(2038, { rent_otim_pct: 2 })])).toMatch(/pessimista precisa ser menor/);
+    expect(v([rev(2038, { rent_pess_pct: 7 }), rev(2040, { rent_otim_pct: 9 })])).toMatch(/2038/); // erro já na primeira
+  });
+});
+
+describe("validação da revisão do último ano de aporte", () => {
+  const plano = {
+    ano_inicio: 2026, patrimonio_inicial: 100000, aporte_mensal: 3000, anos_aporte: 15, perpetuo: false, anos_usufruto: 30,
+    retirada_pct: 3.5, rent_pess_pct: 3, rent_otim_pct: 6,
+  }; // aporta de 2026 a 2040; usufruto de 2041 a 2070
+  const rev = (ano: number, o: object = {}) => ({ ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null, ...o });
+  const v = (revisoes: ReturnType<typeof rev>[]) => validarPlano({ ...plano, id: "x", versao: 1, em_uso: true, revisoes } as never);
+
+  it("aceita prolongar ou encurtar o aporte durante a acumulação", () => {
+    expect(v([rev(2035, { fim_aporte: 2045 })])).toBeNull();
+    expect(v([rev(2035, { fim_aporte: 2034 })])).toBeNull(); // para de aportar a partir de 2035
+  });
+  it("não deixa o último ano de aporte ser anterior ao ano da revisão menos um", () => {
+    expect(v([rev(2035, { fim_aporte: 2030 })])).toMatch(/não pode ser anterior a 2034/);
+  });
+  it("aceita prolongar o aporte numa revisão datada depois do início do usufruto das premissas", () => {
+    // premissas: aporte até 2040 (usufruto em 2041); revisão em 2042 passa o aporte para 2046 e o usufruto para 2047
+    expect(v([rev(2042, { fim_aporte: 2046, aporte_mensal: 9000 })])).toBeNull();
+    expect(v([rev(2045, { fim_aporte: 2050 })])).toBeNull();
+  });
+  it("a revisão com só o último ano de aporte já conta como alteração", () => {
+    expect(v([rev(2035, { fim_aporte: 2040 })])).toBeNull();
+  });
+  it("revisões depois do fim do plano encurtado são recusadas", () => {
+    // aporte até 2030 → o plano vai de 2026 a 2061; uma revisão em 2068 ficaria fora
+    expect(v([rev(2030, { fim_aporte: 2030 }), rev(2068, { aporte_mensal: 1 })])).toMatch(/entre 2027 e 2061/);
+    // e uma revisão que já existia em 2050 fica depois do novo fim
+    expect(v([rev(2030, { fim_aporte: 2030 }), rev(2062, { aporte_mensal: 1 })])).toMatch(/entre 2027 e 2061/);
+  });
+});

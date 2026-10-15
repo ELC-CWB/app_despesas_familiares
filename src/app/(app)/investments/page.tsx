@@ -110,10 +110,10 @@ export default async function InvestmentsPage() {
             <div className="rounded-lg px-3 py-1.5"
               style={status.fora
                 ? { backgroundColor: "rgba(180,35,24,0.10)", color: VERMELHO }
-                : { backgroundColor: "rgba(31,50,71,0.08)", color: "var(--foreground)" }}>
+                : { backgroundColor: "rgba(31,50,71,0.08)", color: "hsl(var(--foreground))" }}>
               <p className="text-xs truncate" title={`${status.titulo} · ${status.detalhe}`}>
                 <strong>{status.titulo}</strong>
-                <span style={status.fora ? undefined : { color: "var(--muted-foreground)" }}> · {status.detalhe}</span>
+                <span style={status.fora ? undefined : { color: "hsl(var(--muted-foreground))" }}> · {status.detalhe}</span>
               </p>
             </div>
 

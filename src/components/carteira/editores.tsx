@@ -28,7 +28,7 @@ function BotaoRemover({ titulo, onClick, bloqueado, disabled }: {
   return (
     <button type="button" title={titulo} aria-label={titulo} onClick={onClick} disabled={bloqueado || disabled}
       className="p-1.5 rounded-lg transition-colors hover:bg-secondary/60 disabled:cursor-not-allowed flex-shrink-0"
-      style={{ color: bloqueado ? "var(--muted-foreground)" : VERMELHO, opacity: bloqueado ? 0.4 : 1 }}>
+      style={{ color: bloqueado ? "hsl(var(--muted-foreground))" : VERMELHO, opacity: bloqueado ? 0.4 : 1 }}>
       <X className="h-4 w-4" />
     </button>
   );

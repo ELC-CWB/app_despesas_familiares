@@ -45,7 +45,7 @@ export default async function PlanoPage() {
 
   return (
     <div>
-      <Header title="Plano" subtitle="Acumulação e usufruto da carteira" profile={profile} acessorio={<CotacaoDolar />} />
+      <Header title="Plano" subtitle={<>Acumulação e usufruto da carteira<span className="block text-xs">valores em reais de hoje</span></>} profile={profile} acessorio={<CotacaoDolar />} />
       <div className="px-5 pt-3 pb-8 lg:px-8 lg:pt-4">
         <PlanoClient
           key={chave}

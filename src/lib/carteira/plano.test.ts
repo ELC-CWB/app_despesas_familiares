@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   anosDesde, corrigir, descreverMudancas, dinheiroCurto, fatoresPorAno, fatorIpcaAte, fraseSustentabilidade,
-  horizonte, interpolar, projetar, projetarTunel, rentPessEfetiva, statusTunel, textoVeredito, type IpcaMes, type Premissas,
+  anosAporteEfetivo, descreverRevisao, horizonte, interpolar, parametrosDoAno, projetar, projetarTunel, rentPessEfetiva, statusTunel, temposDasRevisoes, textoVeredito,
+  type IpcaMes, type Premissas, type Revisao,
 } from "@/lib/carteira/plano";
 
 const base: Premissas = {
@@ -164,5 +165,119 @@ describe("séries do patrimônio", () => {
       { ano: 2025, patrimonio: 300, investido: 200 },
       { ano: 2026, patrimonio: 400, investido: 250 },
     ]);
+  });
+});
+
+describe("revisões do plano (a partir de um ano)", () => {
+  const rev = (ano: number, o: Partial<Revisao> = {}): Revisao => ({ ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null, ...o });
+  const p = (revisoes: Revisao[], extra: Partial<Premissas> = {}): Premissas => ({ ...base, anos_aporte: 10, perpetuo: false, anos_usufruto: 5, revisoes, ...extra });
+
+  it("sem revisões, o resultado é o mesmo de antes", () => {
+    expect(projetar(p([]), 4).valores).toEqual(projetar({ ...base, anos_aporte: 10, perpetuo: false, anos_usufruto: 5 }, 4).valores);
+  });
+
+  it("parâmetros do ano: o que não foi revisto continua; revisões se acumulam em ordem", () => {
+    const pr = p([rev(2030, { aporte_mensal: 8000 }), rev(2034, { rent_otim_pct: 5, retirada_pct: 3 })]);
+    expect(parametrosDoAno(pr, 5)).toEqual({ aporte: 5000, pess: 3, otim: 6, retirada: 3.5 }); // 2029
+    expect(parametrosDoAno(pr, 6)).toEqual({ aporte: 8000, pess: 3, otim: 6, retirada: 3.5 }); // 2030
+    expect(parametrosDoAno(pr, 10)).toEqual({ aporte: 8000, pess: 3, otim: 5, retirada: 3 });  // 2034
+  });
+
+  it("aporte revisto vale só a partir do ano da revisão", () => {
+    const sem = projetar(p([]), 3).valores;
+    const com = projetar(p([rev(2030, { aporte_mensal: 8000 })]), 3).valores;
+    for (let t = 0; t <= 6; t++) expect(com[t]).toBeCloseTo(sem[t], 6); // até o início de 2030 (t = 6) nada muda
+    expect(com[7]).toBeCloseTo((com[6] + 8000 * 12) * 1.03, 6);
+  });
+
+  it("rentabilidade revista muda a taxa do ano da revisão em diante, em cada cenário", () => {
+    const t = projetarTunel(p([rev(2030, { rent_pess_pct: 2, rent_otim_pct: 4 })]));
+    const sem = projetarTunel(p([]));
+    expect(t.otim.valores[6]).toBeCloseTo(sem.otim.valores[6], 6);
+    expect(t.otim.valores[7]).toBeCloseTo((t.otim.valores[6] + 60000) * 1.04, 6);
+    expect(t.pess.valores[7]).toBeCloseTo((t.pess.valores[6] + 60000) * 1.02, 6);
+  });
+
+  it("a pessimista revista continua limitada a otimista − 0,5", () => {
+    const t = projetarTunel(p([rev(2030, { rent_pess_pct: 5, rent_otim_pct: 5 })]));
+    expect(t.pess.valores[7]).toBeCloseTo((t.pess.valores[6] + 60000) * 1.045, 6);
+  });
+
+  it("retirada revista antes do usufruto vale no início do usufruto", () => {
+    const sem = projetar(p([]), 3);
+    const com = projetar(p([rev(2030, { retirada_pct: 5 })]), 3);
+    expect(sem.saqueAnual).toBeCloseTo(sem.valores[10] * 0.035, 6);
+    expect(com.saqueAnual).toBeCloseTo(com.valores[10] * 0.05, 6);
+  });
+
+  it("retirada revista durante o usufruto recalcula a base sobre o patrimônio daquele ano", () => {
+    const pr = p([rev(2036, { retirada_pct: 2 })]); // t = 12, dois anos depois do início do usufruto
+    const r = projetar(pr, 3);
+    const w0 = r.valores[10] * 0.035;
+    expect(r.valores[11]).toBeCloseTo((r.valores[10] - w0) * 1.03, 6);
+    expect(r.saqueAnual).toBeCloseTo(r.valores[12] * 0.02, 6);
+    expect(r.valores[13]).toBeCloseTo((r.valores[12] - r.valores[12] * 0.02) * 1.03, 6);
+  });
+
+  it("anos das revisões no gráfico: só os que caem dentro do horizonte e depois do início", () => {
+    expect(temposDasRevisoes(p([rev(2024), rev(2030), rev(2035), rev(2090)]))).toEqual([6, 11]);
+  });
+
+  it("descreverMudancas acusa mudança nas revisões", () => {
+    expect(descreverMudancas(p([]), p([rev(2030, { aporte_mensal: 1 })]))).toContain("revisões");
+    expect(descreverMudancas(p([rev(2030, { aporte_mensal: 1 })]), p([rev(2030, { aporte_mensal: 1 })]))).not.toContain("revisões");
+  });
+});
+
+describe("revisão do último ano de aporte", () => {
+  const rev = (ano: number, o: Partial<Revisao> = {}): Revisao => ({ ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null, ...o });
+  // início 2024, aporte por 10 anos (2024 a 2033), usufruto de 5 anos (2034 a 2038)
+  const p = (revisoes: Revisao[]): Premissas => ({ ...base, anos_aporte: 10, perpetuo: false, anos_usufruto: 5, revisoes });
+
+  it("anos de aporte efetivos: os das premissas, ou os da revisão", () => {
+    expect(anosAporteEfetivo(p([]))).toBe(10);
+    expect(anosAporteEfetivo(p([rev(2030, { fim_aporte: 2037 })]))).toBe(14);  // aporta até 2037
+    expect(anosAporteEfetivo(p([rev(2030, { fim_aporte: 2029 })]))).toBe(6);   // para de aportar em 2030
+  });
+
+  it("prolongar o aporte adia o início do usufruto e alonga o horizonte", () => {
+    const sem = projetar(p([]), 3);
+    const com = projetar(p([rev(2030, { fim_aporte: 2037 })]), 3);
+    expect(horizonte(p([rev(2030, { fim_aporte: 2037 })]))).toBe(19);
+    expect(com.valores[11]).toBeGreaterThan(sem.valores[11]);           // em 2034 um segue aportando e o outro já saca
+    expect(com.valores[11]).toBeCloseTo((com.valores[10] + 60000) * 1.03, 6); // ainda aportando em 2034
+    expect(com.saqueAnual).toBeCloseTo(com.valores[14] * 0.035, 6);     // a retirada nasce em 2038 (t = 14)
+  });
+
+  it("encerrar o aporte antes antecipa o usufruto", () => {
+    const com = projetar(p([rev(2030, { fim_aporte: 2029 })]), 3);
+    expect(com.valores[7]).toBeCloseTo((com.valores[6] - com.saqueAnual) * 1.03, 6); // t = 6 (2030) já é usufruto
+    expect(com.saqueAnual).toBeCloseTo(com.valores[6] * 0.035, 6);
+  });
+
+  it("revisão datada depois do início do usufruto das premissas: o aporte continua e o usufruto vem depois", () => {
+    // premissas: aporte 2024 a 2033, usufruto de 2034; a revisão de 2036 manda aportar até 2037
+    const pr = p([rev(2036, { fim_aporte: 2037, aporte_mensal: 9000 })]);
+    expect(anosAporteEfetivo(pr)).toBe(14);
+    const r = projetar(pr, 3);
+    expect(r.valores[11]).toBeCloseTo((r.valores[10] + 5000 * 12) * 1.03, 6); // 2034: ainda aporta no valor base
+    expect(r.valores[13]).toBeCloseTo((r.valores[12] + 9000 * 12) * 1.03, 6); // 2036 em diante: R$ 9.000
+    expect(r.saqueAnual).toBeCloseTo(r.valores[14] * 0.035, 6);                // usufruto só em 2038
+  });
+
+  it("combina com revisão de aporte e de retirada", () => {
+    const pr = p([rev(2030, { fim_aporte: 2037, aporte_mensal: 8000 }), rev(2040, { retirada_pct: 3 })]);
+    const r = projetar(pr, 3);
+    expect(r.valores[7]).toBeCloseTo((r.valores[6] + 8000 * 12) * 1.03, 6);
+  });
+});
+
+describe("texto das revisões no cabeçalho do plano", () => {
+  const rev = (ano: number, o: Partial<Revisao> = {}): Revisao => ({ ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null, ...o });
+  it("lista só o que a revisão muda, com o ano", () => {
+    expect(descreverRevisao(rev(2030, { aporte_mensal: 8000 }))).toBe("2030: aporte R$ 8.000");
+    expect(descreverRevisao(rev(2038, { fim_aporte: 2045, retirada_pct: 3 }))).toBe("2038: aportes até 2045, retirada 3%");
+    expect(descreverRevisao(rev(2040, { rent_pess_pct: 2.5, rent_otim_pct: 5 }))).toBe("2040: rentabilidade 2,5% a 5%");
+    expect(descreverRevisao(rev(2041, { rent_otim_pct: 5 }))).toBe("2041: rentabilidade — a 5%");
   });
 });

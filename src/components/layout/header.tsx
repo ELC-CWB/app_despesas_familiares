@@ -8,7 +8,7 @@ import { Bell, Users } from "lucide-react";
 
 interface HeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode; // texto simples ou com uma segunda linha menor
   profile: Profile | null;
   groupName?: string | null;
   displayMonth?: number;

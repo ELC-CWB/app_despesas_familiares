@@ -78,10 +78,10 @@ export function AlocacaoView({
                       onFocus={() => setHover(s.id)} onBlur={() => setHover(null)}
                       onClick={() => alternarFixo(s.id)}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternarFixo(s.id); } }}>
-                      <path d={s.d} fill={no.cor} style={{ stroke: "var(--card)" }} strokeWidth={2} />
+                      <path d={s.d} fill={no.cor} style={{ stroke: "hsl(var(--card))" }} strokeWidth={2} />
                       {s.desvio && (
                         <path d={s.desvio} fill={s.tipoDesvio === "sobra" ? VERMELHO_GRAFICO : "url(#hachuraVermelha)"}
-                          style={{ stroke: "var(--card)" }} strokeWidth={1} />
+                          style={{ stroke: "hsl(var(--card))" }} strokeWidth={1} />
                       )}
                     </g>
                   );
@@ -157,7 +157,7 @@ export function AlocacaoView({
                   <tr key={n.id} onMouseEnter={() => setHover(n.id)} onMouseLeave={() => setHover(null)}
                     style={{
                       backgroundColor: fundo, color: tinta, fontSize: estilo.tamanho,
-                      borderTop: i === 0 ? 0 : n.nivel === 0 ? "6px solid var(--card)" : "1px solid var(--card)",
+                      borderTop: i === 0 ? 0 : n.nivel === 0 ? "6px solid hsl(var(--card))" : "1px solid hsl(var(--card))",
                     }}>
                     <td className="whitespace-nowrap" style={{ padding: estilo.pad, paddingLeft: 10 + estilo.recuo, ...contorno(true, false) }}>
                       <button type="button" onClick={() => alternarFixo(n.id)}

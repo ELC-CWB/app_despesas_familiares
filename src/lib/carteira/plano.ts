@@ -5,6 +5,19 @@ import { retiradaMaxPerpetua, vereditoPerpetuidade, type Veredito } from "@/lib/
 
 export const ANOS_PERPETUO = 40; // no usufruto perpétuo o gráfico exibe 40 anos
 
+// Revisão do plano: a partir do início do ano `ano`, os campos preenchidos passam a valer; os vazios (null)
+// continuam como estavam. A retirada revista é recalculada sobre o patrimônio daquele ano (nova base).
+export type Revisao = {
+  ano: number;
+  aporte_mensal: number | null;
+  rent_pess_pct: number | null;
+  rent_otim_pct: number | null;
+  retirada_pct: number | null;
+  fim_aporte: number | null; // último ano com aporte; muda quando o usufruto começa
+  criado_em?: string;        // quando a revisão foi salva (só informativo)
+  atualizado_em?: string;    // quando seus valores mudaram pela última vez
+};
+
 export type Premissas = {
   ano_inicio: number;
   patrimonio_inicial: number;
@@ -15,6 +28,7 @@ export type Premissas = {
   retirada_pct: number;
   rent_pess_pct: number;
   rent_otim_pct: number;
+  revisoes?: Revisao[];
 };
 
 export type VersaoPlano = Premissas & {
@@ -25,7 +39,36 @@ export type VersaoPlano = Premissas & {
 export const rentPessEfetiva = (pess: number, otim: number) => Math.min(pess, otim - 0.5);
 
 export const anosUsufruto = (p: Premissas) => (p.perpetuo ? ANOS_PERPETUO : p.anos_usufruto ?? 0);
-export const horizonte = (p: Premissas) => p.anos_aporte + anosUsufruto(p);
+// Anos de aporte em vigor: os das premissas, ou os da última revisão que define o último ano de aporte
+export function anosAporteEfetivo(p: Premissas): number {
+  let a = p.anos_aporte;
+  for (const r of [...(p.revisoes ?? [])].sort((x, y) => x.ano - y.ano)) {
+    if (r.fim_aporte != null) a = Math.max(0, r.fim_aporte - p.ano_inicio + 1);
+  }
+  return a;
+}
+
+export const horizonte = (p: Premissas) => anosAporteEfetivo(p) + anosUsufruto(p);
+
+export type ParametrosAno = { aporte: number; pess: number; otim: number; retirada: number };
+
+// Valores em vigor no início do ano t do plano: as premissas, sobrepostas pelas revisões já iniciadas
+export function parametrosDoAno(p: Premissas, t: number): ParametrosAno {
+  const par: ParametrosAno = { aporte: p.aporte_mensal, pess: p.rent_pess_pct, otim: p.rent_otim_pct, retirada: p.retirada_pct };
+  const ano = p.ano_inicio + t;
+  for (const r of [...(p.revisoes ?? [])].sort((a, b) => a.ano - b.ano)) {
+    if (r.ano > ano) break;
+    if (r.aporte_mensal != null) par.aporte = r.aporte_mensal;
+    if (r.rent_pess_pct != null) par.pess = r.rent_pess_pct;
+    if (r.rent_otim_pct != null) par.otim = r.rent_otim_pct;
+    if (r.retirada_pct != null) par.retirada = r.retirada_pct;
+  }
+  return par;
+}
+
+// Anos (t) em que há revisão dentro do horizonte, para marcar no gráfico
+export const temposDasRevisoes = (p: Premissas): number[] =>
+  [...new Set((p.revisoes ?? []).map((r) => r.ano - p.ano_inicio))].filter((t) => t > 0 && t <= horizonte(p)).sort((a, b) => a - b);
 
 export type Projecao = {
   valores: number[];   // v[t]: patrimônio no início do ano t (t = 0 é o início do plano), em valores reais
@@ -35,18 +78,22 @@ export type Projecao = {
 
 // Acumulação (t < anosAporte): v[t+1] = (v[t] + aporteMensal×12) × (1 + r)
 // Usufruto: W = v[anosAporte] × retirada%; saque = min(W, v[t]); v[t+1] = max(0, (v[t] − saque) × (1 + r))
-export function projetar(p: Premissas, rentPct: number): Projecao {
-  const r = rentPct / 100;
+// Revisão de retirada no usufruto: W passa a ser v[t] × nova retirada% (nova base).
+function simular(p: Premissas, rentDoAno: (t: number) => number): Projecao {
   const T = horizonte(p);
+  const A = anosAporteEfetivo(p);
   const v = [p.patrimonio_inicial];
   let W = 0;
   let esgota = -1;
   for (let t = 0; t < T; t++) {
+    const par = parametrosDoAno(p, t);
+    const r = rentDoAno(t) / 100;
     let cur = v[t];
-    if (t < p.anos_aporte) {
-      cur = (cur + p.aporte_mensal * 12) * (1 + r);
+    if (t < A) {
+      cur = (cur + par.aporte * 12) * (1 + r);
     } else {
-      if (t === p.anos_aporte) W = (v[t] * p.retirada_pct) / 100;
+      const anoRevisaoRetirada = (p.revisoes ?? []).some((x) => x.retirada_pct != null && x.ano === p.ano_inicio + t);
+      if (t === A || anoRevisaoRetirada) W = (v[t] * par.retirada) / 100;
       const saque = Math.min(W, cur);
       if (esgota < 0 && cur - W <= 0) esgota = t;
       cur = Math.max(0, (cur - saque) * (1 + r));
@@ -56,12 +103,18 @@ export function projetar(p: Premissas, rentPct: number): Projecao {
   return { valores: v, saqueAnual: W, esgota };
 }
 
+// Taxa fixa em todos os anos (aporte e retirada ainda seguem as revisões, se houver)
+export function projetar(p: Premissas, rentPct: number): Projecao {
+  return simular(p, () => rentPct);
+}
+
 export type Tunel = { pess: Projecao; otim: Projecao };
 
+// As rentabilidades de cada ano seguem as revisões (a pessimista nunca passa de otimista − 0,5)
 export function projetarTunel(p: Premissas): Tunel {
   return {
-    pess: projetar(p, rentPessEfetiva(p.rent_pess_pct, p.rent_otim_pct)),
-    otim: projetar(p, p.rent_otim_pct),
+    pess: simular(p, (t) => { const x = parametrosDoAno(p, t); return rentPessEfetiva(x.pess, x.otim); }),
+    otim: simular(p, (t) => parametrosDoAno(p, t).otim),
   };
 }
 
@@ -147,7 +200,7 @@ export { vereditoPerpetuidade };
 
 // Frase de sustentabilidade (protótipo): o que acontece com o patrimônio no fim do período exibido
 export function fraseSustentabilidade(p: Premissas, t: Tunel, fator: number): { texto: string; tom: "verde" | "ambar" | "vermelho" } {
-  const A = p.anos_aporte, T = horizonte(p);
+  const A = anosAporteEfetivo(p), T = horizonte(p);
   const fim = p.ano_inicio + T;
   const money = (v: number) => (v >= 1e6 ? `R$ ${(v / 1e6).toLocaleString("pt-BR", { maximumFractionDigits: v >= 1e7 ? 0 : 1 })} mi` : `R$ ${Math.round(v / 1000)} mil`);
   if (t.pess.esgota >= 0) {
@@ -170,7 +223,23 @@ export function descreverMudancas(a: Premissas, b: Premissas): string[] {
     ["anos_aporte", "anos de aporte"], ["anos_usufruto", "anos de usufruto"], ["retirada_pct", "retirada"],
     ["rent_pess_pct", "rentabilidade pessimista"], ["rent_otim_pct", "rentabilidade otimista"], ["perpetuo", "tipo de usufruto"],
   ];
-  return nomes.filter(([k]) => (a[k] ?? null) !== (b[k] ?? null)).map(([, n]) => n);
+  const mud = nomes.filter(([k]) => (a[k] ?? null) !== (b[k] ?? null)).map(([, n]) => n);
+  const rev = (p: Premissas) => JSON.stringify([...(p.revisoes ?? [])].sort((x, y) => x.ano - y.ano));
+  return rev(a) !== rev(b) ? [...mud, "revisões"] : mud;
+}
+
+// "2030: aporte R$ 8.000, aportes até 2045": o que a revisão muda, para listar no cabeçalho do plano
+export function descreverRevisao(r: Revisao): string {
+  const brl = (x: number) => `R$ ${Math.round(x).toLocaleString("pt-BR")}`;
+  const pct = (x: number) => `${x.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+  const partes: string[] = [];
+  if (r.aporte_mensal != null) partes.push(`aporte ${brl(r.aporte_mensal)}`);
+  if (r.fim_aporte != null) partes.push(`aportes até ${r.fim_aporte}`);
+  if (r.retirada_pct != null) partes.push(`retirada ${pct(r.retirada_pct)}`);
+  if (r.rent_pess_pct != null || r.rent_otim_pct != null) {
+    partes.push(`rentabilidade ${r.rent_pess_pct != null ? pct(r.rent_pess_pct) : "—"} a ${r.rent_otim_pct != null ? pct(r.rent_otim_pct) : "—"}`);
+  }
+  return `${r.ano}: ${partes.join(", ")}`;
 }
 
 export const resumoPremissas = (p: Premissas) => {

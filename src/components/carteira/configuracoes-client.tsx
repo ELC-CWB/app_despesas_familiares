@@ -193,7 +193,7 @@ export function ConfiguracoesClient({
       {!isReadOnly && (
         <div className="fixed left-0 right-0 bottom-[4.5rem] lg:bottom-0 lg:left-64 z-20 border-t border-border bg-card/95 backdrop-blur px-4 py-3">
           <div className="max-w-5xl mx-auto flex items-center gap-3">
-            <p className="flex-1 min-w-0 text-xs font-medium truncate" style={{ color: erro ? "#B42318" : "var(--muted-foreground)" }}>
+            <p className="flex-1 min-w-0 text-xs font-medium truncate" style={{ color: erro ? "#B42318" : "hsl(var(--muted-foreground))" }}>
               {erro || (alterado ? "Alterações não salvas" : "Tudo salvo")}
             </p>
             {alterado && (

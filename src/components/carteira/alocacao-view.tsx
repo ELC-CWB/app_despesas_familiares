@@ -19,9 +19,7 @@ const pp = (v: number) => fmtNum(v, 0, 2);
 const sinal = (v: number, txt: string) => `${v > 0.0001 ? "+" : v < -0.0001 ? "−" : ""}${txt}`;
 
 // Cartão de ação por fase (SPEC §4.2). Só dados: o componente desenha o cartão.
-export type AcaoVisaoGeral =
-  | { tipo: "aporte"; codigo: string; falta: number; podeRegistrar: boolean }
-  | { tipo: "usufruto" };
+export type AcaoVisaoGeral = { tipo: "aporte"; codigo: string; falta: number; podeRegistrar: boolean };
 
 export function AlocacaoView({
   nos, semPosicoes, acao,
@@ -116,12 +114,6 @@ export function AlocacaoView({
                 Registrar aporte
               </Link>
             )}
-          </div>
-        )}
-        {acao?.tipo === "usufruto" && (
-          <div className="rounded-xl p-4" style={{ backgroundColor: "rgba(138,90,0,0.08)" }}>
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#8A5A00" }}>Saque do mês</p>
-            <p className="text-sm text-muted-foreground mt-1">O saque mensal, com a escolha do ativo, chega em breve nesta tela.</p>
           </div>
         )}
       </section>

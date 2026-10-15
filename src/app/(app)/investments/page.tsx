@@ -6,8 +6,10 @@ import { Header } from "@/components/layout/header";
 import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { BotaoAtualizar } from "@/components/carteira/botao-atualizar";
 import { AlocacaoView, type AcaoVisaoGeral } from "@/components/carteira/alocacao-view";
+import { IniciarUsufruto, UsufrutoCard } from "@/components/carteira/usufruto-card";
+import { carregarUsufruto } from "@/lib/carteira/usufruto-dados";
 import { getCarteira, temEstrutura } from "@/lib/carteira/dados";
-import { lerCotacoes, lerMovimentacoes } from "@/lib/carteira/mercado";
+import { hojeSP, lerCotacoes, lerMovimentacoes } from "@/lib/carteira/mercado";
 import { avaliarCarteira, investidoLiquido, quantidadesPorAtivo, tickersNecessarios, type Cotacao } from "@/lib/carteira/patrimonio";
 import { montarAlocacao, resumoStatus } from "@/lib/carteira/alocacao";
 import { sugestaoAporte } from "@/lib/carteira/operacoes";
@@ -21,7 +23,6 @@ const fmtData = (iso: string) => { const [y, m, d] = iso.split("-"); return `${d
 
 // Visão geral da Carteira (docs/carteira/SPEC.md §4.2). Abre sempre, mesmo sem dados.
 // Faixa de status, patrimônio, gráfico de rosca em 3 anéis, Real x planejado e sugestão de aporte.
-// O saque do mês (fase de usufruto) chega na Fase 6.
 export default async function InvestmentsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -61,11 +62,11 @@ export default async function InvestmentsPage() {
     : dataPrecos ? `Preços de fechamento de ${fmtData(dataPrecos)}` : "Sem cotações salvas ainda";
 
   // Cartão de ação conforme a fase (SPEC §4.2): só dados, a tela desenha o cartão
-  const acao: AcaoVisaoGeral | undefined = carteira.config?.fase === "usufruto"
-    ? { tipo: "usufruto" }
-    : sugestao && !alocacao.semPosicoes
-      ? { tipo: "aporte", codigo: sugestao.ativo.codigo, falta: sugestao.falta, podeRegistrar: !carteira.isReadOnly }
-      : undefined;
+  const usufruto = carteira.config?.fase === "usufruto";
+  const estadoUsufruto = usufruto ? (await carregarUsufruto(supabase, carteira, { total, valores })).estado : null;
+  const acao: AcaoVisaoGeral | undefined = !usufruto && sugestao && !alocacao.semPosicoes
+    ? { tipo: "aporte", codigo: sugestao.ativo.codigo, falta: sugestao.falta, podeRegistrar: !carteira.isReadOnly }
+    : undefined;
 
   return (
     <div>
@@ -152,7 +153,13 @@ export default async function InvestmentsPage() {
               </div>
             </div>
 
+            {estadoUsufruto && <UsufrutoCard estado={estadoUsufruto} podeEditar={!carteira.isReadOnly} />}
+
             <AlocacaoView nos={alocacao.nos} semPosicoes={alocacao.semPosicoes} acao={acao} />
+
+            {!usufruto && !carteira.isReadOnly && !alocacao.semPosicoes && (
+              <IniciarUsufruto hoje={hojeSP()} patrimonio={total} retiradaPct={carteira.plano?.retirada_pct ?? null} />
+            )}
 
             {comPosicao.length > 0 && (
               <details className="group rounded-2xl border border-border bg-card shadow-sm overflow-hidden">

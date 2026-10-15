@@ -168,7 +168,7 @@ export function PlanoClient({
         <Cartao rotulo="Patrimônio hoje" valor={brl0(patrimonioHoje)}
           sub={faixaHoje ? `faixa do plano para ${anoAtual}: ${dinheiroCurto(faixaHoje.pess)} a ${dinheiroCurto(faixaHoje.otim)}` : "fora do período do plano"} />
         <Cartao rotulo={`Patrimônio no início do usufruto em ${prem.ano_inicio + A}`} valor={`${dinheiroCurto(pessC[A])} a ${dinheiroCurto(otimC[A])}`} />
-        <Cartao rotulo="Retirada mensal bruta" valor={`${brl0(pessMensal)} a ${brl0((otimC[A] * ret) / 12)}`} />
+        <Cartao rotulo={`Retirada mensal bruta ${prem.perpetuo ? `${prem.ano_inicio + A} em diante` : `${prem.ano_inicio + A} a ${prem.ano_inicio + A + (prem.anos_usufruto ?? 0) - 1}`}`} valor={`${brl0(pessMensal)} a ${brl0((otimC[A] * ret) / 12)}`} />
         <Cartao rotulo={`Patrimônio no final do usufruto em ${prem.ano_inicio + T}`} valor={`${dinheiroCurto(Math.max(0, pessC[T]))} a ${dinheiroCurto(Math.max(0, otimC[T]))}`} />
       </div>
 

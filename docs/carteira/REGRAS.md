@@ -142,6 +142,12 @@ Regras gerais (as alíquotas por tipo ficam em Configurações › Impostos, edi
   - **Exterior (Lei 14.754/2023):** 15% sobre o resultado anual, pago na declaração, sem DARF. Conversão adotada até confirmação do contador: PTAX de compra do dia da compra para o custo e PTAX de venda do dia da venda para a receita. Corretagem e taxas entram no cálculo; spread e IOF de câmbio não são abatidos (estimativa conservadora). Sem PTAX gravada, usa o câmbio da operação e avisa.
   - **B3 (ações, ETFs e BDRs, FII):** categorias separadas para compensar prejuízo (ações, ETFs/BDRs, FII). Apuração mensal; dedo-duro de 0,005% abatido (não se aplica a FII); DARF abaixo de R$ 10 acumula para o mês seguinte; vencimento no último dia útil do mês seguinte (feriados nacionais fixos; os móveis não entram).
   - O app **estima** o imposto e não substitui um contador; a tela diz isso de forma discreta.
+- **Relatório anual (parte 2), em Imposto de renda (/investments/ir):** por ano-calendário, a partir das movimentações:
+  - **Bens e direitos:** quantidade e custo de aquisição de cada ativo em 31/12 do ano e do anterior (preço médio; exterior pela PTAX de compra do dia da compra), com texto sugerido para a discriminação, sede e gestora.
+  - **Proventos:** dividendos, JCP (com IR retido) e rendimentos; os do exterior convertidos pela PTAX de venda do dia do recebimento e apenas informados (não somam ao resultado do exterior).
+  - **Ganhos:** B3 por mês (resultado, imposto, DARF), exterior no ano (Lei 14.754), renda fixa retida na fonte e o detalhe de cada venda.
+  - Exportação em CSV (separado por ponto e vírgula, com BOM, abre no Excel).
+  - Indica ficha e código da declaração (bens e direitos, proventos), tirados de guias de bancos e corretoras em 15/10/2026, não do manual da Receita: ações 03·01, FII 07·03, exterior 07·99, dividendos 09 (isentos), JCP 10 (exclusiva/definitiva), ganho de vendas de ações até R$ 20 mil no mês: Rendimentos Isentos, código 20 (confirmado em mais de uma fonte). ETFs da B3 e BDRs têm fontes divergentes e aparecem marcados "conferir"; Tesouro, CDB e similares ficam sem código. Confirmar no programa do IRPF ou com o contador.
 - **Estimativa de IR no formulário de venda:** usa o preço médio real da posição e a alíquota do ativo (ou do tipo). A apuração mensal e o DARF ficam na seção "Imposto de renda" em Movimentações.
 
 ## 8. Salvaguardas (alertas na Visão geral)

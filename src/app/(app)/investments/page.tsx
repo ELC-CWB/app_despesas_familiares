@@ -59,8 +59,9 @@ export default async function InvestmentsPage() {
   const sugestao = sugestaoAporte(ativos, valores);
 
   // "Preços de fechamento de dd/mm/aaaa" ou "Cotações de hoje às HH:MM (atraso de até 15 min)"
-  const usadas = comPosicao.map((i) => ativos.find((a) => a.id === i.ativo_id)?.ticker_cotacao)
-    .map((t) => (t ? cotacoes[t] : undefined)).filter((c) => !!c);
+  // Com posições, vale a cotação delas; sem nenhuma (carteira nova), a de todos os ativos cadastrados
+  const tickersDaLegenda = (comPosicao.length ? comPosicao.map((i) => ativos.find((a) => a.id === i.ativo_id)) : ativos).map((a) => a?.ticker_cotacao);
+  const usadas = tickersDaLegenda.map((t) => (t ? cotacoes[t] : undefined)).filter((c) => !!c);
   const intradiaria = usadas.find((c) => c.intradiaria);
   const dataPrecos = usadas.map((c) => c.data).sort().at(-1);
   const legendaPrecos = intradiaria

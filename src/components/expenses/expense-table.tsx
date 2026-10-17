@@ -237,7 +237,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
           <DialogHeader>
             <DialogTitle>Excluir despesa?</DialogTitle>
             <DialogDescription>
-              Esta ação não pode ser desfeita. A despesa "<strong>{deleteExpense?.description}</strong>" será removida permanentemente.
+              Esta ação não pode ser desfeita. A despesa “<strong>{deleteExpense?.description}</strong>” será removida permanentemente.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

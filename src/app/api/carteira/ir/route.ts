@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { autorizarEscrita, erro } from "@/lib/carteira/api";
+import { hojeSP } from "@/lib/carteira/mercado";
 
 // Marca (ou desmarca) o DARF de um mês como pago. O valor do imposto não é gravado: vem sempre das movimentações.
 export async function PUT(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function PUT(request: NextRequest) {
 
   const { error } = await auth.supabase.from("carteira_ir_mensal").upsert({
     profile_id: auth.user.id, competencia, categoria: "b3", darf_pago: pago,
-    pago_em: pago ? (/^\d{4}-\d{2}-\d{2}$/.test(pago_em ?? "") ? pago_em : new Date().toISOString().slice(0, 10)) : null,
+    pago_em: pago ? (/^\d{4}-\d{2}-\d{2}$/.test(pago_em ?? "") ? pago_em : hojeSP()) : null,
   });
   if (error) return erro(error.message, 500);
   return NextResponse.json({ ok: true });

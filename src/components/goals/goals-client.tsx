@@ -60,8 +60,9 @@ function catColor(cat: string): { bg: string; fg: string } {
 }
 
 function uid(): string { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
-function today(): string { return new Date().toISOString().slice(0, 10); }
-function shift(n: number): string { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+// datas locais (AAAA-MM-DD): toISOString() usaria UTC e viraria o dia seguinte à noite
+function today(): string { return new Date().toLocaleDateString("sv-SE"); }
+function shift(n: number): string { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv-SE"); }
 function days(a: string, b: string): number {
   if (!a || !b) return 0;
   return Math.round((new Date(b + "T00:00:00").getTime() - new Date(a + "T00:00:00").getTime()) / 86400000);

@@ -60,8 +60,8 @@ export function Sidebar({ profile }: SidebarProps) {
 
   const isInvestments = pathname.startsWith("/investments");
   const isGoals = pathname.startsWith("/goals");
-  // Carteira usa a barra lateral clara; os demais módulos mantêm a escura
-  const claro = isInvestments;
+  // Todos os módulos (Despesas, Investimentos e Metas) usam a mesma barra lateral clara; só a cor de destaque muda
+  const claro = true;
   const cInativo = claro ? "text-muted-foreground hover:text-foreground hover:bg-muted" : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted";
   const cBorda = claro ? "border-border" : "border-sidebar-border";
   const cTexto = claro ? "text-foreground" : "text-sidebar-fg";

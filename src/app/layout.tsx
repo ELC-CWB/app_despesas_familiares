@@ -14,8 +14,9 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // suppressHydrationWarning: extensões do navegador (ex.: BRy) acrescentam atributos ao <html> e geram um aviso falso de hidratação
   return (
-    <html lang="pt-BR" className="h-full">
+    <html lang="pt-BR" className="h-full" suppressHydrationWarning>
       <body className="min-h-full antialiased">
         {children}
         <Toaster />

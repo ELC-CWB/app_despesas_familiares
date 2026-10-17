@@ -25,7 +25,7 @@ const EXPENSES_NAV: NavItem[] = [
 
 const INVESTMENTS_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
-  { href: "/investments", label: "Visão geral", icon: PieChart, exact: true },
+  { href: "/investments", label: "Visão", icon: PieChart, exact: true }, // curto: a barra do celular tem 6 itens
   { href: "/investments/plano", label: "Plano", icon: LineChart },
   { href: "/investments/movimentacoes", label: "Movim.", icon: ArrowLeftRight },
   { href: "/investments/ir", label: "IR", icon: FileText },
@@ -69,7 +69,7 @@ export function MobileNav() {
                   <button
                     type="button"
                     className={cn(
-                      "flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-all min-w-0 cursor-pointer",
+                      "flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg transition-all min-w-0 cursor-pointer",
                       active ? (activeColor ? "" : "text-primary") : "text-muted-foreground"
                     )}
                     style={active && activeColor ? { color: activeColor } : undefined}
@@ -99,7 +99,7 @@ export function MobileNav() {
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-all min-w-0",
+                "flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg transition-all min-w-0",
                 active ? (activeColor ? "" : "text-primary") : "text-muted-foreground"
               )}
               style={active && activeColor ? { color: activeColor } : undefined}

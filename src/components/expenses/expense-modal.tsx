@@ -30,7 +30,8 @@ const METHODS = Object.entries(PAYMENT_METHODS) as [PaymentMethod, string][];
 
 function getDefaultMonth() { return new Date().getMonth() + 1; }
 function getDefaultYear() { return new Date().getFullYear(); }
-function todayISO() { return new Date().toISOString().split("T")[0]; }
+// data local (AAAA-MM-DD); toISOString() usaria UTC e viraria o dia seguinte à noite
+function todayISO() { return new Date().toLocaleDateString("sv-SE"); }
 
 export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onSuccess, categories }: ExpenseModalProps) {
   const { toast } = useToast();

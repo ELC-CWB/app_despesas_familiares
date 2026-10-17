@@ -42,6 +42,7 @@ export async function getCarteira(supabase: SupabaseClient, userId: string): Pro
 
   const c = config.data;
   const configCarteira: ConfigCarteira | null = c && {
+    nome: c.nome ?? null,
     fase: c.fase,
     inicio_usufruto: c.inicio_usufruto,
     colchao_ativo_id: c.colchao_ativo_id,

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout/header";
 import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { ConfiguracoesClient } from "@/components/carteira/configuracoes-client";
+import { NomeCarteira } from "@/components/carteira/nome-carteira";
 import { getCarteira, temEstrutura } from "@/lib/carteira/dados";
 import { lerCotacoes, lerMovimentacoes } from "@/lib/carteira/mercado";
 import { avaliarCarteira, quantidadesPorAtivo, tickersNecessarios, type Cotacao } from "@/lib/carteira/patrimonio";
@@ -35,6 +36,7 @@ export default async function ConfiguracoesCarteiraPage() {
     <div>
       <Header title="Carteira" subtitle="Corretoras, ativos, custos e IR usados nas estimativas de compras e vendas" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="p-5 lg:p-8 space-y-4">
+        <NomeCarteira nomeAtual={carteira.config?.nome ?? null} padrao="Carteira de investimentos" podeEditar={!carteira.isReadOnly} />
         {!carteira.isReadOnly && !temEstrutura(carteira) && (
           <p className="text-sm text-muted-foreground">
             Carteira vazia. Cadastre cada parte abaixo ou, se preferir, use os{" "}

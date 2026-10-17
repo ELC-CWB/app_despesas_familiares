@@ -50,6 +50,7 @@ export type Ativo = {
 export type Aliquotas = Partial<Record<ChaveAliquota, number>>;
 
 export type ConfigCarteira = {
+  nome: string | null;   // nome da carteira (ex.: "Carteira teste"); null = o padrão
   fase: "acumulacao" | "usufruto";
   inicio_usufruto: string | null;
   colchao_ativo_id: string | null;

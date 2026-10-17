@@ -266,6 +266,7 @@ export function InvestmentSettingsClient({
       {group ? (
         <Card className="rounded-2xl">
           <CardHeader>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Grupo de compartilhamento</p>
             <CardTitle className="text-base flex items-center gap-2">
               <Users className="h-4 w-4" style={{ color: ACCENT }} />
               {group.name}

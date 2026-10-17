@@ -7,6 +7,7 @@ import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { BotaoAtualizar } from "@/components/carteira/botao-atualizar";
 import { AlocacaoView, type AcaoVisaoGeral } from "@/components/carteira/alocacao-view";
 import { IniciarUsufruto, UsufrutoCard } from "@/components/carteira/usufruto-card";
+import { GraficosHistorico } from "@/components/carteira/graficos-historico";
 import { carregarUsufruto } from "@/lib/carteira/usufruto-dados";
 import { carregarIR } from "@/lib/carteira/ir-dados";
 import { darfsPendentes } from "@/lib/carteira/ir";
@@ -78,7 +79,7 @@ export default async function InvestmentsPage() {
 
   return (
     <div>
-      <Header title="Visão geral" subtitle="Carteira de investimentos" profile={profile} acessorio={<CotacaoDolar />} />
+      <Header title="Visão geral" subtitle={carteira.config?.nome || "Carteira de investimentos"} profile={profile} acessorio={<CotacaoDolar />} />
       <div className="px-5 pt-3 pb-5 lg:px-8 lg:pt-4 lg:pb-8 space-y-3">
         {vazia ? (
           <div className="rounded-2xl border border-border bg-card p-8 shadow-sm flex flex-col items-center gap-3 text-center max-w-xl mx-auto">
@@ -219,6 +220,8 @@ export default async function InvestmentsPage() {
                 </div>
               </details>
             )}
+
+            {comPosicao.length > 0 && <GraficosHistorico />}
           </>
         )}
       </div>

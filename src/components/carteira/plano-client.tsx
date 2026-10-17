@@ -450,8 +450,9 @@ function Premissa({
           <DecimalInput value={valor} casas={casas} ariaLabel={rotulo} className={`${inputCls} h-6 w-full py-0 text-xs ${recuo(prefixo, sufixo)}`} onValue={(v) => onChange(v ?? 0)} />
         </CaixaComUnidade>
       </div>
+      {/* touchAction pan-y: no celular, arrastar o dedo na vertical rola a página em vez de mexer na régua */}
       <input type="range" min={min} max={Math.max(max, valor)} step={passo} value={Math.min(Math.max(valor, min), Math.max(max, valor))}
-        onChange={(e) => onChange(Number(e.target.value))} aria-label={rotulo} className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT }} />
+        onChange={(e) => onChange(Number(e.target.value))} aria-label={rotulo} className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT, touchAction: "pan-y" }} />
     </div>
   );
 }
@@ -648,7 +649,7 @@ function PremissaUsufruto({
       <input type="range" min={1} max={MAX_ANOS_USUFRUTO + 1} step={1} aria-label="Anos de usufruto (o fim da escala é o infinito)"
         value={perpetuo ? MAX_ANOS_USUFRUTO + 1 : Math.min(Math.max(anos, 1), MAX_ANOS_USUFRUTO)}
         onChange={(e) => { const v = Number(e.target.value); if (v > MAX_ANOS_USUFRUTO) onPerpetuo(); else onPrazo(v); }}
-        className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT }} />
+        className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT, touchAction: "pan-y" }} />
       <div className="flex justify-between text-[10px] leading-none text-muted-foreground"><span>1 ano</span><span>{MAX_ANOS_USUFRUTO} anos</span><span>∞</span></div>
     </div>
   );

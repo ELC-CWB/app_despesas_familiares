@@ -62,7 +62,8 @@ export function AlocacaoView({
           <>
             {/* O tamanho acompanha a altura da janela (o bloco inteiro cabe sem rolar); entre 200 e 388 px */}
             <div className="relative w-full aspect-square mx-auto" style={{ maxWidth: "clamp(200px, calc(100dvh - 372px), 388px)" }}>
-              <svg viewBox="0 0 400 400" className="w-full h-full block" role="img"
+              {/* No celular o gráfico não é selecionável (pointer-events: none): quem destaca as áreas é a tabela ao lado. Sem anel de foco nem realce de toque. */}
+              <svg viewBox="0 0 400 400" className="w-full h-full block [@media(pointer:coarse)]:pointer-events-none [-webkit-tap-highlight-color:transparent]" role="img"
                 aria-label="Gráfico de alocação por geografia, bloco e ativo, com os desvios fora da banda em vermelho">
                 <defs>
                   <pattern id="hachuraVermelha" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -72,7 +73,7 @@ export function AlocacaoView({
                 {setores.map((s) => {
                   const no = porId.get(s.id)!;
                   return (
-                    <g key={s.id} opacity={opacidade(s.id)} style={{ cursor: "pointer" }} tabIndex={0} role="button"
+                    <g key={s.id} opacity={opacidade(s.id)} style={{ cursor: "pointer", outline: "none" }} tabIndex={0} role="button"
                       aria-label={`${no.nome}: ${pct1(no.real)} real, alvo ${pct1(no.alvo)}`}
                       onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)}
                       onFocus={() => setHover(s.id)} onBlur={() => setHover(null)}

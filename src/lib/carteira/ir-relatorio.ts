@@ -120,6 +120,7 @@ export type RelatorioAnual = {
   fonte: MesFonte[];
   vendas: VendaApurada[];           // todas as vendas do ano (detalhe para o contador)
   totais: { resultadoB3: number; impostoB3: number; darfs: number; irRetidoFonte: number; resultadoExterior: number; impostoExterior: number };
+  prejuizos: { rotulo: string; valor: number }[];   // prejuízo ainda a compensar no fim do ano, por categoria
   avisos: string[];
 };
 
@@ -181,6 +182,16 @@ export function montarRelatorioAnual(p: {
   const exterior = apurarAnosExterior(todas).find((x) => x.ano === ano) ?? null;
   const fonte = apurarFonte(todas).filter((m) => m.competencia.startsWith(anoStr));
 
+  // Prejuízo a compensar: saldo acumulado até o fim do ano, por categoria (o prejuízo só compensa a mesma categoria)
+  const saldos = new Map<string, number>();
+  for (const m of apurarMesesB3(todas)) {
+    if (m.competencia.slice(0, 4) > anoStr) break;
+    for (const c of m.categorias) saldos.set(NOME_CATEGORIA[c.categoria], c.prejuizoFinal);
+  }
+  const anosExt = apurarAnosExterior(todas).filter((x) => x.ano <= ano);
+  if (anosExt.length) saldos.set("Exterior", anosExt[anosExt.length - 1].prejuizoFinal);
+  const prejuizos = [...saldos].filter(([, v]) => v > 0.005).map(([rotulo, valor]) => ({ rotulo, valor: r2(valor) }));
+
   const avisos = [
     ...avisosIR.filter((a) => a.data.startsWith(anoStr)).map((a) => `${a.codigo} em ${a.data.split("-").reverse().join("/")}: ${a.texto}`),
   ];
@@ -209,7 +220,7 @@ export function montarRelatorioAnual(p: {
       resultadoExterior: exterior?.resultado ?? 0,
       impostoExterior: exterior?.imposto ?? 0,
     },
-    avisos,
+    prejuizos, avisos,
   };
 }
 

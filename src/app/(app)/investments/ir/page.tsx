@@ -5,7 +5,7 @@ import { CotacaoDolar } from "@/components/carteira/cotacao-dolar";
 import { RelatorioIrView } from "@/components/carteira/ir-relatorio-view";
 import { getCarteira } from "@/lib/carteira/dados";
 import { ALIQUOTAS_PADRAO } from "@/lib/carteira/constantes";
-import { lerMovimentacoesIR } from "@/lib/carteira/ir-dados";
+import { lerDarfsPagos, lerMovimentacoesIR } from "@/lib/carteira/ir-dados";
 import { anosComMovimentacao, montarRelatorioAnual } from "@/lib/carteira/ir-relatorio";
 import { hojeSP } from "@/lib/carteira/mercado";
 
@@ -24,7 +24,10 @@ export default async function ImpostoDeRendaPage({ searchParams }: { searchParam
 
   const hoje = hojeSP();
   const anoAtual = Number(hoje.slice(0, 4));
-  const movs = await lerMovimentacoesIR(supabase, carteira.targetProfileId).catch(() => []);
+  const [movs, pagos] = await Promise.all([
+    lerMovimentacoesIR(supabase, carteira.targetProfileId).catch(() => []),
+    lerDarfsPagos(supabase, carteira.targetProfileId),
+  ]);
   const anos = anosComMovimentacao(movs, anoAtual);
   const pedido = Number(qs.ano);
   const anoPadrao = anos.includes(anoAtual - 1) ? anoAtual - 1 : anos[0];
@@ -44,7 +47,8 @@ export default async function ImpostoDeRendaPage({ searchParams }: { searchParam
     <div>
       <Header title="Imposto de renda" subtitle="Relatório para a declaração (estimativa)" profile={profile} acessorio={<CotacaoDolar />} />
       <div className="px-5 pt-3 pb-8 lg:px-8 lg:pt-4">
-        <RelatorioIrView relatorio={relatorio} anos={anos} anoAtual={anoAtual} semMovimentacoes={movs.length === 0} />
+        <RelatorioIrView relatorio={relatorio} anos={anos} anoAtual={anoAtual} semMovimentacoes={movs.length === 0}
+          pagos={pagos} hoje={hoje} podeEditar={!carteira.isReadOnly} />
       </div>
     </div>
   );

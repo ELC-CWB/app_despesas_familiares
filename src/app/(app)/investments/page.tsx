@@ -136,7 +136,7 @@ export default async function InvestmentsPage() {
               <div className="rounded-lg px-3 py-1.5 text-xs" style={{ color: "#8A5A00", backgroundColor: "rgba(138,90,0,0.10)" }}>
                 <strong>DARF de imposto de renda: </strong>
                 {darfs.map((d) => `${fmtBRL(d.darf)} de ${d.competencia.slice(5, 7)}/${d.competencia.slice(0, 4)} (${d.vencimento < hojeSP() ? "venceu" : "vence"} em ${d.vencimento.split("-").reverse().join("/")})`).join("; ")}.{" "}
-                <Link href="/investments/movimentacoes" className="underline">Ver em Movimentações</Link>
+                <Link href="/investments/ir" className="underline">Ver em Imposto de renda</Link>
               </div>
             )}
 

@@ -147,3 +147,18 @@ describe("isenção das vendas de ações até R$ 20 mil", () => {
     expect(CODIGO_VENDA_ACOES_ISENTA).toMatchObject({ codigo: "20", ficha: "Rendimentos Isentos e Não Tributáveis", divergente: false });
   });
 });
+
+describe("prejuízo a compensar no relatório", () => {
+  it("saldo acumulado até o fim do ano, por categoria", () => {
+    const movs: MovRelatorio[] = [
+      compra("etf", "2025-03-10", 100, 10000),
+      venda("etf", "2025-05-10", 20, 1500),   // custo 2.000: prejuízo de 500 em 2025
+      venda("etf", "2026-02-10", 10, 900),    // custo 1.000 (PM 100): prejuízo de 100 em 2026
+    ];
+    expect(montarRelatorioAnual({ ano: 2025, ativos, movs, aliquotasTipo: aliq }).prejuizos).toEqual([{ rotulo: "ETFs e BDRs na B3", valor: 500 }]);
+    expect(montarRelatorioAnual({ ano: 2026, ativos, movs, aliquotasTipo: aliq }).prejuizos).toEqual([{ rotulo: "ETFs e BDRs na B3", valor: 600 }]);
+  });
+  it("sem prejuízo, lista vazia", () => {
+    expect(montarRelatorioAnual({ ano: 2026, ativos, movs: [compra("etf", "2026-01-10", 10, 1000)], aliquotasTipo: aliq }).prejuizos).toEqual([]);
+  });
+});

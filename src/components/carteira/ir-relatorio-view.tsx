@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Download, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
-import { NOME_CATEGORIA } from "@/lib/carteira/ir";
+import { NOME_CATEGORIA, situacaoDarf } from "@/lib/carteira/ir";
 import { CODIGO_VENDA_ACOES_ISENTA, relatorioParaCsv, type RelatorioAnual } from "@/lib/carteira/ir-relatorio";
 import { ACCENT } from "@/components/carteira/campos";
 
@@ -29,8 +32,29 @@ const th = "py-1 px-2 text-[11px] uppercase tracking-wide text-muted-foreground 
 const td = "py-1.5 px-2 text-[13px] border-b border-border/60 tabular-nums";
 
 export function RelatorioIrView({
-  relatorio: r, anos, anoAtual, semMovimentacoes,
-}: { relatorio: RelatorioAnual; anos: number[]; anoAtual: number; semMovimentacoes: boolean }) {
+  relatorio: r, anos, anoAtual, semMovimentacoes, pagos, hoje, podeEditar,
+}: { relatorio: RelatorioAnual; anos: number[]; anoAtual: number; semMovimentacoes: boolean; pagos: string[]; hoje: string; podeEditar: boolean }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [salvando, setSalvando] = useState<string | null>(null);
+  const setPagos = new Set(pagos);
+
+  // Marca (ou desmarca) o DARF de um mês como pago
+  const marcar = async (competencia: string, pago: boolean) => {
+    setSalvando(competencia);
+    try {
+      const res = await fetch("/api/carteira/ir", {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ competencia, pago }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error ?? "Erro ao salvar");
+      router.refresh();
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro", description: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setSalvando(null);
+    }
+  };
   const baixar = () => {
     const blob = new Blob([relatorioParaCsv(r)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -166,8 +190,8 @@ export function RelatorioIrView({
 
       <Secao titulo="Renda variável na B3" nota="Resultado e imposto por mês (DARF 6015). Ações: vendas de até R$ 20 mil no mês, com lucro, são isentas.">
         {r.mesesB3.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma venda na B3 no ano.</p> : (
-          <table className="w-full min-w-[520px]">
-            <thead><tr className="text-left"><th className={th}>Mês</th><th className={`${th} text-right`}>Resultado</th><th className={`${th} text-right`}>Imposto</th><th className={`${th} text-right`}>DARF</th><th className={th}>Vencimento</th></tr></thead>
+          <table className="w-full min-w-[640px]">
+            <thead><tr className="text-left"><th className={th}>Mês</th><th className={`${th} text-right`}>Resultado</th><th className={`${th} text-right`}>Imposto</th><th className={`${th} text-right`}>DARF</th><th className={th}>Vencimento</th><th className={th}>Situação</th></tr></thead>
             <tbody>
               {r.mesesB3.map((m) => {
                 const resultado = m.categorias.reduce((s, c) => s + c.resultado, 0);
@@ -182,6 +206,26 @@ export function RelatorioIrView({
                     <td className={`${td} text-right`}>{fmtBRL(m.imposto)}</td>
                     <td className={`${td} text-right font-semibold`}>{m.darf > 0 ? fmtBRL(m.darf) : m.abaixoMinimo ? "abaixo de R$ 10" : "—"}</td>
                     <td className={td}>{m.darf > 0 ? data(m.vencimento) : "—"}</td>
+                    <td className={`${td} whitespace-nowrap`}>
+                      {(() => {
+                        const sit = situacaoDarf(m, setPagos, hoje);
+                        if (sit === "sem_imposto") return <span className="text-muted-foreground">{m.abaixoMinimo ? "acumula" : "sem DARF"}</span>;
+                        return (
+                          <span className="inline-flex items-center gap-2">
+                            <span className="font-semibold" style={{ color: sit === "pago" ? "#2E6B3F" : sit === "vencido" ? VERMELHO : AMBAR }}>
+                              {sit === "pago" ? "Pago" : sit === "vencido" ? "Vencido" : "A vencer"}
+                            </span>
+                            {podeEditar && (
+                              <button type="button" disabled={salvando === m.competencia} onClick={() => marcar(m.competencia, sit !== "pago")}
+                                className="text-xs font-semibold underline-offset-2 hover:underline disabled:opacity-60 inline-flex items-center gap-1" style={{ color: ACCENT }}>
+                                {salvando === m.competencia && <Loader2 className="h-3 w-3 animate-spin" />}
+                                {sit === "pago" ? "desfazer" : "marcar como pago"}
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 );
               })}
@@ -189,6 +233,14 @@ export function RelatorioIrView({
           </table>
         )}
       </Secao>
+
+      {r.prejuizos.length > 0 && (
+        <Secao titulo="Prejuízo a compensar" nota="Saldo no fim do ano. O prejuízo só compensa ganhos futuros da mesma categoria.">
+          <ul className="text-sm text-muted-foreground space-y-0.5">
+            {r.prejuizos.map((p) => <li key={p.rotulo}>{p.rotulo}: <strong className="text-foreground tabular-nums">{fmtBRL(p.valor)}</strong></li>)}
+          </ul>
+        </Secao>
+      )}
 
       <Secao titulo="Exterior (Lei 14.754/2023)"
         nota="Apuração anual, paga na declaração: 15% sobre o resultado em reais. Compra convertida pela PTAX de compra do dia da compra e venda pela PTAX de venda do dia da venda (a confirmar com seu contador).">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -434,6 +434,54 @@ function CaixaComUnidade({ prefixo, sufixo, largura, children }: { prefixo?: str
 }
 const recuo = (prefixo?: string, sufixo?: string) => `${prefixo ? "pl-8" : ""} ${sufixo ? (sufixo.length > 1 ? "pr-14" : "pr-7") : ""}`;
 
+// Régua que só se mexe quando você arrasta a BOLINHA. Tocar na trilha, ou passar o dedo por cima dela ao rolar a
+// página no celular, não muda nada (o <input type="range"> nativo muda o valor em qualquer ponto da barra).
+// Na bolinha, arrastar na vertical rola a página (touch-action: pan-y) e arrastar na horizontal mexe no valor.
+// Também funciona pelo teclado (setas, Home e End).
+function Regua({ min, max, passo, valor, rotulo, onChange }: {
+  min: number; max: number; passo: number; valor: number; rotulo: string; onChange: (v: number) => void;
+}) {
+  const trilha = useRef<HTMLDivElement>(null);
+  const arrastando = useRef(false);
+  const frac = max > min ? Math.min(1, Math.max(0, (valor - min) / (max - min))) : 0;
+
+  const ajustar = (v: number) => {
+    const casas = (String(passo).split(".")[1] ?? "").length;
+    const passado = Math.round((v - min) / passo) * passo + min;
+    return Math.min(max, Math.max(min, Number(passado.toFixed(casas))));
+  };
+  const mover = (clientX: number) => {
+    const r = trilha.current?.getBoundingClientRect();
+    if (!r || r.width <= 0) return;
+    const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    const v = ajustar(min + f * (max - min));
+    if (v !== valor) onChange(v);
+  };
+
+  return (
+    <div ref={trilha} className="relative h-6 mt-1.5 mb-0.5 select-none">
+      {/* trilha e parte preenchida: só desenho, não recebem toque */}
+      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 rounded-full bg-secondary pointer-events-none" />
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 rounded-full pointer-events-none" style={{ width: `${frac * 100}%`, backgroundColor: ACCENT }} />
+      <div role="slider" tabIndex={0} aria-label={rotulo} aria-valuemin={min} aria-valuemax={max} aria-valuenow={valor}
+        className="absolute top-1/2 w-7 h-7 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-grab active:cursor-grabbing outline-none group/bolinha"
+        style={{ left: `${frac * 100}%`, touchAction: "pan-y" }}
+        onPointerDown={(e) => { arrastando.current = true; e.currentTarget.setPointerCapture(e.pointerId); }}
+        onPointerMove={(e) => { if (arrastando.current) mover(e.clientX); }}
+        onPointerUp={() => { arrastando.current = false; }}
+        onPointerCancel={() => { arrastando.current = false; }}
+        onKeyDown={(e) => {
+          const passoTecla = e.key === "ArrowRight" || e.key === "ArrowUp" ? passo : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -passo : 0;
+          if (passoTecla) { e.preventDefault(); onChange(ajustar(valor + passoTecla)); }
+          else if (e.key === "Home") { e.preventDefault(); onChange(min); }
+          else if (e.key === "End") { e.preventDefault(); onChange(max); }
+        }}>
+        <span className="block w-4 h-4 rounded-full border-2 border-white shadow group-focus-visible/bolinha:ring-2 group-focus-visible/bolinha:ring-offset-1" style={{ backgroundColor: ACCENT }} />
+      </div>
+    </div>
+  );
+}
+
 function Premissa({
   rotulo, periodo, prefixo, sufixo, valor, casas, min, max, passo, onChange,
 }: {
@@ -450,9 +498,7 @@ function Premissa({
           <DecimalInput value={valor} casas={casas} ariaLabel={rotulo} className={`${inputCls} h-6 w-full py-0 text-xs ${recuo(prefixo, sufixo)}`} onValue={(v) => onChange(v ?? 0)} />
         </CaixaComUnidade>
       </div>
-      {/* touchAction pan-y: no celular, arrastar o dedo na vertical rola a página em vez de mexer na régua */}
-      <input type="range" min={min} max={Math.max(max, valor)} step={passo} value={Math.min(Math.max(valor, min), Math.max(max, valor))}
-        onChange={(e) => onChange(Number(e.target.value))} aria-label={rotulo} className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT, touchAction: "pan-y" }} />
+      <Regua min={min} max={Math.max(max, valor)} passo={passo} valor={Math.min(Math.max(valor, min), Math.max(max, valor))} rotulo={rotulo} onChange={onChange} />
     </div>
   );
 }
@@ -646,10 +692,9 @@ function PremissaUsufruto({
           </button>
         </span>
       </div>
-      <input type="range" min={1} max={MAX_ANOS_USUFRUTO + 1} step={1} aria-label="Anos de usufruto (o fim da escala é o infinito)"
-        value={perpetuo ? MAX_ANOS_USUFRUTO + 1 : Math.min(Math.max(anos, 1), MAX_ANOS_USUFRUTO)}
-        onChange={(e) => { const v = Number(e.target.value); if (v > MAX_ANOS_USUFRUTO) onPerpetuo(); else onPrazo(v); }}
-        className="w-full h-1 cursor-pointer block mt-2.5 mb-1.5" style={{ accentColor: ACCENT, touchAction: "pan-y" }} />
+      <Regua min={1} max={MAX_ANOS_USUFRUTO + 1} passo={1} rotulo="Anos de usufruto (o fim da escala é o infinito)"
+        valor={perpetuo ? MAX_ANOS_USUFRUTO + 1 : Math.min(Math.max(anos, 1), MAX_ANOS_USUFRUTO)}
+        onChange={(v) => { if (v > MAX_ANOS_USUFRUTO) onPerpetuo(); else onPrazo(v); }} />
       <div className="flex justify-between text-[10px] leading-none text-muted-foreground"><span>1 ano</span><span>{MAX_ANOS_USUFRUTO} anos</span><span>∞</span></div>
     </div>
   );

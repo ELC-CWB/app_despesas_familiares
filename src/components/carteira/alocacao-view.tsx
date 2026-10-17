@@ -16,6 +16,8 @@ const TEXTO = "#15202B";        // as linhas da tabela têm fundo pastel fixo: t
 
 const pct1 = (v: number) => `${fmtNum(v, 1, 1)}%`;
 const pp = (v: number) => fmtNum(v, 0, 2);
+// Alvo e Real em destaque: um véu escuro leve por cima da cor da linha (mantém o tom de cada geografia e bloco)
+const DESTAQUE: React.CSSProperties = { backgroundImage: "linear-gradient(rgba(21,32,43,0.09), rgba(21,32,43,0.09))" };
 const sinal = (v: number, txt: string) => `${v > 0.0001 ? "+" : v < -0.0001 ? "−" : ""}${txt}`;
 
 // Cartão de ação por fase (SPEC §4.2). Só dados: o componente desenha o cartão.
@@ -127,9 +129,9 @@ export function AlocacaoView({
             <thead>
               <tr className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground border-b border-border">
                 <th className="px-2.5 py-1.5 text-left font-semibold">Geografia / Bloco / Ativo</th>
-                <th className="px-2 py-1.5 text-right font-semibold">Alvo</th>
+                <th className="px-2 py-1.5 text-right font-bold text-foreground bg-muted/70">Alvo</th>
+                <th className="px-2 py-1.5 text-right font-bold text-foreground bg-muted/70">Real</th>
                 <th className="px-2 py-1.5 text-right font-semibold hidden sm:table-cell">Banda</th>
-                <th className="px-2 py-1.5 text-right font-semibold">Real</th>
                 <th className="px-2 py-1.5 text-right font-semibold">Desvio</th>
                 <th className="px-2 py-1.5 text-right font-semibold hidden sm:table-cell">Valor</th>
                 <th className="px-2 py-1.5 text-right font-semibold hidden sm:table-cell">Diferença</th>
@@ -167,9 +169,9 @@ export function AlocacaoView({
                         {n.nome}
                       </button>
                     </td>
-                    <td className={celula} style={contorno(false, false)}>{pct1(n.alvo)}</td>
+                    <td className={celula} style={{ fontWeight: 600, ...DESTAQUE, ...contorno(false, false) }}>{pct1(n.alvo)}</td>
+                    <td className={celula} style={{ fontWeight: Math.max(Number(estilo.peso), 600), ...DESTAQUE, ...contorno(false, false) }}>{pct1(n.real)}</td>
                     <td className={`${celula} hidden sm:table-cell`} style={contorno(false, false)}>{n.banda != null ? `±${pp(n.banda)}` : "—"}</td>
-                    <td className={celula} style={{ fontWeight: estilo.peso, ...contorno(false, false) }}>{pct1(n.real)}</td>
                     <td className={celula} style={{ color: n.fora ? VERMELHO : undefined, ...contorno(false, false) }}>
                       {semPosicoes ? "—" : sinal(n.desvio, fmtNum(Math.abs(n.desvio), 1, 1))}
                     </td>

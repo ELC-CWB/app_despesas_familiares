@@ -292,6 +292,14 @@ describe("planejado x real: o que o plano previa por ano", () => {
   it("revisão de aporte muda o investido planejado a partir do ano", () => {
     expect(investidoPlanejado({ ...p, revisoes: [rev(2026, { aporte_mensal: 2000 })] })).toEqual([10000, 22000, 34000, 58000, 58000, 58000]);
   });
+  it("as retiradas do usufruto abatem o investido planejado (sem ficar negativo)", () => {
+    const t = projetarTunel(p);
+    const inv = investidoPlanejado(p, t.pess.saques);
+    expect(inv[3]).toBeCloseTo(46000, 6); // os aportes acabam em t = 3, o saque do ano 3 só aparece em inv[4]
+    expect(inv[4]).toBeCloseTo(Math.max(0, 46000 - t.pess.saques[3]), 6);
+    expect(inv.every((x) => x >= 0)).toBe(true);
+    expect(inv[4]).toBeLessThan(46000);
+  });
   it("barras planejadas: ano encerrado usa o início do ano seguinte; ano corrente usa hoje; antes do plano é null", () => {
     const t = projetarTunel(p);
     const fatores = [1, 1, 1, 1, 1, 1];

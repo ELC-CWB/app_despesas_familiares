@@ -104,7 +104,7 @@ export function PlanoClient({
   const barrasGrafico = barrasMostrar.plano
     ? [...barras, ...anosFuturos.map((ano) => ({ ano, patrimonio: 0, investido: 0, semReal: true }))]
     : barras;
-  const planejado = barrasPlanejadas(prem, pessC, otimC, fatores, barrasGrafico.map((b) => b.ano), anoAtual, tHoje);
+  const planejado = barrasPlanejadas(prem, pessC, otimC, fatores, barrasGrafico.map((b) => b.ano), anoAtual, tHoje, tunel.pess.saques);
 
   // ── Ações ──
   const salvar = async (modo: "atualizar" | "nova") => {

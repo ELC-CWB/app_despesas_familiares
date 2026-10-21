@@ -73,6 +73,7 @@ export const temposDasRevisoes = (p: Premissas): number[] =>
 export type Projecao = {
   valores: number[];   // v[t]: patrimônio no início do ano t (t = 0 é o início do plano), em valores reais
   saqueAnual: number;  // W: fixo em termos reais, definido no início do usufruto
+  saques: number[];    // o que foi sacado em cada ano t (0 durante os aportes)
   esgota: number;      // primeiro t em que v[t] − W ≤ 0 (−1 se nunca)
 };
 
@@ -85,10 +86,12 @@ function simular(p: Premissas, rentDoAno: (t: number) => number): Projecao {
   const v = [p.patrimonio_inicial];
   let W = 0;
   let esgota = -1;
+  const saques: number[] = [];
   for (let t = 0; t < T; t++) {
     const par = parametrosDoAno(p, t);
     const r = rentDoAno(t) / 100;
     let cur = v[t];
+    let sacado = 0;
     if (t < A) {
       cur = (cur + par.aporte * 12) * (1 + r);
     } else {
@@ -96,11 +99,13 @@ function simular(p: Premissas, rentDoAno: (t: number) => number): Projecao {
       if (t === A || anoRevisaoRetirada) W = (v[t] * par.retirada) / 100;
       const saque = Math.min(W, cur);
       if (esgota < 0 && cur - W <= 0) esgota = t;
+      sacado = saque;
       cur = Math.max(0, (cur - saque) * (1 + r));
     }
+    saques.push(sacado);
     v.push(cur);
   }
-  return { valores: v, saqueAnual: W, esgota };
+  return { valores: v, saqueAnual: W, saques, esgota };
 }
 
 // Taxa fixa em todos os anos (aporte e retirada ainda seguem as revisões, se houver)
@@ -275,12 +280,12 @@ export function serieNominal(
 }
 
 // Investido planejado: patrimônio inicial + os aportes do plano (com as revisões), em valores reais, no início de cada ano t.
-// Depois do último ano de aporte o valor fica parado (as retiradas do usufruto não entram aqui).
-export function investidoPlanejado(p: Premissas): number[] {
+// Investido líquido: as retiradas do usufruto (saques[t]) abatem o investido, como uma venda; nunca fica abaixo de zero.
+export function investidoPlanejado(p: Premissas, saques: number[] = []): number[] {
   const T = horizonte(p);
   const A = anosAporteEfetivo(p);
   const v = [p.patrimonio_inicial];
-  for (let t = 0; t < T; t++) v.push(v[t] + (t < A ? parametrosDoAno(p, t).aporte * 12 : 0));
+  for (let t = 0; t < T; t++) v.push(Math.max(0, v[t] + (t < A ? parametrosDoAno(p, t).aporte * 12 : 0) - (saques[t] ?? 0)));
   return v;
 }
 
@@ -289,9 +294,9 @@ export function investidoPlanejado(p: Premissas): number[] {
 export type BarraPlanejada = { investido: number; pess: number; otim: number };
 
 export function barrasPlanejadas(
-  p: Premissas, pessC: number[], otimC: number[], fatores: number[], anos: number[], anoAtual: number, tHoje: number,
+  p: Premissas, pessC: number[], otimC: number[], fatores: number[], anos: number[], anoAtual: number, tHoje: number, saques: number[] = [],
 ): (BarraPlanejada | null)[] {
-  const inv = investidoPlanejado(p).map((v, i) => v * (fatores[i] ?? fatores.at(-1) ?? 1));
+  const inv = investidoPlanejado(p, saques).map((v, i) => v * (fatores[i] ?? fatores.at(-1) ?? 1));
   return anos.map((ano) => {
     const t = ano - p.ano_inicio;
     if (t < 0) return null;

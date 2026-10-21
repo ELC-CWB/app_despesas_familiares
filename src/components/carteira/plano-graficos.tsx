@@ -155,6 +155,7 @@ export function BarrasChart({
   const dupla = mostrar.real && mostrar.plano;
   const largura = dupla ? Math.min(slot * 0.36, 34) : Math.min(slot * 0.62, 70);
   const separacao = 2;
+  const passoRotulo = Math.max(1, Math.ceil(barras.length / 12)); // no máximo ~12 anos escritos no eixo
   const r1 = (v: number) => Math.round(v * 10) / 10;
   const contorno = { stroke: "hsl(var(--card))" };
 
@@ -185,8 +186,9 @@ export function BarrasChart({
         const ganho = Math.max(0, b.patrimonio - b.investido);
         const p = mostrar.plano ? planejado[i] : null;
         const pBase = p ? Math.min(p.investido, p.pess) : 0;
-        const pGanho = p ? Math.max(0, p.pess - p.investido) : 0;
-        const pFaixa = p ? Math.max(0, p.otim - Math.max(p.pess, p.investido)) : 0;
+        const pTopoGanho = p ? Math.max(p.pess, pBase) : 0;   // verde: de pBase até o pessimista
+        const pTopoFaixa = p ? Math.max(p.otim, pTopoGanho) : 0; // hachurado: do pessimista até o otimista
+        const tituloPlano = p ? `${b.ano} · planejado: investido ${mil(p.investido)}, pessimista ${mil(p.pess)}, otimista ${mil(p.otim)}` : "";
         return (
           <g key={b.ano}>
             {temReal && (
@@ -201,15 +203,22 @@ export function BarrasChart({
             {p && (
               <g>
                 <rect x={r1(xPlano)} y={r1(Y(pBase))} width={r1(largura)} height={Math.max(0, r1(y1 - Y(pBase)))} fill="#D3D8DE" rx={3} style={contorno} strokeWidth={1} />
-                {pGanho > 0 && (
-                  <rect x={r1(xPlano)} y={r1(Y(pBase + pGanho))} width={r1(largura)} height={Math.max(0, r1(Y(pBase) - Y(pBase + pGanho)))} fill="#A9E5CF" rx={3} style={contorno} strokeWidth={1} />
+                {pTopoGanho > pBase && (
+                  <rect x={r1(xPlano)} y={r1(Y(pTopoGanho))} width={r1(largura)} height={Math.max(0, r1(Y(pBase) - Y(pTopoGanho)))} fill="#A9E5CF" rx={3} style={contorno} strokeWidth={1} />
                 )}
-                {pFaixa > 0 && (
-                  <rect x={r1(xPlano)} y={r1(Y(pBase + pGanho + pFaixa))} width={r1(largura)} height={Math.max(0, r1(Y(pBase + pGanho) - Y(pBase + pGanho + pFaixa)))} fill="url(#hachuraPlano)" rx={3} style={contorno} strokeWidth={1} />
+                {pTopoFaixa > pTopoGanho && (
+                  <rect x={r1(xPlano)} y={r1(Y(pTopoFaixa))} width={r1(largura)} height={Math.max(0, r1(Y(pTopoGanho) - Y(pTopoFaixa)))} fill="url(#hachuraPlano)" rx={3} style={contorno} strokeWidth={1} />
                 )}
+                {/* marca do investido planejado quando o patrimônio previsto ficou abaixo dele (usufruto) */}
+                {p.investido > p.pess && (
+                  <line x1={r1(xPlano)} x2={r1(xPlano + largura)} y1={r1(Y(p.investido))} y2={r1(Y(p.investido))} stroke="#5B6672" strokeWidth={1.5} />
+                )}
+                <title>{tituloPlano}</title>
               </g>
             )}
-            <text x={r1(cx)} y={y1 + 20} textAnchor="middle" fontSize={11} className="fill-muted-foreground">{b.ano}</text>
+            {(i === barras.length - 1 || (i % passoRotulo === 0 && barras.length - 1 - i >= passoRotulo)) && (
+              <text x={r1(cx)} y={y1 + 20} textAnchor="middle" fontSize={11} className="fill-muted-foreground">{b.ano}</text>
+            )}
           </g>
         );
       })}

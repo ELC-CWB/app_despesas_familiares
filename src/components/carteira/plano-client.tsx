@@ -99,8 +99,8 @@ export function PlanoClient({
 
   const serie = serieNominal(snapshots, prem.ano_inicio, prem.patrimonio_inicial, hoje, patrimonioHoje);
   const barras = barrasPorAno(snapshots, anoAtual, patrimonioHoje, investidoHoje);
-  // Com o planejado ligado, o gráfico também mostra os 5 anos seguintes, só com o que o plano prevê (ainda não há real)
-  const anosFuturos = Array.from({ length: 5 }, (_, i) => anoAtual + 1 + i).filter((a) => a <= prem.ano_inicio + T);
+  // Com o planejado ligado, o gráfico segue até o fim do plano, só com o que o plano prevê nos anos que vêm (ainda não há real)
+  const anosFuturos = Array.from({ length: Math.max(0, prem.ano_inicio + T - anoAtual) }, (_, i) => anoAtual + 1 + i);
   const barrasGrafico = barrasMostrar.plano
     ? [...barras, ...anosFuturos.map((ano) => ({ ano, patrimonio: 0, investido: 0, semReal: true }))]
     : barras;

@@ -274,6 +274,33 @@ export function serieNominal(
   return pts.sort((a, b) => a.t - b.t);
 }
 
+// Investido planejado: patrimônio inicial + os aportes do plano (com as revisões), em valores reais, no início de cada ano t.
+// Depois do último ano de aporte o valor fica parado (as retiradas do usufruto não entram aqui).
+export function investidoPlanejado(p: Premissas): number[] {
+  const T = horizonte(p);
+  const A = anosAporteEfetivo(p);
+  const v = [p.patrimonio_inicial];
+  for (let t = 0; t < T; t++) v.push(v[t] + (t < A ? parametrosDoAno(p, t).aporte * 12 : 0));
+  return v;
+}
+
+// O que o plano previa para o fim de cada ano das barras (ano corrente: hoje), em reais correntes:
+// investido planejado e a faixa de patrimônio entre o cenário pessimista e o otimista. null = antes do início do plano.
+export type BarraPlanejada = { investido: number; pess: number; otim: number };
+
+export function barrasPlanejadas(
+  p: Premissas, pessC: number[], otimC: number[], fatores: number[], anos: number[], anoAtual: number, tHoje: number,
+): (BarraPlanejada | null)[] {
+  const inv = investidoPlanejado(p).map((v, i) => v * (fatores[i] ?? fatores.at(-1) ?? 1));
+  return anos.map((ano) => {
+    const t = ano - p.ano_inicio;
+    if (t < 0) return null;
+    // ano encerrado ou futuro: início do ano seguinte; ano corrente: hoje
+    const alvo = ano === anoAtual ? tHoje : t + 1;
+    return { investido: interpolar(inv, alvo), pess: interpolar(pessC, alvo), otim: interpolar(otimC, alvo) };
+  });
+}
+
 // Barras por ano: a última foto de cada ano já encerrado e o valor de hoje no ano corrente
 export function barrasPorAno(
   fotos: FotoPatrimonio[], anoAtual: number, patrimonioHoje: number, investidoHoje: number,

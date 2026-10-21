@@ -6,7 +6,7 @@ import { ChevronDown, Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import {
-  ANOS_PERPETUO, anosAporteEfetivo, anosDesde, descreverRevisao, barrasPorAno, corrigir, descreverMudancas, dinheiroCurto, fatorIpcaAte, fatoresPorAno,
+  ANOS_PERPETUO, anosAporteEfetivo, anosDesde, descreverRevisao, barrasPlanejadas, barrasPorAno, corrigir, descreverMudancas, dinheiroCurto, fatorIpcaAte, fatoresPorAno,
   horizonte, interpolar, parametrosDoAno, projetarTunel, temposDasRevisoes, rentPessEfetiva, resumoPremissas, serieNominal, statusTunel,
   textoVeredito, vereditoPerpetuidade, type FotoPatrimonio, type IpcaMes, type Premissas, type Revisao, type VersaoPlano,
 } from "@/lib/carteira/plano";
@@ -63,6 +63,7 @@ export function PlanoClient({
   const [erro, setErro] = useState("");
   const [reg, setReg] = useState<RegrasRetirada>(regras);
   const [salvandoReg, setSalvandoReg] = useState(false);
+  const [barrasMostrar, setBarrasMostrar] = useState({ real: true, plano: true }); // filtro do gráfico de barras
 
   const base = vendoId ? versoes.find((v) => v.id === vendoId) ?? null : emUso;
   const mudancas = base ? descreverMudancas(premissasDe(base), prem) : [];
@@ -98,6 +99,12 @@ export function PlanoClient({
 
   const serie = serieNominal(snapshots, prem.ano_inicio, prem.patrimonio_inicial, hoje, patrimonioHoje);
   const barras = barrasPorAno(snapshots, anoAtual, patrimonioHoje, investidoHoje);
+  // Com o planejado ligado, o gráfico também mostra os 5 anos seguintes, só com o que o plano prevê (ainda não há real)
+  const anosFuturos = Array.from({ length: 5 }, (_, i) => anoAtual + 1 + i).filter((a) => a <= prem.ano_inicio + T);
+  const barrasGrafico = barrasMostrar.plano
+    ? [...barras, ...anosFuturos.map((ano) => ({ ano, patrimonio: 0, investido: 0, semReal: true }))]
+    : barras;
+  const planejado = barrasPlanejadas(prem, pessC, otimC, fatores, barrasGrafico.map((b) => b.ano), anoAtual, tHoje);
 
   // ── Ações ──
   const salvar = async (modo: "atualizar" | "nova") => {
@@ -374,12 +381,37 @@ export function PlanoClient({
           <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-3">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h2 className="text-base font-bold text-foreground" style={{ fontFamily: "Sora, sans-serif" }}>Investido líquido x patrimônio</h2>
-              <p className="text-xs text-muted-foreground flex gap-4">
-                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#10b981" }} />Ganho</span>
-                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#A3ACB6" }} />Investido líquido</span>
-              </p>
+              <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Mostrar no gráfico">
+                {([["real", "Real"], ["plano", "Planejado"]] as const).map(([chave, rotulo]) => {
+                  const ligado = barrasMostrar[chave];
+                  const ultimo = ligado && Object.values(barrasMostrar).filter(Boolean).length === 1; // sempre sobra uma série
+                  return (
+                    <button key={chave} type="button" aria-pressed={ligado} disabled={ultimo} title={ultimo ? "Pelo menos uma série fica visível" : undefined}
+                      onClick={() => setBarrasMostrar((m) => ({ ...m, [chave]: !m[chave] }))}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold border disabled:cursor-default"
+                      style={ligado ? { backgroundColor: `${ACCENT}1a`, borderColor: ACCENT, color: ACCENT } : { borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
+                      {ligado ? "✓ " : ""}{rotulo}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <BarrasChart barras={barras} />
+            <p className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+              {barrasMostrar.real && (
+                <>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#10b981" }} />Ganho</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#A3ACB6" }} />Investido líquido</span>
+                </>
+              )}
+              {barrasMostrar.plano && (
+                <>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#D3D8DE" }} />Investido planejado</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#A9E5CF" }} />Ganho planejado (pessimista)</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm" style={{ background: "repeating-linear-gradient(45deg, #9ADBC1 0 2px, #DDF5EA 2px 5px)" }} />Até o otimista</span>
+                </>
+              )}
+            </p>
+            <BarrasChart barras={barrasGrafico} planejado={planejado} mostrar={barrasMostrar} />
             <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
               <span>Investido líquido: <strong className="font-medium tabular-nums text-foreground">{brl0(investidoHoje)}</strong></span>
               <span>Patrimônio hoje: <strong className="font-medium tabular-nums text-foreground">{brl0(patrimonioHoje)}</strong></span>

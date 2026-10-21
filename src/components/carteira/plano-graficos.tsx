@@ -134,16 +134,39 @@ export function TunelChart({
   );
 }
 
-export function BarrasChart({ barras }: { barras: { ano: number; patrimonio: number; investido: number }[] }) {
+type BarraReal = { ano: number; patrimonio: number; investido: number; semReal?: boolean }; // semReal: ano futuro, só o planejado
+type BarraPlano = { investido: number; pess: number; otim: number } | null;
+
+// Investido líquido + ganho por ano (real) e o que o plano previa (planejado), lado a lado.
+// Planejado: investido planejado (cinza claro), ganho até o cenário pessimista (verde claro) e a faixa até o otimista (hachurada).
+export function BarrasChart({
+  barras, planejado = [], mostrar = { real: true, plano: false },
+}: { barras: BarraReal[]; planejado?: BarraPlano[]; mostrar?: { real: boolean; plano: boolean } }) {
   const W = 780, H = 300, x0 = 64, x1 = 764, y0 = 16, y1 = 262;
   if (!barras.length) return null;
-  const ymax = valorMaximoBonito(Math.max(...barras.map((b) => Math.max(b.patrimonio, b.investido)), 1));
+  const doPlano = mostrar.plano ? planejado : [];
+  const ymax = valorMaximoBonito(Math.max(
+    ...(mostrar.real ? barras.filter((b) => !b.semReal).map((b) => Math.max(b.patrimonio, b.investido)) : []),
+    ...doPlano.map((b) => (b ? Math.max(b.otim, b.pess, b.investido) : 0)),
+    1,
+  ));
   const Y = (v: number) => y1 - (v / ymax) * (y1 - y0);
   const slot = (x1 - x0) / barras.length;
-  const largura = Math.min(slot * 0.62, 70);
+  const dupla = mostrar.real && mostrar.plano;
+  const largura = dupla ? Math.min(slot * 0.36, 34) : Math.min(slot * 0.62, 70);
+  const separacao = 2;
+  const r1 = (v: number) => Math.round(v * 10) / 10;
+  const contorno = { stroke: "hsl(var(--card))" };
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img" aria-label="Investido líquido e ganho por ano">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img"
+      aria-label={mostrar.plano ? "Investido líquido e patrimônio por ano: real e planejado" : "Investido líquido e ganho por ano"}>
+      <defs>
+        <pattern id="hachuraPlano" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="#DDF5EA" />
+          <rect width="2.5" height="6" fill="#9ADBC1" />
+        </pattern>
+      </defs>
       {Array.from({ length: 5 }, (_, i) => {
         const v = (ymax * i) / 4;
         return (
@@ -155,18 +178,38 @@ export function BarrasChart({ barras }: { barras: { ano: number; patrimonio: num
       })}
       {barras.map((b, i) => {
         const cx = x0 + slot * (i + 0.5);
+        const temReal = mostrar.real && !b.semReal; // ano futuro: só o planejado, no centro
+        const xReal = dupla ? cx - largura - separacao / 2 : cx - largura / 2;
+        const xPlano = dupla && temReal ? cx + separacao / 2 : cx - largura / 2;
         const base = Math.min(b.investido, b.patrimonio);
         const ganho = Math.max(0, b.patrimonio - b.investido);
+        const p = mostrar.plano ? planejado[i] : null;
+        const pBase = p ? Math.min(p.investido, p.pess) : 0;
+        const pGanho = p ? Math.max(0, p.pess - p.investido) : 0;
+        const pFaixa = p ? Math.max(0, p.otim - Math.max(p.pess, p.investido)) : 0;
         return (
           <g key={b.ano}>
-            {/* 2 px de superfície entre os segmentos empilhados */}
-            <rect x={cx - largura / 2} y={Y(base)} width={largura} height={Math.max(0, y1 - Y(base))} fill="#A3ACB6" rx={3}
-              style={{ stroke: "hsl(var(--card))" }} strokeWidth={1} />
-            {ganho > 0 && (
-              <rect x={cx - largura / 2} y={Y(base + ganho)} width={largura} height={Math.max(0, Y(base) - Y(base + ganho))} fill={VERDE} rx={3}
-                style={{ stroke: "hsl(var(--card))" }} strokeWidth={1} />
+            {temReal && (
+              <g>
+                {/* 2 px de superfície entre os segmentos empilhados */}
+                <rect x={r1(xReal)} y={r1(Y(base))} width={r1(largura)} height={Math.max(0, r1(y1 - Y(base)))} fill="#A3ACB6" rx={3} style={contorno} strokeWidth={1} />
+                {ganho > 0 && (
+                  <rect x={r1(xReal)} y={r1(Y(base + ganho))} width={r1(largura)} height={Math.max(0, r1(Y(base) - Y(base + ganho)))} fill={VERDE} rx={3} style={contorno} strokeWidth={1} />
+                )}
+              </g>
             )}
-            <text x={cx} y={y1 + 20} textAnchor="middle" fontSize={11} className="fill-muted-foreground">{b.ano}</text>
+            {p && (
+              <g>
+                <rect x={r1(xPlano)} y={r1(Y(pBase))} width={r1(largura)} height={Math.max(0, r1(y1 - Y(pBase)))} fill="#D3D8DE" rx={3} style={contorno} strokeWidth={1} />
+                {pGanho > 0 && (
+                  <rect x={r1(xPlano)} y={r1(Y(pBase + pGanho))} width={r1(largura)} height={Math.max(0, r1(Y(pBase) - Y(pBase + pGanho)))} fill="#A9E5CF" rx={3} style={contorno} strokeWidth={1} />
+                )}
+                {pFaixa > 0 && (
+                  <rect x={r1(xPlano)} y={r1(Y(pBase + pGanho + pFaixa))} width={r1(largura)} height={Math.max(0, r1(Y(pBase + pGanho) - Y(pBase + pGanho + pFaixa)))} fill="url(#hachuraPlano)" rx={3} style={contorno} strokeWidth={1} />
+                )}
+              </g>
+            )}
+            <text x={r1(cx)} y={y1 + 20} textAnchor="middle" fontSize={11} className="fill-muted-foreground">{b.ano}</text>
           </g>
         );
       })}

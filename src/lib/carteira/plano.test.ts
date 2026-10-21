@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   anosDesde, corrigir, descreverMudancas, dinheiroCurto, fatoresPorAno, fatorIpcaAte, fraseSustentabilidade,
-  anosAporteEfetivo, descreverRevisao, horizonte, interpolar, parametrosDoAno, projetar, projetarTunel, rentPessEfetiva, statusTunel, temposDasRevisoes, textoVeredito,
+  anosAporteEfetivo, barrasPlanejadas, descreverRevisao, horizonte, investidoPlanejado, interpolar, parametrosDoAno, projetar, projetarTunel, rentPessEfetiva, statusTunel, temposDasRevisoes, textoVeredito,
   type IpcaMes, type Premissas, type Revisao,
 } from "@/lib/carteira/plano";
 
@@ -279,5 +279,38 @@ describe("texto das revisões no cabeçalho do plano", () => {
     expect(descreverRevisao(rev(2038, { fim_aporte: 2045, retirada_pct: 3 }))).toBe("2038: aportes até 2045, retirada 3%");
     expect(descreverRevisao(rev(2040, { rent_pess_pct: 2.5, rent_otim_pct: 5 }))).toBe("2040: rentabilidade 2,5% a 5%");
     expect(descreverRevisao(rev(2041, { rent_otim_pct: 5 }))).toBe("2041: rentabilidade — a 5%");
+  });
+});
+
+describe("planejado x real: o que o plano previa por ano", () => {
+  const rev = (ano: number, o: Partial<Revisao> = {}): Revisao => ({ ano, aporte_mensal: null, rent_pess_pct: null, rent_otim_pct: null, retirada_pct: null, fim_aporte: null, ...o });
+  const p: Premissas = { ...base, ano_inicio: 2024, patrimonio_inicial: 10000, aporte_mensal: 1000, anos_aporte: 3, perpetuo: false, anos_usufruto: 2, revisoes: [] };
+
+  it("investido planejado = patrimônio inicial + aportes (parado depois do último ano de aporte)", () => {
+    expect(investidoPlanejado(p)).toEqual([10000, 22000, 34000, 46000, 46000, 46000]);
+  });
+  it("revisão de aporte muda o investido planejado a partir do ano", () => {
+    expect(investidoPlanejado({ ...p, revisoes: [rev(2026, { aporte_mensal: 2000 })] })).toEqual([10000, 22000, 34000, 58000, 58000, 58000]);
+  });
+  it("barras planejadas: ano encerrado usa o início do ano seguinte; ano corrente usa hoje; antes do plano é null", () => {
+    const t = projetarTunel(p);
+    const fatores = [1, 1, 1, 1, 1, 1];
+    const r = barrasPlanejadas(p, t.pess.valores, t.otim.valores, fatores, [2023, 2024, 2025], 2025, 1.5);
+    expect(r[0]).toBeNull();
+    expect(r[1]?.investido).toBeCloseTo(22000, 6);              // fim de 2024 = início de 2025 (t = 1)
+    expect(r[1]?.pess).toBeCloseTo(t.pess.valores[1], 6);
+    expect(r[2]?.investido).toBeCloseTo((22000 + 34000) / 2, 6); // ano corrente: t = 1,5 entre 2025 e 2026
+    expect(r[2]!.otim).toBeGreaterThan(r[2]!.pess);
+  });
+  it("ano futuro usa o fim daquele ano (não o dia de hoje)", () => {
+    const t = projetarTunel(p);
+    const r = barrasPlanejadas(p, t.pess.valores, t.otim.valores, [1, 1, 1, 1, 1, 1], [2027], 2025, 1.5);
+    expect(r[0]?.investido).toBeCloseTo(46000, 6); // fim de 2027 = início de 2028 (t = 4): aportes acabaram em 2026
+    expect(r[0]?.pess).toBeCloseTo(t.pess.valores[4], 6);
+  });
+  it("corrige o planejado pela inflação acumulada (reais correntes)", () => {
+    const t = projetarTunel(p);
+    const r = barrasPlanejadas(p, t.pess.valores, t.otim.valores, [1, 1.1, 1.2, 1.3, 1.4, 1.5], [2024], 2030, 0);
+    expect(r[0]?.investido).toBeCloseTo(22000 * 1.1, 6);
   });
 });

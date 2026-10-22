@@ -92,7 +92,7 @@ export function PlanoClient({
   const pessMensal = (pessC[A] * ret) / 12;
   const veredito = vereditoPerpetuidade(efA.retirada, rentPessEfetiva(efA.pess, efA.otim), efA.otim);
   const textoV = textoVeredito(veredito, { ...prem, retirada_pct: efA.retirada, rent_pess_pct: efA.pess, rent_otim_pct: efA.otim }, pessMensal);
-  const fimPlano = prem.ano_inicio + T;
+  const fimPlano = prem.ano_inicio + T - 1; // último ano do plano (o horizonte T termina no início do ano seguinte)
   const revisoes = prem.revisoes ?? [];
   const avisoRevisoes = validarRevisoes(prem as Parameters<typeof validarRevisoes>[0]); // o mesmo teste do servidor
   const setRevisoes = (lista: Revisao[]) => { setErro(""); setPrem((p) => ({ ...p, revisoes: lista })); };
@@ -100,7 +100,7 @@ export function PlanoClient({
   const serie = serieNominal(snapshots, prem.ano_inicio, prem.patrimonio_inicial, hoje, patrimonioHoje);
   const barras = barrasPorAno(snapshots, anoAtual, patrimonioHoje, investidoHoje);
   // Com o planejado ligado, o gráfico segue até o fim do plano, só com o que o plano prevê nos anos que vêm (ainda não há real)
-  const anosFuturos = Array.from({ length: Math.max(0, prem.ano_inicio + T - anoAtual) }, (_, i) => anoAtual + 1 + i);
+  const anosFuturos = Array.from({ length: Math.max(0, fimPlano - anoAtual) }, (_, i) => anoAtual + 1 + i);
   const barrasGrafico = barrasMostrar.plano
     ? [...barras, ...anosFuturos.map((ano) => ({ ano, patrimonio: 0, investido: 0, semReal: true }))]
     : barras;
@@ -195,7 +195,7 @@ export function PlanoClient({
           sub={faixaHoje ? `faixa do plano para ${anoAtual}: ${dinheiroCurto(faixaHoje.pess)} a ${dinheiroCurto(faixaHoje.otim)}` : "fora do período do plano"} />
         <Cartao rotulo={`Patrimônio no início do usufruto em ${prem.ano_inicio + A}`} valor={`${dinheiroCurto(pessC[A])} a ${dinheiroCurto(otimC[A])}`} />
         <Cartao rotulo={`Retirada mensal bruta ${prem.perpetuo ? `${prem.ano_inicio + A} em diante` : `${prem.ano_inicio + A} a ${prem.ano_inicio + A + (prem.anos_usufruto ?? 0) - 1}`}`} valor={`${brl0(pessMensal)} a ${brl0((otimC[A] * ret) / 12)}`} />
-        <Cartao rotulo={`Patrimônio no final do usufruto em ${prem.ano_inicio + T}`} valor={`${dinheiroCurto(Math.max(0, pessC[T]))} a ${dinheiroCurto(Math.max(0, otimC[T]))}`} />
+        <Cartao rotulo={`Patrimônio no final do usufruto em ${fimPlano}`} valor={`${dinheiroCurto(Math.max(0, pessC[T]))} a ${dinheiroCurto(Math.max(0, otimC[T]))}`} />
       </div>
 
       <div className="rounded-lg px-3 py-1.5 text-xs flex flex-wrap items-center gap-x-2"

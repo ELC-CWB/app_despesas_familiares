@@ -220,7 +220,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
                   </SelectItem>
                 ))}
                 {categories.length === 0 && (
-                  <SelectItem value="" disabled>Nenhuma categoria cadastrada</SelectItem>
+                  <p className="px-2 py-1.5 text-sm text-muted-foreground">Nenhuma categoria cadastrada</p>
                 )}
               </SelectContent>
             </Select>

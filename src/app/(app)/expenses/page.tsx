@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { garantirCategoriasPadrao } from "@/lib/categorias-padrao";
 import { SemGrupo } from "@/components/layout/sem-grupo";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
@@ -47,6 +48,9 @@ export default async function ExpensesPage() {
       .order("position"),
   ]);
 
+  // Grupo recém-criado ainda não tem categorias: cria as padrão
+  const categoriasDoGrupo = categories && categories.length > 0 ? categories : await garantirCategoriasPadrao(supabase, profile.group_id);
+
   if (expensesError) console.error("[expenses page] expenses query error:", expensesError.message, expensesError.code);
   if (membersError) console.error("[expenses page] members query error:", membersError.message, membersError.code);
 
@@ -56,7 +60,7 @@ export default async function ExpensesPage() {
       members={members ?? []}
       currentUserId={user.id}
       groupId={profile.group_id}
-      categories={categories ?? []}
+      categories={categoriasDoGrupo}
       profile={profile}
       groupName={group?.name ?? null}
     />

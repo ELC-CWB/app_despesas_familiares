@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getInitials } from "@/lib/utils";
+import { garantirCategoriasPadrao } from "@/lib/categorias-padrao";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,7 @@ function GrupoSecao({ tipo, dados, userId }: { tipo: Tipo; dados: GrupoDados; us
       if (error || !novo) { setCriando(false); erro("Erro ao criar grupo", error?.message); return; }
       const { error: erroPerfil } = await supabase.from("profiles").update({ group_id: novo.id }).eq("id", userId);
       if (erroPerfil) { setCriando(false); erro("Erro ao criar grupo", erroPerfil.message); return; }
+      await garantirCategoriasPadrao(supabase, novo.id);
     } else {
       const { error } = await supabase.rpc("create_investment_group", { group_name: nome });
       if (error) { setCriando(false); erro("Erro ao criar grupo", error.message); return; }

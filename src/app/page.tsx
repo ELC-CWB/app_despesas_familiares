@@ -104,36 +104,34 @@ export default async function Home() {
       {/* ── Logout ─────────────────────────────────────────────────────────── */}
       <HomeLogoutButton />
 
-      {/* ── Title ──────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 text-center mb-6 sm:mb-12">
-        <h1 className="text-white font-bold text-2xl sm:text-4xl tracking-tight"
-          style={{ fontFamily: "Sora, sans-serif" }}>
-          Aplicativos Pessoais
-        </h1>
-      </div>
-
       {/* ── Module cards ────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex flex-col gap-3 sm:gap-4 w-full max-w-lg">
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <Link href="/dashboard"
-            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
-            style={{ background: "linear-gradient(135deg, hsl(160,84%,39%) 0%, hsl(160,84%,28%) 100%)", boxShadow: "0 8px 40px rgba(16,185,129,0.28)" }}>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-              <ReceiptText className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Despesas</h2>
-          </Link>
+          <div className="flex flex-col gap-2 sm:gap-3">
+            <p className="text-center text-white font-semibold text-sm sm:text-lg tracking-tight" style={{ fontFamily: "Sora, sans-serif" }}>Gerencie despesas</p>
+            <Link href="/dashboard"
+              className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+              style={{ background: "linear-gradient(135deg, hsl(160,84%,39%) 0%, hsl(160,84%,28%) 100%)", boxShadow: "0 8px 40px rgba(16,185,129,0.28)" }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+                <ReceiptText className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Despesas</h2>
+            </Link>
+          </div>
 
-          <Link href="/investments"
-            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
-            style={{ background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", boxShadow: "0 8px 40px rgba(59,130,246,0.28)" }}>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Investimentos</h2>
-          </Link>
+          <div className="flex flex-col gap-2 sm:gap-3">
+            <p className="text-center text-white font-semibold text-sm sm:text-lg tracking-tight" style={{ fontFamily: "Sora, sans-serif" }}>Construa patrimônio</p>
+            <Link href="/investments"
+              className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+              style={{ background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", boxShadow: "0 8px 40px rgba(59,130,246,0.28)" }}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Investimentos</h2>
+            </Link>
+          </div>
         </div>
 
         {admin && (

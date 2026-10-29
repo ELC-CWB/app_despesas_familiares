@@ -64,15 +64,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             }}
           >
             Gestão financeira
-            <br />
-            <span style={{ color: "hsl(160,84%,48%)" }}>em família</span>
           </h2>
 
           <p
             className="text-base leading-relaxed max-w-sm"
             style={{ color: "rgba(255,255,255,0.62)", textShadow: "0 1px 10px rgba(0,0,0,0.7)" }}
           >
-            Controle despesas, monitore investimentos e acompanhe o patrimônio do seu grupo familiar.
+            Controle as despesas, planeje e monitore seus investimentos. Cuide do seu patrimônio.
           </p>
 
           {/* Feature pills */}

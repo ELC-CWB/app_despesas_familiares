@@ -8,9 +8,9 @@ export function SemGrupo() {
       <div className="max-w-md w-full text-center space-y-3 rounded-xl border border-border bg-card p-6">
         <h2 className="text-lg font-semibold">Não foi possível abrir suas despesas agora</h2>
         <p className="text-sm text-muted-foreground">
-          Recarregue a página para tentar de novo. Se continuar, abra o menu <strong>Grupos</strong> na tela inicial para criar um grupo ou aceitar um convite.
+          Recarregue a página para tentar de novo. Se continuar, abra as <strong>Configurações</strong> de Despesas para criar um grupo ou aceitar um convite.
         </p>
-        <Link href="/grupos"><Button className="w-full">Ir para Grupos</Button></Link>
+        <Link href="/settings"><Button className="w-full">Ir para Configurações</Button></Link>
         <Link href="/"><Button variant="outline" className="w-full">Voltar à tela inicial</Button></Link>
       </div>
     </div>

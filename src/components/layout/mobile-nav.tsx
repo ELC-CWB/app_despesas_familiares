@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, TrendingUp, PieChart, LineChart, ArrowLeftRight, Users, Target, FileText, type LucideIcon } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, FileText, type LucideIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,12 +29,12 @@ const INVESTMENTS_NAV: NavItem[] = [
   { href: "/investments/plano", label: "Plano", icon: LineChart },
   { href: "/investments/movimentacoes", label: "Movim.", icon: ArrowLeftRight },
   { href: "/investments/ir", label: "IR", icon: FileText },
-  { href: "/investments/settings/carteira", label: "Config.", icon: Settings },
-];
-
-const GRUPOS_NAV = [
-  { href: "/", label: "Início", icon: House, exact: true },
-  { href: "/grupos", label: "Grupos", icon: Users, exact: true },
+  {
+    label: "Config.", icon: Settings, children: [
+      { href: "/investments/settings/carteira", label: "Carteira", icon: Wallet },
+      { href: "/investments/settings/acessos", label: "Acessos", icon: Users },
+    ],
+  },
 ];
 
 const GOALS_NAV = [
@@ -44,16 +44,14 @@ const GOALS_NAV = [
 
 const INVEST_COLOR = "#3b82f6";
 const GOALS_COLOR = "#8b5cf6";
-const GRUPOS_COLOR = "#0d9488";
 
 export function MobileNav() {
   const pathname = usePathname();
   const isInvestments = pathname.startsWith("/investments");
   const isGoals = pathname.startsWith("/goals");
-  const isGrupos = pathname.startsWith("/grupos");
 
-  const activeColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : isGrupos ? GRUPOS_COLOR : undefined;
-  const nav = isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : isGrupos ? GRUPOS_NAV : EXPENSES_NAV;
+  const activeColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : undefined;
+  const nav = isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV;
 
   function isActive(href: string, exact?: boolean) {
     return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");

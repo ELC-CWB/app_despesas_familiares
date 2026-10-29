@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, House, PieChart, LineChart, ArrowLeftRight, Users, Target, ChevronDown, FileText, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, LogOut, House, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, ChevronDown, FileText, type LucideIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type NavLeaf = { href: string; label: string; icon: LucideIcon; exact?: boolean };
@@ -27,12 +27,12 @@ const INVESTMENTS_NAV: NavItem[] = [
   { href: "/investments/plano", label: "Plano", icon: LineChart },
   { href: "/investments/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
   { href: "/investments/ir", label: "Imposto de renda", icon: FileText },
-  { href: "/investments/settings/carteira", label: "Configurações", icon: Settings },
-];
-
-const GRUPOS_NAV: NavItem[] = [
-  { href: "/", label: "Início", icon: House, exact: true },
-  { href: "/grupos", label: "Grupos", icon: Users, exact: true },
+  {
+    label: "Configurações", icon: Settings, children: [
+      { href: "/investments/settings/carteira", label: "Carteira", icon: Wallet },
+      { href: "/investments/settings/acessos", label: "Acessos", icon: Users },
+    ],
+  },
 ];
 
 const GOALS_NAV: NavItem[] = [
@@ -43,7 +43,6 @@ const GOALS_NAV: NavItem[] = [
 // Accent color per module
 const INVEST_COLOR = "#3b82f6";
 const GOALS_COLOR = "#8b5cf6";
-const GRUPOS_COLOR = "#0d9488";
 const EXPENSES_COLOR = "hsl(var(--primary))";
 
 interface SidebarProps {
@@ -61,13 +60,12 @@ export function Sidebar({ profile }: SidebarProps) {
 
   const isInvestments = pathname.startsWith("/investments");
   const isGoals = pathname.startsWith("/goals");
-  const isGrupos = pathname.startsWith("/grupos");
   // Todos os módulos (Despesas, Investimentos e Metas) usam a mesma barra lateral clara; só a cor de destaque muda
   const claro = true;
   const cInativo = claro ? "text-muted-foreground hover:text-foreground hover:bg-muted" : "text-slate-400 hover:text-sidebar-fg hover:bg-sidebar-muted";
   const cBorda = claro ? "border-border" : "border-sidebar-border";
   const cTexto = claro ? "text-foreground" : "text-sidebar-fg";
-  const accentColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : isGrupos ? GRUPOS_COLOR : EXPENSES_COLOR;
+  const accentColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : EXPENSES_COLOR;
 
   async function handleLogout() {
     const supabase = createClient();
@@ -92,7 +90,7 @@ export function Sidebar({ profile }: SidebarProps) {
               className={cn("font-semibold text-base leading-tight block transition-all duration-300", cTexto)}
               style={{ fontFamily: "Sora, sans-serif" }}
             >
-              {isInvestments ? "Investimentos" : isGoals ? "Metas" : isGrupos ? "Grupos" : "Despesas"}
+              {isInvestments ? "Investimentos" : isGoals ? "Metas" : "Despesas"}
             </span>
             <span
               className="text-xs font-medium transition-colors duration-300"
@@ -106,7 +104,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {(isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : isGrupos ? GRUPOS_NAV : EXPENSES_NAV)
+        {(isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV)
           .map((item) => {
             if ("children" in item) {
               const Icon = item.icon;

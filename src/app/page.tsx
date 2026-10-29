@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ReceiptText, TrendingUp, Target, Mic } from "lucide-react";
+import { ReceiptText, TrendingUp, Target, Mic, Users } from "lucide-react";
 import { HomeLogoutButton } from "@/components/home-logout-button";
 import { isPlatformAdmin } from "@/lib/admin";
 
@@ -136,8 +136,19 @@ export default async function Home() {
           </Link>
         </div>
 
-        {admin && (
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <Link href="/grupos"
+            className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
+            style={{ background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", boxShadow: "0 8px 40px rgba(13,148,136,0.28)" }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Grupos</h2>
+          </Link>
+
+          {/* Metas e Talkie: só o administrador */}
+          {admin && (<>
           <Link href="/goals"
             className="group rounded-2xl p-6 sm:p-8 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2"
             style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)", boxShadow: "0 8px 40px rgba(139,92,246,0.28)" }}>
@@ -157,8 +168,8 @@ export default async function Home() {
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white" style={{ fontFamily: "Sora, sans-serif" }}>Talkie</h2>
             </Link>
+          </>)}
         </div>
-        )}
       </div>
     </main>
   );

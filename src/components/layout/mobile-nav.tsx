@@ -32,9 +32,13 @@ const INVESTMENTS_NAV: NavItem[] = [
   {
     label: "Config.", icon: Settings, children: [
       { href: "/investments/settings/carteira", label: "Carteira", icon: Wallet },
-      { href: "/investments/settings/acessos", label: "Acessos", icon: Users },
     ],
   },
+];
+
+const GRUPOS_NAV = [
+  { href: "/", label: "Início", icon: House, exact: true },
+  { href: "/grupos", label: "Grupos", icon: Users, exact: true },
 ];
 
 const GOALS_NAV = [
@@ -44,14 +48,16 @@ const GOALS_NAV = [
 
 const INVEST_COLOR = "#3b82f6";
 const GOALS_COLOR = "#8b5cf6";
+const GRUPOS_COLOR = "#0d9488";
 
 export function MobileNav() {
   const pathname = usePathname();
   const isInvestments = pathname.startsWith("/investments");
   const isGoals = pathname.startsWith("/goals");
+  const isGrupos = pathname.startsWith("/grupos");
 
-  const activeColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : undefined;
-  const nav = isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV;
+  const activeColor = isInvestments ? INVEST_COLOR : isGoals ? GOALS_COLOR : isGrupos ? GRUPOS_COLOR : undefined;
+  const nav = isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : isGrupos ? GRUPOS_NAV : EXPENSES_NAV;
 
   function isActive(href: string, exact?: boolean) {
     return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");

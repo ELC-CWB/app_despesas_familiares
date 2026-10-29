@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { liberarContaPendente } from "./actions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,10 +23,16 @@ export default function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    let { error } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.password,
     });
+
+    // Conta antiga que ficou aguardando confirmação por e-mail: libera e tenta de novo
+    if (error && /not confirmed/i.test(error.message)) {
+      const { ok } = await liberarContaPendente({ email: form.email, password: form.password });
+      if (ok) ({ error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password }));
+    }
 
     if (error) {
       toast({

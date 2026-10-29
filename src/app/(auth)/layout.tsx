@@ -70,7 +70,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             className="text-base leading-relaxed max-w-sm"
             style={{ color: "rgba(255,255,255,0.62)", textShadow: "0 1px 10px rgba(0,0,0,0.7)" }}
           >
-            Controle as despesas, planeje e monitore seus investimentos. Cuide do seu patrimônio.
+            Controle despesas, planeje e monitore investimentos.
+          </p>
+
+          <p
+            className="text-xl font-semibold leading-snug"
+            style={{ color: "rgba(255,255,255,0.85)", textShadow: "0 1px 10px rgba(0,0,0,0.7)" }}
+          >
+            Cuide do seu patrimônio.
           </p>
 
         </div>

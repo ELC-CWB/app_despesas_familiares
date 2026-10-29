@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, TrendingUp, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, FileText, type LucideIcon } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Settings, TrendingUp, PieChart, LineChart, ArrowLeftRight, Users, Target, FileText, type LucideIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,11 +29,7 @@ const INVESTMENTS_NAV: NavItem[] = [
   { href: "/investments/plano", label: "Plano", icon: LineChart },
   { href: "/investments/movimentacoes", label: "Movim.", icon: ArrowLeftRight },
   { href: "/investments/ir", label: "IR", icon: FileText },
-  {
-    label: "Config.", icon: Settings, children: [
-      { href: "/investments/settings/carteira", label: "Carteira", icon: Wallet },
-    ],
-  },
+  { href: "/investments/settings/carteira", label: "Config.", icon: Settings },
 ];
 
 const GRUPOS_NAV = [

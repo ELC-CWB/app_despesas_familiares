@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Category } from "@/types";
@@ -13,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Loader2, Pencil, Trash2, Plus, X, Tag } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, X, Tag } from "lucide-react";
 
 interface SettingsClientProps {
   profile: Profile | null;
@@ -129,6 +128,7 @@ export function SettingsClient({ profile, group, currentUserId, categories: init
             <div>
               <p className="font-semibold">{profile?.email}</p>
               <p className="text-sm text-muted-foreground">Membro desde {profile?.created_at ? formatDate(profile.created_at.split("T")[0]) : "-"}</p>
+              <p className="text-sm text-muted-foreground">Grupo: {group?.name ?? "sem grupo"}</p>
             </div>
           </div>
           <Separator />
@@ -141,17 +141,6 @@ export function SettingsClient({ profile, group, currentUserId, categories: init
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Grupo: criado e gerenciado no menu Grupos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-primary" />{group ? group.name : "Grupo familiar"}</CardTitle>
-          <CardDescription>Criar, editar ou excluir o grupo, convidar e remover membros agora fica no menu Grupos.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/grupos"><Button variant="outline" className="gap-2"><Users className="h-4 w-4" />Ir para Grupos</Button></Link>
         </CardContent>
       </Card>
 

@@ -28,7 +28,7 @@ export type GrupoDados = {
 const CONFIG = {
   despesas: {
     titulo: "Grupo de Despesas",
-    descricao: "Quem participa do grupo vê e lança as despesas da família.",
+    descricao: "Suas despesas já funcionam sem precisar de grupo. Para compartilhá-las com a família, convide pessoas para o seu grupo: quem participa vê e lança as despesas dele.",
     cor: "#10b981",
     tabelaGrupo: "groups",
     tabelaConvites: "group_invites",
@@ -37,7 +37,7 @@ const CONFIG = {
     textoCriar: "Crie um grupo para compartilhar as despesas com sua família.",
     textoRemover: "Todos os lançamentos deste usuário no grupo também serão excluídos. Esta ação não pode ser desfeita.",
     textoSair: "Você deixará de ver as despesas do grupo. Os lançamentos que você fez continuam no grupo. Poderá ser convidado novamente pelo administrador.",
-    textoExcluir: "Todos os membros serão removidos e TODAS as despesas lançadas neste grupo serão apagadas definitivamente. Esta ação não pode ser desfeita.",
+    textoExcluir: "Todos os membros serão removidos e TODAS as despesas lançadas neste grupo serão apagadas definitivamente. Ao abrir Despesas de novo, você começa com um grupo vazio. Esta ação não pode ser desfeita.",
   },
   investimentos: {
     titulo: "Grupo de Investimentos",
@@ -71,6 +71,7 @@ function GrupoSecao({ tipo, dados, userId }: { tipo: Tipo; dados: GrupoDados; us
   const [emailConvite, setEmailConvite] = useState("");
   const [convidando, setConvidando] = useState(false);
   const [aceitandoId, setAceitandoId] = useState<string | null>(null);
+  const [confirmarAceite, setConfirmarAceite] = useState<{ id: string; group_id: string; nome: string } | null>(null);
   const [removendoId, setRemovendoId] = useState<string | null>(null);
   const [confirmarRemover, setConfirmarRemover] = useState<{ id: string; name: string } | null>(null);
   const [confirmarSair, setConfirmarSair] = useState(false);
@@ -208,7 +209,7 @@ function GrupoSecao({ tipo, dados, userId }: { tipo: Tipo; dados: GrupoDados; us
                   <p className="text-sm font-medium truncate">{c.nome}</p>
                   <p className="text-xs text-muted-foreground">Você foi convidado para este grupo</p>
                 </div>
-                <Button size="sm" onClick={() => aceitar(c.id, c.group_id)} disabled={aceitandoId === c.id}
+                <Button size="sm" onClick={() => (grupo && tipo === "despesas" ? setConfirmarAceite(c) : aceitar(c.id, c.group_id))} disabled={aceitandoId === c.id}
                   className="gap-1.5 flex-shrink-0 text-white" style={{ backgroundColor: cfg.cor }}>
                   {aceitandoId === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   Aceitar
@@ -366,6 +367,24 @@ function GrupoSecao({ tipo, dados, userId }: { tipo: Tipo; dados: GrupoDados; us
             <Button variant="destructive" disabled={excluindo || (tipo === "despesas" && !nomeConfere)} onClick={excluir}>
               {excluindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Excluir grupo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!confirmarAceite} onOpenChange={(o) => { if (!o) setConfirmarAceite(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Entrar em outro grupo?</DialogTitle>
+            <DialogDescription>
+              Ao entrar em <strong>{confirmarAceite?.nome}</strong>, você passa a ver as despesas desse grupo e deixa de ver as do seu grupo atual (<strong>{grupo?.name}</strong>). Elas não são apagadas, mas, se você for o único membro do grupo atual, deixam de aparecer para você.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmarAceite(null)}>Cancelar</Button>
+            <Button className="text-white" style={{ backgroundColor: cfg.cor }}
+              onClick={() => { if (confirmarAceite) { const c = confirmarAceite; setConfirmarAceite(null); aceitar(c.id, c.group_id); } }}>
+              Entrar no grupo
             </Button>
           </DialogFooter>
         </DialogContent>

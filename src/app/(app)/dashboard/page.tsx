@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { garantirGrupoDespesas } from "@/lib/grupo-despesas";
 import { SemGrupo } from "@/components/layout/sem-grupo";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
@@ -16,6 +17,8 @@ export default async function DashboardPage() {
     .single();
 
   if (!profile?.group_id) {
+    // Sem grupo: prepara o grupo pessoal de Despesas e recarrega a página
+    if (await garantirGrupoDespesas(user.id, profile?.name ?? "")) redirect("/dashboard");
     return (
       <div>
         <Header title="Dashboard" profile={profile} />

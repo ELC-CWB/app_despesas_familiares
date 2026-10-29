@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { garantirGrupoDespesas } from "@/lib/grupo-despesas";
 import { garantirCategoriasPadrao } from "@/lib/categorias-padrao";
 import { SemGrupo } from "@/components/layout/sem-grupo";
 import { redirect } from "next/navigation";
@@ -18,6 +19,8 @@ export default async function ExpensesPage() {
     .single();
 
   if (!profile?.group_id) {
+    // Sem grupo: prepara o grupo pessoal de Despesas e recarrega a página
+    if (await garantirGrupoDespesas(user.id, profile?.name ?? "")) redirect("/expenses");
     return (
       <div>
         <Header title="Despesas" profile={profile} />

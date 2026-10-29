@@ -1,5 +1,6 @@
 "use server";
 
+import { garantirGrupoDespesas } from "@/lib/grupo-despesas";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -31,7 +32,7 @@ export async function cadastrarUsuario(dados: { name: string; email: string; pas
     await admin.from("cadastro_tentativas").delete().lt("criado_em", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
   }
 
-  const { error } = await admin.auth.admin.createUser({
+  const { data: criado, error } = await admin.auth.admin.createUser({
     email,
     password: dados.password,
     email_confirm: true,
@@ -41,5 +42,7 @@ export async function cadastrarUsuario(dados: { name: string; email: string; pas
     if (/already|registered|exists/i.test(error.message)) return { erro: "Este e-mail já está cadastrado. Use a tela de login." };
     return { erro: "Não foi possível criar a conta. Tente novamente." };
   }
+  // Já nasce com o grupo pessoal de Despesas; se falhar, ele é criado ao abrir Despesas
+  if (criado?.user) await garantirGrupoDespesas(criado.user.id, name);
   return {};
 }

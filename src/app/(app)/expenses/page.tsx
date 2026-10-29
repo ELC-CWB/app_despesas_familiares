@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { SemGrupo } from "@/components/layout/sem-grupo";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { ExpensesClient } from "@/components/expenses/expenses-client";
@@ -19,9 +20,7 @@ export default async function ExpensesPage() {
     return (
       <div>
         <Header title="Despesas" profile={profile} />
-        <div className="p-6 text-center text-muted-foreground">
-          Você ainda não está em um grupo.
-        </div>
+        <SemGrupo />
       </div>
     );
   }

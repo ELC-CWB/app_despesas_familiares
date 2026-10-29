@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { cadastrarUsuario } from "./actions";
 
 export default function RegisterPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
@@ -31,58 +33,25 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://app-despesas-familiares.vercel.app";
-
-    const { error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: { name: form.name },
-        emailRedirectTo: `${siteUrl}/login`,
-      },
-    });
-
-    setLoading(false);
-
-    if (error) {
-      toast({ variant: "destructive", title: "Erro no cadastro", description: error.message });
+    const { erro } = await cadastrarUsuario({ name: form.name, email: form.email, password: form.password });
+    if (erro) {
+      setLoading(false);
+      toast({ variant: "destructive", title: "Erro no cadastro", description: erro });
       return;
     }
 
-    setEmailSent(form.email);
-  }
-
-  if (emailSent) {
-    return (
-      <div className="animate-fade-in-up text-center">
-        <div className="flex justify-center mb-6">
-          <div className="bg-primary/10 rounded-full p-5">
-            <Mail className="h-10 w-10 text-primary" />
-          </div>
-        </div>
-        <h1
-          className="text-2xl font-bold text-foreground mb-3"
-          style={{ fontFamily: "Sora, sans-serif" }}
-        >
-          Confirme seu e-mail
-        </h1>
-        <p className="text-muted-foreground mb-2">
-          Enviamos um link de confirmação para:
-        </p>
-        <p className="font-semibold text-foreground mb-6">{emailSent}</p>
-        <p className="text-sm text-muted-foreground mb-8">
-          Acesse sua caixa de entrada, clique no link de confirmação e depois faça login para começar a usar o app.
-        </p>
-        <Link href="/login">
-          <Button className="w-full" size="lg">Ir para o login</Button>
-        </Link>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Não recebeu o e-mail? Verifique a pasta de spam.
-        </p>
-      </div>
-    );
+    // Conta criada já confirmada: entra direto no app
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email: form.email.trim().toLowerCase(), password: form.password });
+    if (error) {
+      setLoading(false);
+      toast({ title: "Conta criada!", description: "Faça login para continuar." });
+      router.push("/login");
+      return;
+    }
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -94,7 +63,7 @@ export default function RegisterPage() {
         >
           Crie sua conta
         </h1>
-        <p className="text-muted-foreground">Comece a controlar as despesas da sua família</p>
+        <p className="text-muted-foreground">Crie sua conta e comece a usar agora mesmo</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

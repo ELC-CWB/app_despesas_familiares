@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { SemGrupo } from "@/components/layout/sem-grupo";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
@@ -18,9 +19,7 @@ export default async function DashboardPage() {
     return (
       <div>
         <Header title="Dashboard" profile={profile} />
-        <div className="p-6 text-center text-muted-foreground">
-          Você ainda não está em um grupo. Acesse as configurações para criar ou entrar em um grupo.
-        </div>
+        <SemGrupo />
       </div>
     );
   }

@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-// Usuário recém-cadastrado: ainda sem grupo (cria o seu ou aceita um convite)
+// Usuário sem grupo de Despesas: precisa criar o grupo ou aceitar um convite no menu Grupos
 export function SemGrupo() {
   return (
     <div className="p-6 flex justify-center">
       <div className="max-w-md w-full text-center space-y-3 rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold">Bem-vindo!</h2>
+        <h2 className="text-lg font-semibold">Falta escolher um grupo</h2>
         <p className="text-sm text-muted-foreground">
-          Você ainda não está em um grupo. Crie o seu grupo familiar ou aguarde o convite de alguém que já usa o app: o convite aparece em Configurações.
+          Para usar as Despesas, você precisa fazer parte de um grupo. Volte à tela inicial e abra o menu <strong>Grupos</strong> para criar o seu grupo ou aceitar um convite. Depois, é só voltar para Despesas.
         </p>
-        <Link href="/settings"><Button className="w-full">Ir para Configurações</Button></Link>
+        <Link href="/"><Button className="w-full">Voltar à tela inicial</Button></Link>
+        <Link href="/grupos"><Button variant="outline" className="w-full">Ir direto para Grupos</Button></Link>
       </div>
     </div>
   );

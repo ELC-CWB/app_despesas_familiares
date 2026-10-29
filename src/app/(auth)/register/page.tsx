@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", site: "" });
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
@@ -34,7 +34,7 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const { erro } = await cadastrarUsuario({ name: form.name, email: form.email, password: form.password });
+    const { erro } = await cadastrarUsuario({ name: form.name, email: form.email, password: form.password, site: form.site });
     if (erro) {
       setLoading(false);
       toast({ variant: "destructive", title: "Erro no cadastro", description: erro });
@@ -67,6 +67,11 @@ export default function RegisterPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Campo escondido contra robôs: pessoas não o veem nem o preenchem */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+          <label htmlFor="site">Site</label>
+          <input id="site" name="site" type="text" tabIndex={-1} autoComplete="off" value={form.site} onChange={(e) => setForm({ ...form, site: e.target.value })} />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="name">Nome completo</Label>
           <Input

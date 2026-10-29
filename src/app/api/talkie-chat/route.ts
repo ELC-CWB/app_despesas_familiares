@@ -1,4 +1,5 @@
 // src/app/api/talkie-chat/route.ts
+import { isPlatformAdmin } from "@/lib/admin";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrCreateMemory, patchMemory, appendMemoryText } from '@/lib/talkie/memory';
@@ -103,6 +104,8 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     }
+
+    if (!isPlatformAdmin(user.email)) return NextResponse.json({ error: "Sem acesso." }, { status: 403 });
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(

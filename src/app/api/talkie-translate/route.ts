@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isPlatformAdmin } from "@/lib/admin";
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -8,6 +9,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    if (!isPlatformAdmin(user.email)) return NextResponse.json({ error: "Sem acesso." }, { status: 403 });
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: 'ANTHROPIC_API_KEY não configurada.' }, { status: 500 });

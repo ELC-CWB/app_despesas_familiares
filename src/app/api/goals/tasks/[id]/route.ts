@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isPlatformAdmin } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function mapTask(t: Record<string, unknown>) {
@@ -19,6 +20,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isPlatformAdmin(user.email)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json();
@@ -50,6 +52,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isPlatformAdmin(user.email)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
 

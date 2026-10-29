@@ -105,7 +105,6 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {(isInvestments ? INVESTMENTS_NAV : isGoals ? GOALS_NAV : EXPENSES_NAV)
-          .filter(item => !("href" in item) || item.href !== "/" || profile?.has_investments_access)
           .map((item) => {
             if ("children" in item) {
               const Icon = item.icon;

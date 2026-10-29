@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isPlatformAdmin } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function mapTask(t: Record<string, unknown>) {
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isPlatformAdmin(user.email)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const { projectId, name, description, baselineStart, baselineEnd, start, end, progress, dependsOn } = body;

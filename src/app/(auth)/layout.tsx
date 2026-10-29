@@ -73,31 +73,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             Controle as despesas, planeje e monitore seus investimentos. Cuide do seu patrimônio.
           </p>
 
-          {/* Feature pills */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: "Multi-usuário",       icon: "👨‍👩‍👧‍👦" },
-              { label: "Carteira de ações",   icon: "📈" },
-              { label: "Despesas familiares", icon: "🏷️" },
-              { label: "Dividendos",          icon: "💰" },
-            ].map((f) => (
-              <div
-                key={f.label}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.09)",
-                  backdropFilter: "blur(10px)",
-                  WebkitBackdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255,255,255,0.14)",
-                }}
-              >
-                <span className="text-sm">{f.icon}</span>
-                <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.80)" }}>
-                  {f.label}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Copyright */}

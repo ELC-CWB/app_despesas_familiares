@@ -115,6 +115,7 @@ export default async function UsuariosPage() {
             <tr className="text-left text-xs text-muted-foreground border-b border-border">
               <th className="p-3 font-medium">Usuário</th>
               <th className="p-3 font-medium">Cadastro</th>
+              <th className="p-3 font-medium text-right">Total de acessos</th>
               {APPS.map((a) => (
                 <th key={a.id} className="p-3 font-medium">{a.nome}</th>
               ))}
@@ -129,6 +130,9 @@ export default async function UsuariosPage() {
                   <div className="text-xs text-muted-foreground">{l.email}</div>
                 </td>
                 <td className="p-3 whitespace-nowrap">{formatar(l.criadoEm)}</td>
+                <td className="p-3 text-right font-medium tabular-nums">
+                  {APPS.reduce((soma, a) => soma + (l.porApp[a.id]?.acessos ?? 0), 0)}
+                </td>
                 {APPS.map((a) => {
                   const r = l.porApp[a.id];
                   return (

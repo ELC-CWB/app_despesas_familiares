@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { ReceiptText, TrendingUp, Target, Mic, Users } from "lucide-react";
 import { HomeLogoutButton } from "@/components/home-logout-button";
 import { isPlatformAdmin } from "@/lib/admin";
-import { RegistrarAcesso } from "@/components/registrar-acesso";
 
 const CANDLES = [
   { x: 60,   o: 730, c: 700, h: 740, l: 695 },
@@ -104,7 +103,6 @@ export default async function Home() {
 
       {/* ── Logout ─────────────────────────────────────────────────────────── */}
       <HomeLogoutButton />
-      <RegistrarAcesso />
 
       {/* ── Module cards ────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex flex-col gap-3 sm:gap-4 w-full max-w-lg">

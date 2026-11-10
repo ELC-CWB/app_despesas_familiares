@@ -2,8 +2,11 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-// Registra uma visita do usuário logado (a função do banco decide se conta como nova visita)
-export async function registrarAcesso(): Promise<void> {
+export type AppAcesso = "despesas" | "investimentos";
+
+// Registra uma visita do usuário logado a um app (a função do banco decide se conta como nova visita)
+export async function registrarAcesso(app: AppAcesso): Promise<void> {
+  if (app !== "despesas" && app !== "investimentos") return;
   const supabase = await createClient();
-  await supabase.rpc("registrar_acesso");
+  await supabase.rpc("registrar_acesso_app", { p_app: app });
 }

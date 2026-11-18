@@ -7,6 +7,8 @@ import { calcularSetores } from "@/lib/carteira/grafico";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import { clarear } from "@/lib/carteira/regras";
 import { AtivoInfoDialog } from "@/components/carteira/ativo-info-dialog";
+import { AtivoGraficoDialog } from "@/components/carteira/ativo-grafico-dialog";
+import { LineChart } from "lucide-react";
 
 // Visão geral (SPEC §4.2): gráfico de rosca em 3 anéis e tabela Real x planejado.
 // Passar o mouse (ou tocar) destaca a hierarquia: o item, seus ancestrais e seus descendentes.
@@ -34,6 +36,7 @@ export function AlocacaoView({
   const [hover, setHover] = useState<string | null>(null);
   const [fixo, setFixo] = useState<string | null>(null);
   const [infoCodigo, setInfoCodigo] = useState<string | null>(null);
+  const [graficoCodigo, setGraficoCodigo] = useState<string | null>(null);
   const setores = useMemo(() => calcularSetores(nos), [nos]);
 
   const porId = useMemo(() => new Map(nos.map((n) => [n.id, n])), [nos]);
@@ -165,12 +168,21 @@ export function AlocacaoView({
                       borderTop: i === 0 ? 0 : n.nivel === 0 ? "6px solid hsl(var(--card))" : "1px solid hsl(var(--card))",
                     }}>
                     <td className="whitespace-nowrap" style={{ padding: estilo.pad, paddingLeft: 10 + estilo.recuo, ...contorno(true, false) }}>
-                      <button type="button" onClick={() => { alternarFixo(n.id); if (n.nivel === 2) setInfoCodigo(n.nome); }}
-                        className={`text-left leading-tight ${n.nivel === 2 ? "underline decoration-dotted underline-offset-2" : ""}`}
-                        title={n.nivel === 2 ? "Ver descrição do ativo" : undefined}
-                        style={{ fontWeight: estilo.peso, textTransform: estilo.caixa, letterSpacing: estilo.espaco }}>
-                        {n.nome}
-                      </button>
+                      <span className="inline-flex items-center gap-1.5">
+                        {n.nivel === 2 && (
+                          <button type="button" onClick={() => setGraficoCodigo(n.nome)}
+                            className="inline-flex shrink-0 rounded p-0.5 opacity-70 hover:opacity-100 focus-visible:opacity-100"
+                            title="Ver gráfico do ativo" aria-label={`Ver gráfico de ${n.nome}`}>
+                            <LineChart className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <button type="button" onClick={() => { alternarFixo(n.id); if (n.nivel === 2) setInfoCodigo(n.nome); }}
+                          className={`text-left leading-tight ${n.nivel === 2 ? "underline decoration-dotted underline-offset-2" : ""}`}
+                          title={n.nivel === 2 ? "Ver descrição do ativo" : undefined}
+                          style={{ fontWeight: estilo.peso, textTransform: estilo.caixa, letterSpacing: estilo.espaco }}>
+                          {n.nome}
+                        </button>
+                      </span>
                     </td>
                     <td className={celula} style={{ fontWeight: 600, ...DESTAQUE, ...contorno(false, false) }}>{pct1(n.alvo)}</td>
                     <td className={celula} style={{ fontWeight: Math.max(Number(estilo.peso), 600), ...DESTAQUE, ...contorno(false, false) }}>{pct1(n.real)}</td>
@@ -209,6 +221,7 @@ export function AlocacaoView({
         </details>
       </section>
       <AtivoInfoDialog codigo={infoCodigo} onClose={() => setInfoCodigo(null)} />
+      <AtivoGraficoDialog codigo={graficoCodigo} onClose={() => setGraficoCodigo(null)} />
     </div>
   );
 }

@@ -3,6 +3,23 @@ import { lerYahooSummary, montarInfo, CATALOGO } from "./ativo-info";
 
 const base = { codigo: "LFTS11", ticker_cotacao: "LFTS11.SA", tipo: "etf_rf" as const, gestora: "Investo", taxa_adm_pct: 0.2, sede: "Brasil" };
 
+describe("links das fontes do catálogo", () => {
+  it("cada fonte leva à página do ativo, não à página inicial de um site", () => {
+    for (const [codigo, e] of Object.entries(CATALOGO)) {
+      expect(e.fontes.length, codigo).toBeGreaterThan(0);
+      for (const f of e.fontes) {
+        const u = new URL(f.url);
+        expect(u.protocol, `${codigo} ${f.url}`).toBe("https:");
+        expect(u.pathname.length, `${codigo} ${f.url}`).toBeGreaterThan(1);
+      }
+    }
+  });
+  it("não usa investo.com.br, que redireciona para outra empresa", () => {
+    const urls = Object.values(CATALOGO).flatMap((e) => e.fontes.map((f) => f.url));
+    expect(urls.some((u) => u.includes("investo.com.br"))).toBe(false);
+  });
+});
+
 describe("ficha do ativo", () => {
   it("ETF do catálogo traz descrição, índice e fonte, mesmo sem Yahoo", () => {
     const i = montarInfo(base, null);

@@ -30,6 +30,10 @@ export type EntradaCatalogo = {
 
 const YAHOO = (t: string): FonteInfo => ({ nome: "Yahoo Finance", url: `https://finance.yahoo.com/quote/${encodeURIComponent(t)}` });
 
+// Páginas de referência por ativo. O site investo.com.br redireciona para outra empresa (TG Core): o das ETFs da Investo é investoetf.com.
+const INVESTO = (codigo: string) => `https://www.investoetf.com/etf/${codigo.toLowerCase()}/`;
+const BORA = (codigo: string) => `https://borainvestir.b3.com.br/cotacoes/etfs/${codigo.toUpperCase()}/`;
+
 // Fichas resumidas (texto do app, em português). Servem de ponto de partida: o índice e a gestora são
 // conferíveis no site da gestora indicado em "Fontes". Chave: código do ativo na carteira.
 export const CATALOGO: Record<string, EntradaCatalogo> = {
@@ -38,63 +42,63 @@ export const CATALOGO: Record<string, EntradaCatalogo> = {
     indice: "FTSE Global All Cap",
     descricao: "ETF da Vanguard listado em Londres que investe em milhares de ações de empresas de todos os tamanhos, em países desenvolvidos e emergentes. Funciona como uma carteira global diversificada em um único papel; a versão “Acc” reinveste os dividendos automaticamente.",
     risco: "Renda variável: oscila com as bolsas do mundo e com o dólar em relação ao real.",
-    fontes: [{ nome: "Vanguard", url: "https://www.vanguard.co.uk" }],
+    fontes: [{ nome: "Vanguard – página do fundo", url: "https://www.vanguard.co.uk/professional/product/etf/equity/E161/vanguard-ftse-global-all-cap-ucits-etf-usd-acc" }],
   },
   IWVL: {
     classe: "ETF de ações globais, fator valor (UCITS, Irlanda)",
     indice: "MSCI World Enhanced Value",
     descricao: "ETF da iShares (BlackRock) que investe em ações de países desenvolvidos com preço baixo em relação aos fundamentos (como lucro e valor patrimonial), a chamada estratégia de valor. A versão “Acc” reinveste os dividendos.",
     risco: "Renda variável: oscila com as bolsas e o dólar; o fator valor pode ficar anos atrás do mercado.",
-    fontes: [{ nome: "iShares (BlackRock)", url: "https://www.ishares.com" }],
+    fontes: [{ nome: "iShares – página do fundo", url: "https://www.ishares.com/uk/individual/en/products/270048/ishares-msci-world-value-factor-ucits-etf" }],
   },
   IWQU: {
     classe: "ETF de ações globais, fator qualidade (UCITS, Irlanda)",
     indice: "MSCI World Sector Neutral Quality",
     descricao: "ETF da iShares (BlackRock) que seleciona, em países desenvolvidos, empresas de alta qualidade: alta rentabilidade sobre o patrimônio, pouca dívida e lucros estáveis. A versão “Acc” reinveste os dividendos.",
     risco: "Renda variável: oscila com as bolsas e o dólar.",
-    fontes: [{ nome: "iShares (BlackRock)", url: "https://www.ishares.com" }],
+    fontes: [{ nome: "iShares – página do fundo", url: "https://www.ishares.com/uk/individual/en/products/270054/ishares-msci-world-quality-factor-ucits-etf" }],
   },
   IWMO: {
     classe: "ETF de ações globais, fator momento (UCITS, Irlanda)",
     indice: "MSCI World Momentum",
     descricao: "ETF da iShares (BlackRock) que se concentra em ações de países desenvolvidos que tiveram a melhor alta recente, a estratégia de momento. A carteira é renovada periodicamente. A versão “Acc” reinveste os dividendos.",
     risco: "Renda variável: oscila com as bolsas e o dólar; costuma cair mais forte em reversões de mercado.",
-    fontes: [{ nome: "iShares (BlackRock)", url: "https://www.ishares.com" }],
+    fontes: [{ nome: "iShares – página do fundo", url: "https://www.ishares.com/uk/individual/en/products/270051/ishares-msci-world-momentum-factor-ucits-etf" }],
   },
   GOLD11: {
     classe: "ETF de ouro (B3)",
     indice: "LBMA Gold Price (preço do ouro em dólar)",
     descricao: "ETF negociado na B3 que busca acompanhar o preço do ouro no mercado internacional, com exposição ao dólar. Permite ter ouro em reais, pela corretora, sem guardar o metal.",
     risco: "Sem renda periódica; o preço oscila com o ouro e o dólar.",
-    fontes: [{ nome: "B3 – ETFs", url: "https://www.b3.com.br/pt_br/produtos-e-servicos/negociacao/renda-variavel/etf/" }],
+    fontes: [{ nome: "B3 – GOLD11", url: BORA("GOLD11") }],
   },
   HODL11: {
     classe: "ETF de bitcoin (B3)",
     indice: "MarketVector Bitcoin Benchmark Rate",
     descricao: "ETF da Investo negociado na B3 que busca acompanhar o preço do bitcoin, sem precisar de carteira de criptomoedas. Replica um índice de referência do preço da moeda.",
     risco: "Muito volátil: pode oscilar dezenas de por cento em pouco tempo.",
-    fontes: [{ nome: "Investo", url: "https://investo.com.br" }],
+    fontes: [{ nome: "Investo – HODL11", url: INVESTO("HODL11") }, { nome: "B3 – HODL11", url: BORA("HODL11") }],
   },
   QLBR11: {
     classe: "ETF de ações brasileiras, fator qualidade (B3)",
     indice: "MarketVector Brazil Quality",
     descricao: "ETF negociado na B3 que busca acompanhar um índice de ações brasileiras de empresas de qualidade (boa rentabilidade, endividamento controlado e lucros consistentes). Dá exposição diversificada à bolsa brasileira em um único papel.",
     risco: "Renda variável: oscila com a bolsa brasileira.",
-    fontes: [{ nome: "Rio Bravo / Investo", url: "https://investo.com.br" }],
+    fontes: [{ nome: "Investo – QLBR11", url: INVESTO("QLBR11") }, { nome: "B3 – QLBR11", url: BORA("QLBR11") }],
   },
   LFTS11: {
     classe: "ETF de renda fixa pós-fixada (B3)",
     indice: "Teva Tesouro Selic",
     descricao: "ETF negociado na B3 que investe em títulos públicos federais pós-fixados (Tesouro Selic, LFT), acompanhando a taxa Selic. É a parte mais conservadora da carteira e serve como reserva de liquidez; pode ser vendido a qualquer momento no pregão.",
     risco: "Risco muito baixo: baixa oscilação, que acompanha a Selic.",
-    fontes: [{ nome: "Investo", url: "https://investo.com.br" }],
+    fontes: [{ nome: "Investo – LFTS11", url: INVESTO("LFTS11") }, { nome: "B3 – LFTS11", url: BORA("LFTS11") }],
   },
   B5MB11: {
     classe: "ETF de renda fixa pública, juros reais longos (B3)",
     indice: "IMA-B 5+ (Anbima)",
     descricao: "ETF do Bradesco negociado na B3 que investe em títulos públicos atrelados à inflação (IPCA) com vencimento acima de 5 anos. Rende inflação mais juros reais, mas o preço do ETF sobe e desce conforme as taxas de juros do mercado.",
     risco: "Oscila bastante no curto prazo quando os juros mudam; é mais adequado para prazos longos.",
-    fontes: [{ nome: "Bradesco Asset", url: "https://www.bradescoasset.com.br" }],
+    fontes: [{ nome: "Bradesco Asset – B5MB11", url: "https://bradescoasset.com.br/fundos/etfs-b-index/B5MB11/" }, { nome: "B3 – B5MB11", url: BORA("B5MB11") }],
   },
 };
 

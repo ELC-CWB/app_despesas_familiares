@@ -19,7 +19,7 @@ export async function getYahooAuth(): Promise<{ crumb: string; cookies: string }
 
   try {
     // Step 1: Fetch Yahoo Finance to get session cookies
-    const pageRes = await fetch("https://finance.yahoo.com/", {
+    const pageRes = await fetch("https://fc.yahoo.com/", {
       headers: { "User-Agent": UA, Accept: "text/html", "Accept-Language": "en-US,en;q=0.9" },
       redirect: "follow",
       signal: AbortSignal.timeout(10000),

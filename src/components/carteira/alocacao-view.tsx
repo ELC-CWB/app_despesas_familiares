@@ -6,6 +6,7 @@ import type { NoAlocacao } from "@/lib/carteira/alocacao";
 import { calcularSetores } from "@/lib/carteira/grafico";
 import { fmtBRL, fmtNum } from "@/lib/carteira/numeros";
 import { clarear } from "@/lib/carteira/regras";
+import { AtivoInfoDialog } from "@/components/carteira/ativo-info-dialog";
 
 // Visão geral (SPEC §4.2): gráfico de rosca em 3 anéis e tabela Real x planejado.
 // Passar o mouse (ou tocar) destaca a hierarquia: o item, seus ancestrais e seus descendentes.
@@ -32,6 +33,7 @@ export function AlocacaoView({
 }) {
   const [hover, setHover] = useState<string | null>(null);
   const [fixo, setFixo] = useState<string | null>(null);
+  const [infoCodigo, setInfoCodigo] = useState<string | null>(null);
   const setores = useMemo(() => calcularSetores(nos), [nos]);
 
   const porId = useMemo(() => new Map(nos.map((n) => [n.id, n])), [nos]);
@@ -163,8 +165,9 @@ export function AlocacaoView({
                       borderTop: i === 0 ? 0 : n.nivel === 0 ? "6px solid hsl(var(--card))" : "1px solid hsl(var(--card))",
                     }}>
                     <td className="whitespace-nowrap" style={{ padding: estilo.pad, paddingLeft: 10 + estilo.recuo, ...contorno(true, false) }}>
-                      <button type="button" onClick={() => alternarFixo(n.id)}
-                        className="text-left leading-tight"
+                      <button type="button" onClick={() => { alternarFixo(n.id); if (n.nivel === 2) setInfoCodigo(n.nome); }}
+                        className={`text-left leading-tight ${n.nivel === 2 ? "underline decoration-dotted underline-offset-2" : ""}`}
+                        title={n.nivel === 2 ? "Ver descrição do ativo" : undefined}
                         style={{ fontWeight: estilo.peso, textTransform: estilo.caixa, letterSpacing: estilo.espaco }}>
                         {n.nome}
                       </button>
@@ -205,6 +208,7 @@ export function AlocacaoView({
           </p>
         </details>
       </section>
+      <AtivoInfoDialog codigo={infoCodigo} onClose={() => setInfoCodigo(null)} />
     </div>
   );
 }

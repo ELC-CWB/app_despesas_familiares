@@ -1,6 +1,6 @@
 "use client";
 
-import { MONTHS, type Profile, type Category } from "@/types";
+import { MONTHS, type Profile, type Category, type ExpenseType } from "@/types";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -24,9 +24,10 @@ interface ExpenseFiltersProps {
   members: Profile[];
   currentUserId: string;
   categories: Category[];
+  tipo: ExpenseType;
 }
 
-export function ExpenseFilters({ filters, onChange, members, currentUserId, categories }: ExpenseFiltersProps) {
+export function ExpenseFilters({ filters, onChange, members, currentUserId, categories, tipo }: ExpenseFiltersProps) {
   const hasFilters = filters.month || filters.category || filters.user_id || filters.search || filters.amount || filters.status;
 
   function reset() {
@@ -103,7 +104,7 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
           <SelectTrigger className="w-full"><SelectValue placeholder="Situação" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as situações</SelectItem>
-            <SelectItem value="pago">Pagas</SelectItem>
+            <SelectItem value="pago">{tipo === "receita" ? "Recebidas" : "Pagas"}</SelectItem>
             <SelectItem value="previsto">Previstas</SelectItem>
           </SelectContent>
         </Select>

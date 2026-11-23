@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { House, LayoutDashboard, Receipt, Settings, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, FileText, type LucideIcon } from "lucide-react";
+import { House, LayoutDashboard, Receipt, Banknote, Settings, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, FileText, type LucideIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ const EXPENSES_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
+  { href: "/incomes", label: "Receitas", icon: Banknote },
   { href: "/settings", label: "Config.", icon: Settings },
 ];
 

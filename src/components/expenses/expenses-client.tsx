@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense, Profile, Category } from "@/types";
+import type { Expense, Profile, Category, ExpenseType } from "@/types";
+import { TIPO_TEXTOS } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { ExpenseFilters } from "./expense-filters";
 import { ExpenseTable } from "./expense-table";
@@ -13,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 
 interface ExpensesClientProps {
+  tipo: ExpenseType;
   initialExpenses: Expense[];
   members: Profile[];
   currentUserId: string;
@@ -22,7 +24,8 @@ interface ExpensesClientProps {
   groupName: string | null;
 }
 
-export function ExpensesClient({ initialExpenses, members, currentUserId, groupId, categories, profile, groupName }: ExpensesClientProps) {
+export function ExpensesClient({ tipo, initialExpenses, members, currentUserId, groupId, categories, profile, groupName }: ExpensesClientProps) {
+  const textos = TIPO_TEXTOS[tipo];
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,10 +48,11 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
       .from("expenses")
       .select("*, profiles(id, name, email, avatar_url)")
       .eq("group_id", groupId)
+      .eq("type", tipo)
       .order("date", { ascending: false });
     setExpenses(data ?? []);
     setLoading(false);
-  }, [groupId]);
+  }, [groupId, tipo]);
 
   const filtered = useMemo(() => {
     return expenses.filter((e) => {
@@ -76,7 +80,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
   return (
     <>
       <Header
-        title="Despesas"
+        title={textos.titulo}
         subtitle="Todos os lançamentos do grupo"
         profile={profile}
         groupName={groupName}
@@ -87,18 +91,18 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
-            {filtered.length} despesa{filtered.length !== 1 ? "s" : ""} ·{" "}
+            {filtered.length} {filtered.length !== 1 ? textos.plural : textos.singular} ·{" "}
             <span className="font-semibold text-foreground">{formatCurrency(total)}</span>
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            <span className="text-emerald-600 font-medium">Pago {formatCurrency(totalPago)}</span>
+            <span className="text-emerald-600 font-medium">{tipo === "receita" ? "Recebido" : "Pago"} {formatCurrency(totalPago)}</span>
             {" · "}
             <span className="text-amber-600 font-medium">Previsto {formatCurrency(totalPrevisto)}</span>
           </p>
         </div>
         <Button onClick={() => setShowModal(true)} className="gap-2 flex-shrink-0">
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Nova despesa</span>
+          <span className="hidden sm:inline">{textos.novo}</span>
           <span className="sm:hidden">Novo</span>
         </Button>
       </div>
@@ -109,6 +113,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
         members={members}
         currentUserId={currentUserId}
         categories={categories}
+        tipo={tipo}
       />
 
       <Card>
@@ -124,6 +129,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
               groupId={groupId}
               onRefresh={refresh}
               categories={categories}
+              tipo={tipo}
             />
           )}
         </CardContent>
@@ -136,6 +142,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
         userId={currentUserId}
         onSuccess={refresh}
         categories={categories}
+        tipo={tipo}
       />
     </div>
     </>

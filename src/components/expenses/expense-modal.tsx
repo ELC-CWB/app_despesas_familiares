@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense, PaymentMethod, Category, ExpenseStatus } from "@/types";
-import { PAYMENT_METHODS, MONTHS, EXPENSE_STATUS } from "@/types";
+import type { Expense, PaymentMethod, Category, ExpenseStatus, ExpenseType } from "@/types";
+import { PAYMENT_METHODS, MONTHS, TIPO_TEXTOS, METODOS_POR_TIPO } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -24,17 +24,18 @@ interface ExpenseModalProps {
   userId: string;
   onSuccess: () => void;
   categories: Category[];
+  tipo: ExpenseType;
 }
-
-const METHODS = Object.entries(PAYMENT_METHODS) as [PaymentMethod, string][];
 
 function getDefaultMonth() { return new Date().getMonth() + 1; }
 function getDefaultYear() { return new Date().getFullYear(); }
 // data local (AAAA-MM-DD); toISOString() usaria UTC e viraria o dia seguinte à noite
 function todayISO() { return new Date().toLocaleDateString("sv-SE"); }
 
-export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onSuccess, categories }: ExpenseModalProps) {
+export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onSuccess, categories, tipo }: ExpenseModalProps) {
   const { toast } = useToast();
+  const textos = TIPO_TEXTOS[tipo];
+  const methods = METODOS_POR_TIPO[tipo].map((k) => [k, PAYMENT_METHODS[k]] as [PaymentMethod, string]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     date: todayISO(),
@@ -98,6 +99,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
       category: form.category,
       amount,
       status: form.status,
+      type: tipo,
       group_id: groupId,
       user_id: userId,
     };
@@ -123,12 +125,14 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
     }
 
     toast({
-      title: expense ? "Despesa atualizada!" : "Despesa adicionada!",
+      title: tipo === "receita"
+        ? (expense ? "Receita atualizada!" : "Receita adicionada!")
+        : (expense ? "Despesa atualizada!" : "Despesa adicionada!"),
       description: `${form.description} — R$ ${amount.toFixed(2).replace(".", ",")}`,
     });
     onOpenChange(false);
     onSuccess();
-  }, [form, expense, groupId, userId, onOpenChange, onSuccess, toast]);
+  }, [form, expense, groupId, userId, tipo, onOpenChange, onSuccess, toast]);
 
   const currentYear = new Date().getFullYear();
   const years = [currentYear - 1, currentYear, currentYear + 1];
@@ -138,14 +142,14 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle style={{ fontFamily: "Sora, sans-serif" }}>
-            {expense ? "Editar Despesa" : "Nova Despesa"}
+            {expense ? `Editar ${tipo === "receita" ? "Receita" : "Despesa"}` : `Nova ${tipo === "receita" ? "Receita" : "Despesa"}`}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="exp-date">Data da despesa</Label>
+              <Label htmlFor="exp-date">{tipo === "receita" ? "Data da receita" : "Data da despesa"}</Label>
               <Input
                 id="exp-date"
                 type="date"
@@ -202,7 +206,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
             <Label htmlFor="exp-desc">Descrição</Label>
             <Input
               id="exp-desc"
-              placeholder="Ex: Supermercado, Conta de luz..."
+              placeholder={tipo === "receita" ? "Ex: Salário, Aluguel recebido..." : "Ex: Supermercado, Conta de luz..."}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               required
@@ -233,14 +237,14 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
           </div>
 
           <div className="space-y-1.5">
-            <Label>Pagamento</Label>
+            <Label>{tipo === "receita" ? "Recebimento" : "Pagamento"}</Label>
             <Select
               value={form.payment_method}
               onValueChange={(v) => setForm({ ...form, payment_method: v as PaymentMethod })}
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {METHODS.map(([key, label]) => (
+                {methods.map(([key, label]) => (
                   <SelectItem key={key} value={key}>{label}</SelectItem>
                 ))}
               </SelectContent>
@@ -251,7 +255,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
           <div className="space-y-1.5">
             <Label>Situação</Label>
             <div className="grid grid-cols-2 gap-2">
-              {(Object.entries(EXPENSE_STATUS) as [ExpenseStatus, string][]).map(([key, label]) => (
+              {(Object.entries(textos.status) as [ExpenseStatus, string][]).map(([key, label]) => (
                 <Button
                   key={key}
                   type="button"

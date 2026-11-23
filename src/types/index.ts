@@ -1,4 +1,6 @@
-export type PaymentMethod = "dinheiro" | "debito" | "pix" | "cartao_credito";
+export type PaymentMethod = "dinheiro" | "debito" | "pix" | "cartao_credito" | "transferencia";
+
+export type ExpenseType = "despesa" | "receita";
 
 export type ExpenseCategory = string;
 
@@ -7,6 +9,27 @@ export type ExpenseStatus = "pago" | "previsto";
 export const EXPENSE_STATUS: Record<ExpenseStatus, string> = {
   pago: "Paga",
   previsto: "Prevista",
+};
+
+// Textos que mudam entre despesa e receita
+export const TIPO_TEXTOS: Record<ExpenseType, {
+  titulo: string; singular: string; plural: string; novo: string;
+  pessoa: string; meio: string; status: Record<ExpenseStatus, string>;
+}> = {
+  despesa: {
+    titulo: "Despesas", singular: "despesa", plural: "despesas", novo: "Nova despesa",
+    pessoa: "Pagador", meio: "Forma de pagamento", status: { pago: "Paga", previsto: "Prevista" },
+  },
+  receita: {
+    titulo: "Receitas", singular: "receita", plural: "receitas", novo: "Nova receita",
+    pessoa: "Recebedor", meio: "Recebimento", status: { pago: "Recebida", previsto: "Prevista" },
+  },
+};
+
+// Formas de pagamento/recebimento oferecidas em cada tipo
+export const METODOS_POR_TIPO: Record<ExpenseType, PaymentMethod[]> = {
+  despesa: ["dinheiro", "debito", "pix", "cartao_credito"],
+  receita: ["dinheiro", "pix", "transferencia"],
 };
 
 export type PaymentMonth =
@@ -45,6 +68,7 @@ export interface Category {
   emoji: string;
   color: string;
   position: number;
+  tipo?: ExpenseType; // ausente em registros antigos = despesa
   created_at: string;
 }
 
@@ -71,6 +95,7 @@ export interface Expense {
   category: string;
   amount: number;
   status: ExpenseStatus;
+  type?: ExpenseType; // ausente em registros antigos = despesa
   created_at: string;
   updated_at: string;
   profiles?: Profile;
@@ -100,6 +125,7 @@ export const PAYMENT_METHODS: Record<PaymentMethod, string> = {
   debito: "Débito Automático",
   pix: "Pix",
   cartao_credito: "Cartão de Crédito",
+  transferencia: "Transferência",
 };
 
 export const MONTHS: Record<number, string> = {

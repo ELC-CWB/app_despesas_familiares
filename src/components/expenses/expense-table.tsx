@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense, Category } from "@/types";
-import { PAYMENT_METHODS } from "@/types";
+import type { Expense, Category, ExpenseType } from "@/types";
+import { PAYMENT_METHODS, TIPO_TEXTOS } from "@/types";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -30,14 +30,16 @@ interface ExpenseTableProps {
   groupId: string;
   onRefresh: () => void;
   categories: Category[];
+  tipo: ExpenseType;
 }
 
 function getCat(categoryId: string, categories: Category[]) {
   return categories.find((c) => c.id === categoryId) ?? { label: categoryId, emoji: "📦", color: "#6b7280" };
 }
 
-export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, categories }: ExpenseTableProps) {
+export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, categories, tipo }: ExpenseTableProps) {
   const { toast } = useToast();
+  const textos = TIPO_TEXTOS[tipo];
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -59,7 +61,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
       toast({ variant: "destructive", title: "Erro ao excluir", description: error.message });
       return;
     }
-    toast({ title: "Despesa excluída" });
+    toast({ title: tipo === "receita" ? "Receita excluída" : "Despesa excluída" });
     setDeleteExpense(null);
     onRefresh();
   }
@@ -75,7 +77,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
       toast({ variant: "destructive", title: "Erro ao atualizar", description: error.message });
       return;
     }
-    toast({ title: next === "pago" ? "Marcada como paga" : "Marcada como prevista" });
+    toast({ title: `Marcada como ${textos.status[next].toLowerCase()}` });
     onRefresh();
   }
 
@@ -84,7 +86,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
     const cls = previsto
       ? "bg-amber-100 text-amber-700 border-amber-200"
       : "bg-emerald-100 text-emerald-700 border-emerald-200";
-    const label = previsto ? "◷ Prevista" : "✓ Paga";
+    const label = previsto ? `◷ ${textos.status.previsto}` : `✓ ${textos.status.pago}`;
     if (!isOwn) {
       return <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>;
     }
@@ -92,7 +94,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
       <button
         type="button"
         onClick={() => toggleStatus(expense)}
-        title={previsto ? "Clique para marcar como paga" : "Clique para marcar como prevista"}
+        title={previsto ? `Clique para marcar como ${textos.status.pago.toLowerCase()}` : "Clique para marcar como prevista"}
         className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 ${cls}`}
       >
         {label}
@@ -103,9 +105,9 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
   if (expenses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="text-4xl mb-3">💸</div>
-        <p className="text-foreground font-medium">Nenhuma despesa encontrada</p>
-        <p className="text-muted-foreground text-sm mt-1">Adicione uma despesa ou ajuste os filtros</p>
+        <div className="text-4xl mb-3">{tipo === "receita" ? "💰" : "💸"}</div>
+        <p className="text-foreground font-medium">Nenhuma {textos.singular} encontrada</p>
+        <p className="text-muted-foreground text-sm mt-1">Adicione uma {textos.singular} ou ajuste os filtros</p>
       </div>
     );
   }
@@ -117,11 +119,11 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Pagador</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">{textos.pessoa}</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Data</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Descrição</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Categoria</th>
-              <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Pagamento</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">{tipo === "receita" ? "Recebimento" : "Pagamento"}</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Situação</th>
               <th className="text-right text-xs font-semibold text-muted-foreground pb-3 px-2">Valor</th>
               <th className="pb-3 px-2 w-16" />
@@ -269,6 +271,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
           userId={currentUserId}
           onSuccess={() => { setEditExpense(null); onRefresh(); }}
           categories={categories}
+          tipo={tipo}
         />
       )}
 
@@ -276,9 +279,9 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
       <Dialog open={!!deleteExpense} onOpenChange={(o) => { if (!o) setDeleteExpense(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir despesa?</DialogTitle>
+            <DialogTitle>Excluir {textos.singular}?</DialogTitle>
             <DialogDescription>
-              Esta ação não pode ser desfeita. A despesa “<strong>{deleteExpense?.description}</strong>” será removida permanentemente.
+              Esta ação não pode ser desfeita. A {textos.singular} “<strong>{deleteExpense?.description}</strong>” será removida permanentemente.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

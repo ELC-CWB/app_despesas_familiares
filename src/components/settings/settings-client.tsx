@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { Profile, Group, Category } from "@/types";
+import type { Profile, Group, Category, ExpenseType } from "@/types";
 import { formatDate, getInitials } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,8 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
   const [newForm, setNewForm] = useState({ label: "", emoji: "📦", color: "#6b7280" });
   const [savingCategory, setSavingCategory] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [catTipo, setCatTipo] = useState<ExpenseType>("despesa");
+  const visibleCats = categories.filter((c) => (c.tipo ?? "despesa") === catTipo);
 
   async function handleUpdateName() {
     setUpdatingName(true);
@@ -173,7 +175,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
     if (!newForm.label.trim() || !group) return;
     setSavingCategory(true);
     const supabase = createClient();
-    const nextPosition = categories.length;
+    const nextPosition = visibleCats.length;
     const { data, error } = await supabase
       .from("group_categories")
       .insert({
@@ -182,6 +184,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
         emoji: newForm.emoji.trim() || "📦",
         color: newForm.color,
         position: nextPosition,
+        tipo: catTipo,
       })
       .select()
       .single();
@@ -370,7 +373,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
                   <Tag className="h-4 w-4" />
                   Categorias
                 </CardTitle>
-                <CardDescription>Gerencie as categorias de despesas do grupo</CardDescription>
+                <CardDescription>Gerencie as categorias de despesas e receitas do grupo</CardDescription>
               </div>
               {!showAddForm && (
                 <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)} className="gap-1.5">
@@ -381,11 +384,25 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {categories.length === 0 && !showAddForm && (
+            <div className="grid grid-cols-2 gap-2 pb-1">
+              {(["despesa", "receita"] as ExpenseType[]).map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  size="sm"
+                  variant={catTipo === t ? "default" : "outline"}
+                  onClick={() => { setCatTipo(t); setEditingId(null); setShowAddForm(false); }}
+                >
+                  {t === "despesa" ? "Despesas" : "Receitas"}
+                </Button>
+              ))}
+            </div>
+
+            {visibleCats.length === 0 && !showAddForm && (
               <p className="text-sm text-muted-foreground text-center py-4">Nenhuma categoria cadastrada.</p>
             )}
 
-            {categories.map((cat) => (
+            {visibleCats.map((cat) => (
               <div key={cat.id}>
                 {editingId === cat.id ? (
                   /* Inline edit form */
@@ -482,7 +499,7 @@ export function SettingsClient({ profile, group, members, pendingInvites, myInvi
             {/* Add new category form */}
             {showAddForm && (
               <>
-                {categories.length > 0 && <Separator />}
+                {visibleCats.length > 0 && <Separator />}
                 <div className="border border-primary/30 rounded-lg p-3 space-y-3 bg-secondary/20">
                   <p className="text-sm font-medium">Nova categoria</p>
                   <div className="grid grid-cols-2 sm:grid-cols-[1fr_80px_44px] gap-2">

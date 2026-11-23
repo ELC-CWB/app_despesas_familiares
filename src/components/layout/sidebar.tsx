@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 import { getInitials } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, LogOut, House, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, ChevronDown, FileText, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Receipt, Banknote, Settings, LogOut, House, PieChart, LineChart, ArrowLeftRight, Wallet, Users, Target, ChevronDown, FileText, type LucideIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type NavLeaf = { href: string; label: string; icon: LucideIcon; exact?: boolean };
@@ -18,6 +18,7 @@ const EXPENSES_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Despesas", icon: Receipt },
+  { href: "/incomes", label: "Receitas", icon: Banknote },
   { href: "/settings", label: "Configurações", icon: Settings },
 ];
 

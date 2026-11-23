@@ -8,6 +8,8 @@ import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { CategoryChart } from "@/components/dashboard/category-chart";
 import { UserChart } from "@/components/dashboard/user-chart";
 import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart";
+import { BalanceCards } from "@/components/dashboard/balance-cards";
+import { IncomeExpenseChart } from "@/components/dashboard/income-expense-chart";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -23,16 +25,19 @@ interface DashboardClientProps {
 export function DashboardClient({ expenses: allExpenses, members, categories, profile, groupName }: DashboardClientProps) {
   const now = new Date();
   const [statusFilter, setStatusFilter] = useState("all");
+  // Lançamentos do grupo: despesas e receitas (registros antigos sem tipo = despesa)
+  const despesasTodas = useMemo(() => allExpenses.filter((e) => (e.type ?? "despesa") === "despesa"), [allExpenses]);
+  const receitas = useMemo(() => allExpenses.filter((e) => e.type === "receita"), [allExpenses]);
   const expenses = useMemo(
-    () => statusFilter === "all" ? allExpenses : allExpenses.filter((e) => (e.status ?? "pago") === statusFilter),
-    [allExpenses, statusFilter]
+    () => statusFilter === "all" ? despesasTodas : despesasTodas.filter((e) => (e.status ?? "pago") === statusFilter),
+    [despesasTodas, statusFilter]
   );
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
   const currentYear = now.getFullYear();
   const years = [...new Set([
-    ...expenses.map((e) => e.payment_year),
+    ...allExpenses.map((e) => e.payment_year),
     currentYear,
   ])].sort((a, b) => b - a);
 
@@ -76,6 +81,11 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
           </Select>
         </div>
 
+        {/* Só aparece quando o grupo tem receitas lançadas; sem receitas o Dashboard fica como sempre foi */}
+        {receitas.length > 0 && (
+          <BalanceCards receitas={receitas} despesas={despesasTodas} month={selectedMonth} year={selectedYear} />
+        )}
+
         <SummaryCards
           expenses={expenses}
           members={members}
@@ -90,6 +100,10 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
         </div>
 
         <MonthlyTrendChart expenses={expenses} year={selectedYear} />
+
+        {receitas.length > 0 && (
+          <IncomeExpenseChart receitas={receitas} despesas={despesasTodas} year={selectedYear} />
+        )}
       </div>
     </>
   );

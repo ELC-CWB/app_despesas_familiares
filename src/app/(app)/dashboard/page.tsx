@@ -32,7 +32,6 @@ export default async function DashboardPage() {
       .from("expenses")
       .select("*, profiles(id, name, email, avatar_url)")
       .eq("group_id", profile.group_id)
-      .eq("type", "despesa")
       .order("date", { ascending: false }),
     supabase
       .from("profiles")

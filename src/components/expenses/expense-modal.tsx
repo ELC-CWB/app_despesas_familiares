@@ -142,7 +142,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="exp-date">Data da despesa</Label>
@@ -154,6 +154,22 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
                 required
               />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="exp-amount">Valor (R$)</Label>
+              <Input
+                id="exp-amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                placeholder="0,00"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Mês de competência</Label>
               <Select
@@ -168,19 +184,18 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Ano</Label>
-            <Select
-              value={String(form.payment_year)}
-              onValueChange={(v) => setForm({ ...form, payment_year: parseInt(v) })}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="space-y-1.5">
+              <Label>Ano</Label>
+              <Select
+                value={String(form.payment_year)}
+                onValueChange={(v) => setForm({ ...form, payment_year: parseInt(v) })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -194,20 +209,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="exp-amount">Valor (R$)</Label>
-            <Input
-              id="exp-amount"
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0,00"
-              value={form.amount}
-              onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              required
-            />
-          </div>
-
+          <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Categoria</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
@@ -231,7 +233,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
           </div>
 
           <div className="space-y-1.5">
-            <Label>Forma de pagamento</Label>
+            <Label>Pagamento</Label>
             <Select
               value={form.payment_method}
               onValueChange={(v) => setForm({ ...form, payment_method: v as PaymentMethod })}
@@ -243,6 +245,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
                 ))}
               </SelectContent>
             </Select>
+          </div>
           </div>
 
           <div className="space-y-1.5">

@@ -64,6 +64,42 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
     onRefresh();
   }
 
+  async function toggleStatus(expense: Expense) {
+    const next = expense.status === "previsto" ? "pago" : "previsto";
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("expenses")
+      .update({ status: next, updated_at: new Date().toISOString() })
+      .eq("id", expense.id);
+    if (error) {
+      toast({ variant: "destructive", title: "Erro ao atualizar", description: error.message });
+      return;
+    }
+    toast({ title: next === "pago" ? "Marcada como paga" : "Marcada como prevista" });
+    onRefresh();
+  }
+
+  function renderStatus(expense: Expense, isOwn: boolean) {
+    const previsto = expense.status === "previsto";
+    const cls = previsto
+      ? "bg-amber-100 text-amber-700 border-amber-200"
+      : "bg-emerald-100 text-emerald-700 border-emerald-200";
+    const label = previsto ? "◷ Prevista" : "✓ Paga";
+    if (!isOwn) {
+      return <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>;
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => toggleStatus(expense)}
+        title={previsto ? "Clique para marcar como paga" : "Clique para marcar como prevista"}
+        className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 ${cls}`}
+      >
+        {label}
+      </button>
+    );
+  }
+
   if (expenses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -86,6 +122,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Descrição</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Categoria</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Pagamento</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-3 px-2">Situação</th>
               <th className="text-right text-xs font-semibold text-muted-foreground pb-3 px-2">Valor</th>
               <th className="pb-3 px-2 w-16" />
             </tr>
@@ -132,6 +169,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
                   <td className="py-3 px-2 text-sm text-muted-foreground">
                     {PAYMENT_METHODS[expense.payment_method] ?? expense.payment_method}
                   </td>
+                  <td className="py-3 px-2">{renderStatus(expense, isOwn)}</td>
                   <td className="py-3 px-2 text-right font-bold text-foreground">
                     {formatCurrency(Number(expense.amount))}
                   </td>
@@ -192,16 +230,19 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
                 <p className="text-sm font-bold text-foreground flex-shrink-0">{formatCurrency(Number(expense.amount))}</p>
               </div>
               <div className="flex items-center justify-between mt-1">
-                <Badge
-                  variant="secondary"
-                  className="text-xs gap-1"
-                  style={{
-                    backgroundColor: category.color + "18",
-                    color: category.color,
-                  }}
-                >
-                  {category.emoji} {category.label}
-                </Badge>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs gap-1"
+                    style={{
+                      backgroundColor: category.color + "18",
+                      color: category.color,
+                    }}
+                  >
+                    {category.emoji} {category.label}
+                  </Badge>
+                  {renderStatus(expense, isOwn)}
+                </div>
                 {isOwn && (
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditExpense(expense)}>

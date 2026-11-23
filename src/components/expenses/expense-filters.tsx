@@ -15,6 +15,7 @@ interface Filters {
   user_id: string;
   search: string;
   amount: string;
+  status: string;
 }
 
 interface ExpenseFiltersProps {
@@ -26,11 +27,11 @@ interface ExpenseFiltersProps {
 }
 
 export function ExpenseFilters({ filters, onChange, members, currentUserId, categories }: ExpenseFiltersProps) {
-  const hasFilters = filters.month || filters.category || filters.user_id || filters.search || filters.amount;
+  const hasFilters = filters.month || filters.category || filters.user_id || filters.search || filters.amount || filters.status;
 
   function reset() {
     const now = new Date();
-    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amount: "" });
+    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amount: "", status: "" });
   }
 
   const currentYear = new Date().getFullYear();
@@ -95,6 +96,15 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
                 {m.name.split(" ")[0]}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={filters.status} onValueChange={(v) => onChange({ ...filters, status: v })}>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Situação" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as situações</SelectItem>
+            <SelectItem value="pago">Pagas</SelectItem>
+            <SelectItem value="previsto">Previstas</SelectItem>
           </SelectContent>
         </Select>
       </div>

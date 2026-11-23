@@ -2,6 +2,13 @@ export type PaymentMethod = "dinheiro" | "debito" | "pix" | "cartao_credito";
 
 export type ExpenseCategory = string;
 
+export type ExpenseStatus = "pago" | "previsto";
+
+export const EXPENSE_STATUS: Record<ExpenseStatus, string> = {
+  pago: "Paga",
+  previsto: "Prevista",
+};
+
 export type PaymentMonth =
   | 1 | 2 | 3 | 4 | 5 | 6
   | 7 | 8 | 9 | 10 | 11 | 12;
@@ -63,6 +70,7 @@ export interface Expense {
   description: string;
   category: string;
   amount: number;
+  status: ExpenseStatus;
   created_at: string;
   updated_at: string;
   profiles?: Profile;

@@ -21,6 +21,10 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear, cat
   );
 
   const totalMonth = filtered.reduce((sum, e) => sum + Number(e.amount), 0);
+  const totalPrevisto = filtered
+    .filter((e) => e.status === "previsto")
+    .reduce((sum, e) => sum + Number(e.amount), 0);
+  const totalPago = totalMonth - totalPrevisto;
 
   const avgPerUser = useMemo(() => {
     const totals = new Map<string, number>();
@@ -50,7 +54,7 @@ export function SummaryCards({ expenses, members, currentMonth, currentYear, cat
     {
       title: "Total do Mês",
       value: formatCurrency(totalMonth),
-      sub: `${filtered.length} lançamentos`,
+      sub: `Pago ${formatCurrency(totalPago)} · Previsto ${formatCurrency(totalPrevisto)}`,
       icon: TrendingDown,
       color: "text-primary",
       bg: "bg-primary/10",

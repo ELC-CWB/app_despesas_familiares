@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Expense, PaymentMethod, Category } from "@/types";
-import { PAYMENT_METHODS, MONTHS } from "@/types";
+import type { Expense, PaymentMethod, Category, ExpenseStatus } from "@/types";
+import { PAYMENT_METHODS, MONTHS, EXPENSE_STATUS } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -44,6 +44,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
     description: "",
     category: "",
     amount: "",
+    status: "pago" as ExpenseStatus,
   });
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
         description: expense.description,
         category: expense.category,
         amount: String(expense.amount),
+        status: expense.status ?? "pago",
       });
     } else {
       setForm({
@@ -66,6 +68,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
         description: "",
         category: categories[0]?.id ?? "",
         amount: "",
+        status: "pago",
       });
     }
   }, [expense, open, categories]);
@@ -94,6 +97,7 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
       description: form.description.trim(),
       category: form.category,
       amount,
+      status: form.status,
       group_id: groupId,
       user_id: userId,
     };
@@ -239,6 +243,22 @@ export function ExpenseModal({ open, onOpenChange, expense, groupId, userId, onS
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Situação</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.entries(EXPENSE_STATUS) as [ExpenseStatus, string][]).map(([key, label]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  variant={form.status === key ? "default" : "outline"}
+                  onClick={() => setForm({ ...form, status: key })}
+                >
+                  {key === "pago" ? "✓ " : "◷ "}{label}
+                </Button>
+              ))}
+            </div>
           </div>
 
           <DialogFooter className="pt-2 gap-2">

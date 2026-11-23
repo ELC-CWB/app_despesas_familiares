@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MONTHS } from "@/types";
 import type { Expense, Profile, Category } from "@/types";
 import { Header } from "@/components/layout/header";
@@ -20,8 +20,13 @@ interface DashboardClientProps {
   groupName: string | null;
 }
 
-export function DashboardClient({ expenses, members, categories, profile, groupName }: DashboardClientProps) {
+export function DashboardClient({ expenses: allExpenses, members, categories, profile, groupName }: DashboardClientProps) {
   const now = new Date();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const expenses = useMemo(
+    () => statusFilter === "all" ? allExpenses : allExpenses.filter((e) => (e.status ?? "pago") === statusFilter),
+    [allExpenses, statusFilter]
+  );
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
@@ -42,7 +47,7 @@ export function DashboardClient({ expenses, members, categories, profile, groupN
         displayYear={selectedYear}
       />
       <div className="p-5 lg:p-8 space-y-6">
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -58,6 +63,15 @@ export function DashboardClient({ expenses, members, categories, profile, groupN
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)}>{y}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Pagas + Previstas</SelectItem>
+              <SelectItem value="pago">Só pagas</SelectItem>
+              <SelectItem value="previsto">Só previstas</SelectItem>
             </SelectContent>
           </Select>
         </div>

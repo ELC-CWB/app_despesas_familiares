@@ -35,6 +35,7 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
     user_id: "",
     search: "",
     amount: "",
+    status: "",
   });
 
   const refresh = useCallback(async () => {
@@ -55,16 +56,22 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
       if (filters.year && String(e.payment_year) !== filters.year) return false;
       if (filters.category && filters.category !== "all" && e.category !== filters.category) return false;
       if (filters.user_id && filters.user_id !== "all" && e.user_id !== filters.user_id) return false;
-      if (filters.search && !e.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
+      if (filters.status && filters.status !== "all" && (e.status ?? "pago") !== filters.status) return false;
+      if (filters.search &&!e.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.amount && !Number(e.amount).toString().includes(filters.amount.replace(",", "."))) return false;
       return true;
     });
   }, [expenses, filters]);
 
-  const total = useMemo(
-    () => filtered.reduce((sum, e) => sum + Number(e.amount), 0),
-    [filtered]
-  );
+  const { total, totalPago, totalPrevisto } = useMemo(() => {
+    let pago = 0;
+    let previsto = 0;
+    filtered.forEach((e) => {
+      if (e.status === "previsto") previsto += Number(e.amount);
+      else pago += Number(e.amount);
+    });
+    return { total: pago + previsto, totalPago: pago, totalPrevisto: previsto };
+  }, [filtered]);
 
   return (
     <>
@@ -82,6 +89,11 @@ export function ExpensesClient({ initialExpenses, members, currentUserId, groupI
           <p className="text-sm text-muted-foreground">
             {filtered.length} despesa{filtered.length !== 1 ? "s" : ""} ·{" "}
             <span className="font-semibold text-foreground">{formatCurrency(total)}</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            <span className="text-emerald-600 font-medium">Pago {formatCurrency(totalPago)}</span>
+            {" · "}
+            <span className="text-amber-600 font-medium">Previsto {formatCurrency(totalPrevisto)}</span>
           </p>
         </div>
         <Button onClick={() => setShowModal(true)} className="gap-2 flex-shrink-0">

@@ -56,24 +56,25 @@ export function MonthlyChart({ receitas, despesas, year, modo }: MonthlyChartPro
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
         <CardTitle className="text-base">Evolução mensal</CardTitle>
         <Select value={visao} onValueChange={(v) => setVisao(v as Visao)}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-28 h-8 text-xs px-2.5 lg:w-40 lg:h-9 lg:text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="ambos">Receitas e Despesas</SelectItem>
-            <SelectItem value="despesas">Somente Despesas</SelectItem>
-            <SelectItem value="receitas">Somente Receitas</SelectItem>
+            <SelectItem value="ambos">Ambos</SelectItem>
+            <SelectItem value="despesas">Despesas</SelectItem>
+            <SelectItem value="receitas">Receitas</SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-1 pb-4 lg:px-6">
         <ResponsiveContainer width="100%" height={260}>
-          <ComposedChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+          <ComposedChart data={data} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis
               tick={{ fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => v === 0 ? "" : `R$${(v / 1000).toFixed(0)}k`}
+              width={36}
+              tickFormatter={(v) => v === 0 ? "" : `${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
               formatter={(value, name) => [formatCurrency(Number(value)), name]}

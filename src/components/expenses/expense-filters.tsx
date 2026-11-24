@@ -15,7 +15,8 @@ interface Filters {
   user_id: string;
   search: string;
   amount: string;
-  status: string;
+  previsto: boolean;
+  realizado: boolean;
 }
 
 interface ExpenseFiltersProps {
@@ -28,11 +29,11 @@ interface ExpenseFiltersProps {
 }
 
 export function ExpenseFilters({ filters, onChange, members, currentUserId, categories, tipo }: ExpenseFiltersProps) {
-  const hasFilters = filters.month || filters.category || filters.user_id || filters.search || filters.amount || filters.status;
+  const hasFilters = filters.month || filters.category || filters.user_id || filters.search || filters.amount || !filters.previsto || !filters.realizado;
 
   function reset() {
     const now = new Date();
-    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amount: "", status: "" });
+    onChange({ month: String(now.getMonth() + 1), year: String(now.getFullYear()), category: "", user_id: "", search: "", amount: "", previsto: true, realizado: true });
   }
 
   const currentYear = new Date().getFullYear();
@@ -40,6 +41,7 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
 
   return (
     <div className="space-y-3">
+<div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border-2 border-emerald-200 bg-emerald-50/70 px-4 py-3">        <span className="text-sm font-semibold text-emerald-900">Mostrar:</span>        <label className="flex items-center gap-2 text-base font-semibold text-amber-700 cursor-pointer select-none">          <input type="checkbox" checked={filters.previsto} onChange={(e) => onChange({ ...filters, previsto: e.target.checked })} className="h-5 w-5 accent-amber-500" />          Previsto        </label>        <label className="flex items-center gap-2 text-base font-semibold text-emerald-700 cursor-pointer select-none">          <input type="checkbox" checked={filters.realizado} onChange={(e) => onChange({ ...filters, realizado: e.target.checked })} className="h-5 w-5 accent-emerald-500" />          Realizado        </label>      </div>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -97,15 +99,6 @@ export function ExpenseFilters({ filters, onChange, members, currentUserId, cate
                 {m.name.split(" ")[0]}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.status} onValueChange={(v) => onChange({ ...filters, status: v })}>
-          <SelectTrigger className="w-full"><SelectValue placeholder="Situação" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as situações</SelectItem>
-            <SelectItem value="pago">{tipo === "receita" ? "Recebidas" : "Pagas"}</SelectItem>
-            <SelectItem value="previsto">Previstas</SelectItem>
           </SelectContent>
         </Select>
       </div>

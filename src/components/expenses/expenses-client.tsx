@@ -38,7 +38,8 @@ export function ExpensesClient({ tipo, initialExpenses, members, currentUserId, 
     user_id: "",
     search: "",
     amount: "",
-    status: "",
+    previsto: true,
+    realizado: true,
   });
 
   const refresh = useCallback(async () => {
@@ -60,7 +61,7 @@ export function ExpensesClient({ tipo, initialExpenses, members, currentUserId, 
       if (filters.year && String(e.payment_year) !== filters.year) return false;
       if (filters.category && filters.category !== "all" && e.category !== filters.category) return false;
       if (filters.user_id && filters.user_id !== "all" && e.user_id !== filters.user_id) return false;
-      if (filters.status && filters.status !== "all" && (e.status ?? "pago") !== filters.status) return false;
+      if (((e.status ?? "pago") === "pago") ? !filters.realizado : !filters.previsto) return false;
       if (filters.search &&!e.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.amount && !Number(e.amount).toString().includes(filters.amount.replace(",", "."))) return false;
       return true;

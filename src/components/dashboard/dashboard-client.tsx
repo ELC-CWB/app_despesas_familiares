@@ -25,10 +25,12 @@ interface DashboardClientProps {
 export function DashboardClient({ expenses: allExpenses, members, categories, profile, groupName }: DashboardClientProps) {
   const now = new Date();
   // Ambos = tudo que está lançado; Previsto = só o ainda não pago/recebido; Realizado = só o já pago/recebido
-  const [modo, setModo] = useState<Modo>("ambos");
+  const [verPrevisto, setVerPrevisto] = useState(true);
+  const [verRealizado, setVerRealizado] = useState(true);
+  const modo: Modo = verPrevisto && !verRealizado ? "previsto" : verRealizado && !verPrevisto ? "realizado" : "ambos";
   const visiveis = useMemo(
-    () => modo === "ambos" ? allExpenses : allExpenses.filter((e) => ((e.status ?? "pago") === "pago") === (modo === "realizado")),
-    [allExpenses, modo]
+    () => allExpenses.filter((e) => ((e.status ?? "pago") === "pago") ? verRealizado : verPrevisto),
+    [allExpenses, verPrevisto, verRealizado]
   );
   // Lançamentos do grupo: despesas e receitas (registros antigos sem tipo = despesa)
   const expenses = useMemo(() => visiveis.filter((e) => (e.type ?? "despesa") === "despesa"), [visiveis]);
@@ -72,14 +74,16 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
             </SelectContent>
           </Select>
 
-          <Select value={modo} onValueChange={(v) => setModo(v as Modo)}>
-            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ambos">Previsto e Realizado</SelectItem>
-              <SelectItem value="previsto">Somente Previsto</SelectItem>
-              <SelectItem value="realizado">Somente Realizado</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-4 h-9 px-1">
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input type="checkbox" checked={verPrevisto} onChange={(e) => setVerPrevisto(e.target.checked)} className="h-4 w-4 accent-amber-500" />
+              Previsto
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input type="checkbox" checked={verRealizado} onChange={(e) => setVerRealizado(e.target.checked)} className="h-4 w-4 accent-emerald-500" />
+              Realizado
+            </label>
+          </div>
         </div>
 
         <BalanceCards receitas={receitas} despesas={expenses} month={selectedMonth} year={selectedYear} modo={modo} />

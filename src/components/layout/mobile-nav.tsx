@@ -18,8 +18,8 @@ type NavItem = NavLeaf | NavGroup;
 const EXPENSES_NAV: NavItem[] = [
   { href: "/", label: "Início", icon: House, exact: true },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/incomes", label: "Receitas", icon: Banknote },
+  { href: "/expenses", label: "Despesas", icon: Receipt },
   { href: "/settings", label: "Config.", icon: Settings },
 ];
 

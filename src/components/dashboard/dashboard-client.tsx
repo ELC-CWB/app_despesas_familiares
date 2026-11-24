@@ -6,10 +6,9 @@ import type { Expense, Profile, Category } from "@/types";
 import { Header } from "@/components/layout/header";
 import { CategoryChart } from "@/components/dashboard/category-chart";
 import { UserChart } from "@/components/dashboard/user-chart";
-import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart";
+import { MonthlyChart } from "@/components/dashboard/monthly-chart";
 import type { Modo } from "@/components/dashboard/balance-cards";
 import { BalanceCards } from "@/components/dashboard/balance-cards";
-import { IncomeExpenseChart } from "@/components/dashboard/income-expense-chart";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -93,11 +92,7 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
           <UserChart expenses={expenses} members={members} month={selectedMonth} year={selectedYear} />
         </div>
 
-        <MonthlyTrendChart expenses={expenses} year={selectedYear} modo={modo} />
-
-        {allExpenses.some((e) => e.type === "receita") && (
-          <IncomeExpenseChart receitas={receitas} despesas={expenses} year={selectedYear} />
-        )}
+        <MonthlyChart receitas={receitas} despesas={expenses} year={selectedYear} modo={modo} />
       </div>
     </>
   );

@@ -54,7 +54,7 @@ export function MonthlyChart({ receitas, despesas, year, modo }: MonthlyChartPro
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-        <CardTitle className="text-base">Evolução Mensal — {year}</CardTitle>
+        <CardTitle className="text-base">Evolução mensal</CardTitle>
         <Select value={visao} onValueChange={(v) => setVisao(v as Visao)}>
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>

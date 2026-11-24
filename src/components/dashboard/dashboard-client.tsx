@@ -85,7 +85,7 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
           </div>
         </div>
 
-        <BalanceCards receitas={receitas} despesas={expenses} month={selectedMonth} year={selectedYear} modo={modo} />
+        <BalanceCards receitas={receitas} despesas={expenses} month={selectedMonth} year={selectedYear} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CategoryChart expenses={expenses} month={selectedMonth} year={selectedYear} categories={categories} />

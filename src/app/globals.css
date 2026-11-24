@@ -162,3 +162,14 @@ button, a, input, select, textarea {
 .animate-fade-in-up-delay-2 { animation-delay: 0.10s; opacity: 0; animation-fill-mode: forwards; animation-name: fadeInUp; animation-duration: 0.5s; }
 .animate-fade-in-up-delay-3 { animation-delay: 0.15s; opacity: 0; animation-fill-mode: forwards; animation-name: fadeInUp; animation-duration: 0.5s; }
 .animate-fade-in-up-delay-4 { animation-delay: 0.20s; opacity: 0; animation-fill-mode: forwards; animation-name: fadeInUp; animation-duration: 0.5s; }
+
+/* Gráficos e cards do dashboard: sem realce/seleção ao tocar (celular) */
+.recharts-wrapper,
+.recharts-wrapper *,
+.recharts-surface,
+.recharts-surface * {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}

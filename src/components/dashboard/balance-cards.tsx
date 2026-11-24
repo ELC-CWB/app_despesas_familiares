@@ -4,73 +4,61 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import type { Expense } from "@/types";
-import { ArrowUpCircle, Wallet, CalendarClock } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Wallet } from "lucide-react";
 
 interface BalanceCardsProps {
+  // Listas já filtradas pela visão selecionada (Previsto ou Realizado)
   receitas: Expense[];
   despesas: Expense[];
   month: number;
   year: number;
+  modo: "previsto" | "realizado";
 }
 
-function soma(lista: Expense[], status: "pago" | "previsto") {
-  return lista
-    .filter((e) => (e.status ?? "pago") === status)
-    .reduce((s, e) => s + Number(e.amount), 0);
-}
-
-export function BalanceCards({ receitas, despesas, month, year }: BalanceCardsProps) {
+export function BalanceCards({ receitas, despesas, month, year, modo }: BalanceCardsProps) {
   const t = useMemo(() => {
-    const doMes = (e: Expense) => e.payment_month === month && e.payment_year === year;
-    const r = receitas.filter(doMes);
-    const d = despesas.filter(doMes);
-    const recebida = soma(r, "pago");
-    const receitaPrevista = soma(r, "previsto");
-    const paga = soma(d, "pago");
-    const despesaPrevista = soma(d, "previsto");
-    return {
-      receitaTotal: recebida + receitaPrevista,
-      recebida,
-      receitaPrevista,
-      saldoRealizado: recebida - paga,
-      saldoPrevisto: recebida + receitaPrevista - (paga + despesaPrevista),
-    };
+    const soma = (lista: Expense[]) =>
+      lista
+        .filter((e) => e.payment_month === month && e.payment_year === year)
+        .reduce((s, e) => s + Number(e.amount), 0);
+    const r = soma(receitas);
+    const d = soma(despesas);
+    return { r, d, saldo: r - d };
   }, [receitas, despesas, month, year]);
 
-  const cor = (v: number) => (v < 0 ? "text-red-600" : "text-foreground");
-
+  const sufixo = modo === "previsto" ? "previstas" : "realizadas";
   const cards = [
     {
-      title: "Receitas do Mês",
-      value: formatCurrency(t.receitaTotal),
+      title: "Receitas",
+      value: formatCurrency(t.r),
       valueClass: "text-foreground",
-      sub: `Recebido ${formatCurrency(t.recebida)} · Previsto ${formatCurrency(t.receitaPrevista)}`,
+      sub: `receitas ${sufixo} do mês`,
       icon: ArrowUpCircle,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
     },
     {
-      title: "Saldo Realizado",
-      value: formatCurrency(t.saldoRealizado),
-      valueClass: cor(t.saldoRealizado),
-      sub: "recebido − pago",
+      title: "Despesas",
+      value: formatCurrency(t.d),
+      valueClass: "text-foreground",
+      sub: `despesas ${sufixo} do mês`,
+      icon: ArrowDownCircle,
+      color: "text-red-500",
+      bg: "bg-red-50",
+    },
+    {
+      title: "Saldo",
+      value: formatCurrency(t.saldo),
+      valueClass: t.saldo < 0 ? "text-red-600" : "text-foreground",
+      sub: `saldo ${modo === "previsto" ? "previsto" : "realizado"} (receitas − despesas)`,
       icon: Wallet,
       color: "text-blue-500",
       bg: "bg-blue-50",
     },
-    {
-      title: "Saldo Previsto",
-      value: formatCurrency(t.saldoPrevisto),
-      valueClass: cor(t.saldoPrevisto),
-      sub: "receitas − despesas do mês",
-      icon: CalendarClock,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
-    },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 lg:gap-4">
+    <div className="grid grid-cols-3 gap-2 lg:gap-4">
       {cards.map((card) => (
         <Card key={card.title} className="hover:shadow-md transition-shadow">
           <CardContent className="p-3 lg:p-5">
@@ -81,7 +69,7 @@ export function BalanceCards({ receitas, despesas, month, year }: BalanceCardsPr
               </div>
             </div>
             <p className={`text-sm lg:text-xl font-bold leading-tight break-all ${card.valueClass}`}>{card.value}</p>
-            <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 lg:mt-1">{card.sub}</p>
+            <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 lg:mt-1 leading-tight">{card.sub}</p>
           </CardContent>
         </Card>
       ))}

@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { MONTHS } from "@/types";
 import type { Expense, Profile, Category } from "@/types";
 import { Header } from "@/components/layout/header";
-import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { CategoryChart } from "@/components/dashboard/category-chart";
 import { UserChart } from "@/components/dashboard/user-chart";
 import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart";
@@ -24,14 +23,15 @@ interface DashboardClientProps {
 
 export function DashboardClient({ expenses: allExpenses, members, categories, profile, groupName }: DashboardClientProps) {
   const now = new Date();
-  const [statusFilter, setStatusFilter] = useState("all");
-  // Lançamentos do grupo: despesas e receitas (registros antigos sem tipo = despesa)
-  const despesasTodas = useMemo(() => allExpenses.filter((e) => (e.type ?? "despesa") === "despesa"), [allExpenses]);
-  const receitas = useMemo(() => allExpenses.filter((e) => e.type === "receita"), [allExpenses]);
-  const expenses = useMemo(
-    () => statusFilter === "all" ? despesasTodas : despesasTodas.filter((e) => (e.status ?? "pago") === statusFilter),
-    [despesasTodas, statusFilter]
+  // Previsto = tudo que está lançado (pago/recebido + previsto); Realizado = só o já pago/recebido
+  const [modo, setModo] = useState<"previsto" | "realizado">("previsto");
+  const visiveis = useMemo(
+    () => modo === "previsto" ? allExpenses : allExpenses.filter((e) => (e.status ?? "pago") === "pago"),
+    [allExpenses, modo]
   );
+  // Lançamentos do grupo: despesas e receitas (registros antigos sem tipo = despesa)
+  const expenses = useMemo(() => visiveis.filter((e) => (e.type ?? "despesa") === "despesa"), [visiveis]);
+  const receitas = useMemo(() => visiveis.filter((e) => e.type === "receita"), [visiveis]);
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
@@ -71,28 +71,16 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
             </SelectContent>
           </Select>
 
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <Select value={modo} onValueChange={(v) => setModo(v as "previsto" | "realizado")}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Pagas + Previstas</SelectItem>
-              <SelectItem value="pago">Só pagas</SelectItem>
-              <SelectItem value="previsto">Só previstas</SelectItem>
+              <SelectItem value="previsto">Previsto</SelectItem>
+              <SelectItem value="realizado">Realizado</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Só aparece quando o grupo tem receitas lançadas; sem receitas o Dashboard fica como sempre foi */}
-        {receitas.length > 0 && (
-          <BalanceCards receitas={receitas} despesas={despesasTodas} month={selectedMonth} year={selectedYear} />
-        )}
-
-        <SummaryCards
-          expenses={expenses}
-          members={members}
-          currentMonth={selectedMonth}
-          currentYear={selectedYear}
-          categories={categories}
-        />
+        <BalanceCards receitas={receitas} despesas={expenses} month={selectedMonth} year={selectedYear} modo={modo} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CategoryChart expenses={expenses} month={selectedMonth} year={selectedYear} categories={categories} />
@@ -101,8 +89,8 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
 
         <MonthlyTrendChart expenses={expenses} year={selectedYear} />
 
-        {receitas.length > 0 && (
-          <IncomeExpenseChart receitas={receitas} despesas={despesasTodas} year={selectedYear} />
+        {allExpenses.some((e) => e.type === "receita") && (
+          <IncomeExpenseChart receitas={receitas} despesas={expenses} year={selectedYear} />
         )}
       </div>
     </>

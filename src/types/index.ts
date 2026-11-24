@@ -7,8 +7,8 @@ export type ExpenseCategory = string;
 export type ExpenseStatus = "pago" | "previsto";
 
 export const EXPENSE_STATUS: Record<ExpenseStatus, string> = {
-  pago: "Paga",
-  previsto: "Prevista",
+  pago: "Realizado",
+  previsto: "Previsto",
 };
 
 // Textos que mudam entre despesa e receita
@@ -18,11 +18,11 @@ export const TIPO_TEXTOS: Record<ExpenseType, {
 }> = {
   despesa: {
     titulo: "Despesas", singular: "despesa", plural: "despesas", novo: "Nova despesa",
-    pessoa: "Pagador", meio: "Forma de pagamento", status: { pago: "Paga", previsto: "Prevista" },
+    pessoa: "Pagador", meio: "Forma de pagamento", status: { pago: "Realizado", previsto: "Previsto" },
   },
   receita: {
     titulo: "Receitas", singular: "receita", plural: "receitas", novo: "Nova receita",
-    pessoa: "Recebedor", meio: "Recebimento", status: { pago: "Recebida", previsto: "Prevista" },
+    pessoa: "Recebedor", meio: "Recebimento", status: { pago: "Realizado", previsto: "Previsto" },
   },
 };
 

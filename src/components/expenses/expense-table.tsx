@@ -94,7 +94,7 @@ export function ExpenseTable({ expenses, currentUserId, groupId, onRefresh, cate
       <button
         type="button"
         onClick={() => toggleStatus(expense)}
-        title={previsto ? `Clique para marcar como ${textos.status.pago.toLowerCase()}` : "Clique para marcar como prevista"}
+        title={previsto ? `Clique para marcar como ${textos.status.pago.toLowerCase()}` : "Clique para marcar como previsto"}
         className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 ${cls}`}
       >
         {label}

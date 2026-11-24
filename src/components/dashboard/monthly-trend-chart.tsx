@@ -10,9 +10,10 @@ import { MONTHS } from "@/types";
 interface MonthlyTrendChartProps {
   expenses: Expense[];
   year: number;
+  modo?: "ambos" | "previsto" | "realizado";
 }
 
-export function MonthlyTrendChart({ expenses, year }: MonthlyTrendChartProps) {
+export function MonthlyTrendChart({ expenses, year, modo = "ambos" }: MonthlyTrendChartProps) {
   const data = useMemo(() => {
     const filtered = expenses.filter((e) => e.payment_year === year);
     return Array.from({ length: 12 }, (_, i) => {
@@ -51,8 +52,8 @@ export function MonthlyTrendChart({ expenses, year }: MonthlyTrendChartProps) {
               cursor={{ fill: "hsl(var(--secondary))" }}
             />
             <Legend wrapperStyle={{ fontSize: "12px" }} />
-            <Bar dataKey="pago" name="Pago" stackId="a" fill="#10b981" />
-            <Bar dataKey="previsto" name="Previsto" stackId="a" fill="#fbbf24" radius={[4, 4, 0, 0]} />
+            {modo !== "previsto" && <Bar dataKey="pago" name="Realizado" stackId="a" fill="#10b981" radius={modo === "realizado" ? [4, 4, 0, 0] : undefined} />}
+            {modo !== "realizado" && <Bar dataKey="previsto" name="Previsto" stackId="a" fill="#fbbf24" radius={[4, 4, 0, 0]} />}
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

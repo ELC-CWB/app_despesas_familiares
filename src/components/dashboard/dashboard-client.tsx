@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header";
 import { CategoryChart } from "@/components/dashboard/category-chart";
 import { UserChart } from "@/components/dashboard/user-chart";
 import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart";
+import type { Modo } from "@/components/dashboard/balance-cards";
 import { BalanceCards } from "@/components/dashboard/balance-cards";
 import { IncomeExpenseChart } from "@/components/dashboard/income-expense-chart";
 import {
@@ -23,10 +24,10 @@ interface DashboardClientProps {
 
 export function DashboardClient({ expenses: allExpenses, members, categories, profile, groupName }: DashboardClientProps) {
   const now = new Date();
-  // Previsto = tudo que está lançado (pago/recebido + previsto); Realizado = só o já pago/recebido
-  const [modo, setModo] = useState<"previsto" | "realizado">("previsto");
+  // Ambos = tudo que está lançado; Previsto = só o ainda não pago/recebido; Realizado = só o já pago/recebido
+  const [modo, setModo] = useState<Modo>("ambos");
   const visiveis = useMemo(
-    () => modo === "previsto" ? allExpenses : allExpenses.filter((e) => (e.status ?? "pago") === "pago"),
+    () => modo === "ambos" ? allExpenses : allExpenses.filter((e) => ((e.status ?? "pago") === "pago") === (modo === "realizado")),
     [allExpenses, modo]
   );
   // Lançamentos do grupo: despesas e receitas (registros antigos sem tipo = despesa)
@@ -71,11 +72,12 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
             </SelectContent>
           </Select>
 
-          <Select value={modo} onValueChange={(v) => setModo(v as "previsto" | "realizado")}>
-            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <Select value={modo} onValueChange={(v) => setModo(v as Modo)}>
+            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="previsto">Previsto</SelectItem>
-              <SelectItem value="realizado">Realizado</SelectItem>
+              <SelectItem value="ambos">Previsto e Realizado</SelectItem>
+              <SelectItem value="previsto">Somente Previsto</SelectItem>
+              <SelectItem value="realizado">Somente Realizado</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -87,7 +89,7 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
           <UserChart expenses={expenses} members={members} month={selectedMonth} year={selectedYear} />
         </div>
 
-        <MonthlyTrendChart expenses={expenses} year={selectedYear} />
+        <MonthlyTrendChart expenses={expenses} year={selectedYear} modo={modo} />
 
         {allExpenses.some((e) => e.type === "receita") && (
           <IncomeExpenseChart receitas={receitas} despesas={expenses} year={selectedYear} />

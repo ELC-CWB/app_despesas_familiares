@@ -6,13 +6,15 @@ import { formatCurrency } from "@/lib/utils";
 import type { Expense } from "@/types";
 import { ArrowUpCircle, ArrowDownCircle, Wallet } from "lucide-react";
 
+export type Modo = "ambos" | "previsto" | "realizado";
+
 interface BalanceCardsProps {
   // Listas já filtradas pela visão selecionada (Previsto ou Realizado)
   receitas: Expense[];
   despesas: Expense[];
   month: number;
   year: number;
-  modo: "previsto" | "realizado";
+  modo: Modo;
 }
 
 export function BalanceCards({ receitas, despesas, month, year, modo }: BalanceCardsProps) {
@@ -26,7 +28,7 @@ export function BalanceCards({ receitas, despesas, month, year, modo }: BalanceC
     return { r, d, saldo: r - d };
   }, [receitas, despesas, month, year]);
 
-  const sufixo = modo === "previsto" ? "previstas" : "realizadas";
+  const sufixo = modo === "previsto" ? "previstas" : modo === "realizado" ? "realizadas" : "lançadas";
   const cards = [
     {
       title: "Receitas",
@@ -50,7 +52,7 @@ export function BalanceCards({ receitas, despesas, month, year, modo }: BalanceC
       title: "Saldo",
       value: formatCurrency(t.saldo),
       valueClass: t.saldo < 0 ? "text-red-600" : "text-foreground",
-      sub: `saldo ${modo === "previsto" ? "previsto" : "realizado"} (receitas − despesas)`,
+      sub: `saldo${modo === "previsto" ? " previsto" : modo === "realizado" ? " realizado" : ""} (receitas − despesas)`,
       icon: Wallet,
       color: "text-blue-500",
       bg: "bg-blue-50",

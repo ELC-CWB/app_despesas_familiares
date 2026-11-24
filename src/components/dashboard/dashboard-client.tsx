@@ -89,7 +89,7 @@ export function DashboardClient({ expenses: allExpenses, members, categories, pr
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CategoryChart expenses={expenses} month={selectedMonth} year={selectedYear} categories={categories} />
-          <UserChart expenses={expenses} members={members} month={selectedMonth} year={selectedYear} />
+          <UserChart receitas={receitas} despesas={expenses} members={members} month={selectedMonth} year={selectedYear} />
         </div>
 
         <MonthlyChart receitas={receitas} despesas={expenses} year={selectedYear} modo={modo} />

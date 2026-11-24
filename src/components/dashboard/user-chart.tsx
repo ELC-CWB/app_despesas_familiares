@@ -1,17 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Rectangle } from "recharts";
 import type { BarShapeProps } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, getInitials } from "@/lib/utils";
 import type { Expense, Profile } from "@/types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"];
 
 interface UserChartProps {
-  expenses: Expense[];
+  receitas: Expense[];
+  despesas: Expense[];
   members: Profile[];
   month: number;
   year: number;
@@ -30,7 +32,19 @@ function renderBar(props: BarShapeProps) {
   );
 }
 
-export function UserChart({ expenses, members, month, year }: UserChartProps) {
+export function UserChart({ receitas, despesas, members, month, year }: UserChartProps) {
+  const [visao, setVisao] = useState<"despesas" | "receitas">("despesas");
+  const expenses = visao === "despesas" ? despesas : receitas;
+  const titulo = visao === "despesas" ? "Despesas por Membro" : "Receitas por Membro";
+  const seletor = (
+    <Select value={visao} onValueChange={(v) => setVisao(v as "despesas" | "receitas")}>
+      <SelectTrigger className="w-28 h-8 text-xs px-2.5 lg:w-32 lg:text-sm"><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value="despesas">Despesas</SelectItem>
+        <SelectItem value="receitas">Receitas</SelectItem>
+      </SelectContent>
+    </Select>
+  );
   const data = useMemo(() => {
     const filtered = expenses.filter((e) => e.payment_month === month && e.payment_year === year);
     return members
@@ -52,8 +66,9 @@ export function UserChart({ expenses, members, month, year }: UserChartProps) {
   if (data.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Gastos por Membro</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+          <CardTitle className="text-base">{titulo}</CardTitle>
+        {seletor}
         </CardHeader>
         <CardContent className="flex items-center justify-center h-48 text-muted-foreground text-sm">
           Sem dados para este período
@@ -64,8 +79,9 @@ export function UserChart({ expenses, members, month, year }: UserChartProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Gastos por Membro</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+        <CardTitle className="text-base">{titulo}</CardTitle>
+        {seletor}
       </CardHeader>
       <CardContent>
         <div style={{ WebkitTapHighlightColor: "transparent" }}>
